@@ -18,8 +18,7 @@ import androidx.room.PrimaryKey
 data class StockEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val wineId: Int,
-
-    val quantity: Int,
-    val placement: String,
+    val shelf: Int,
+    val position: Int,
     val date: Long
 )
