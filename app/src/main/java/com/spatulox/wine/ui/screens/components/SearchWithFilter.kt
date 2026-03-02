@@ -9,6 +9,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -76,42 +77,36 @@ fun SearchWithFilters(
     var searchText by remember { mutableStateOf("") }
     var selectedField by remember { mutableStateOf("name") }
 
-
     val filterFields = listOf(
         "name" to Icons.Filled.Person,
         "year" to Icons.Filled.DateRange,
         "format" to Icons.Filled.WineBar
     )
 
-    // FAB qui reste carré ET s'allonge horizontalement sur clic
+    // FAB (inchangé - row pleine largeur)
     FloatingActionButton(
         onClick = {
             onExpandedChange(!isExpanded)
             if (!isExpanded) {
-                //searchText = ""
+                searchText = ""
                 isFilterPopupVisible = false
-                //wineViewModel.clearFilter()
-                //stockViewModel.clearFilter()
-                //historyViewModel.clearFilter()
+                wineViewModel.clearFilter()
+                stockViewModel.clearFilter()
+                historyViewModel.clearFilter()
             }
         },
         modifier = modifier.padding(16.dp),
         containerColor = MaterialTheme.colorScheme.primary,
         shape = MaterialTheme.shapes.large
     ) {
-        AnimatedContent(
-            targetState = isExpanded,
-            label = "fab_animation"
-        ) { expanded ->
+        AnimatedContent(targetState = isExpanded, label = "fab_animation") { expanded ->
             if (expanded) {
-                // ÉTAT ÉTENDU : champ recherche + filtres
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth(1f - (32f/392f))
+                        .fillMaxWidth(1f - (32f/392f))  // ← INCHANGÉ : pleine largeur
                         .padding(start = 8.dp, end = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    // Champ de recherche (prend tout l'espace)
                     OutlinedTextField(
                         value = searchText,
                         onValueChange = { text ->
@@ -121,10 +116,8 @@ fun SearchWithFilters(
                             stockViewModel.updateFilter(filter)
                             historyViewModel.updateFilter(filter)
                         },
-                        placeholder = { Text("Rechercher...") },
-                        leadingIcon = {
-                            Icon(Icons.Filled.Search, contentDescription = null)
-                        },
+                        placeholder = { Text("Rechercher...", color = Color.Gray) },
+                        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
                         modifier = Modifier.weight(1f),
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
@@ -132,11 +125,12 @@ fun SearchWithFilters(
                             unfocusedContainerColor = Color.Transparent,
                             focusedBorderColor = Color.Transparent,
                             disabledBorderColor = Color.Transparent,
-                            unfocusedBorderColor = Color.Transparent
+                            unfocusedBorderColor = Color.Transparent,
+                            focusedTextColor = MaterialTheme.colorScheme.onPrimary,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onPrimary
                         )
                     )
 
-                    // Icône filtres
                     IconButton(
                         onClick = { isFilterPopupVisible = true },
                         modifier = Modifier.size(32.dp)
@@ -149,7 +143,6 @@ fun SearchWithFilters(
                     }
                 }
             } else {
-                // ÉTAT COMPACT : juste loupe
                 Icon(
                     Icons.Default.Search,
                     contentDescription = "Rechercher",
