@@ -5,5 +5,5 @@ import com.spatulox.wine.data.repository.HistoryRepositoryImpl
 
 open class HistoryViewModel(
     private val historyRepository: HistoryRepositoryImpl
-): ViewModel() {
+): FilterViewModel() {
 }
