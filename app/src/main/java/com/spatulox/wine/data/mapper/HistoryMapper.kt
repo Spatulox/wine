@@ -1,6 +1,7 @@
 package com.spatulox.wine.data.mapper
 
 import com.spatulox.wine.data.db.entity.HistoryEntity
+import com.spatulox.wine.domain.enum.HistoryType
 import com.spatulox.wine.domain.model.History
 
 object HistoryMapper {
@@ -8,6 +9,7 @@ object HistoryMapper {
         return History(
             id = entity.id,
             wineId = entity.wineId,
+            type = HistoryType.valueOf(entity.type),
             date = entity.date,
             reason = entity.reason
         )
@@ -17,6 +19,7 @@ object HistoryMapper {
         return HistoryEntity(
             id = history.id,
             wineId = history.wineId,
+            type = history.type.name,
             date = history.date,
             reason = history.reason
         )

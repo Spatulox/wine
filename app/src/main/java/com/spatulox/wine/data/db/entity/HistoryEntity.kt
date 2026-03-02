@@ -18,6 +18,7 @@ import androidx.room.PrimaryKey
 data class HistoryEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val wineId: Int,
+    val type: String,
     val date: Long,
-    val reason: String
+    val reason: String?
 )

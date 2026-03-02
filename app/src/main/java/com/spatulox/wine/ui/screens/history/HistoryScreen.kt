@@ -1,4 +1,4 @@
-package com.spatulox.wine.ui.screens
+package com.spatulox.wine.ui.screens.history
 
 import androidx.compose.runtime.Composable
 import com.spatulox.wine.viewModels.HistoryViewModel

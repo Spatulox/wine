@@ -37,7 +37,7 @@ class StockRepositoryImpl(
             val history = HistoryMapper.toEntity(
                 History(
                     wineId = stock.wineId,
-                    quantity = -1,
+                    type = HistoryType.WITHDRAW,
                     date = System.currentTimeMillis(),
                     reason = reason
                 )
