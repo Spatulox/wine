@@ -10,8 +10,9 @@ class HistoryRepositoryImpl(private val historyDao: HistoryDao): HistoryReposito
         return historyDao.getHistory().map { HistoryMapper.toDomain(it) }
     }
 
-    override suspend fun getHistoryById(id: Int): History {
-        return HistoryMapper.toDomain(historyDao.getHistoryById(id))
+    override suspend fun getHistoryById(id: Int): History? {
+        val entity = historyDao.getHistoryById(id)
+        return entity?.let { HistoryMapper.toDomain(it) }
     }
 
     override suspend fun insert(history: History): Long {
