@@ -7,14 +7,20 @@ class HistoryMapper {
     fun toDomain(entity: HistoryEntity): History {
         return History(
             id = entity.id,
-            date = entity.date
+            wineId = entity.wineId,
+            quantity = entity.quantity,
+            date = entity.date,
+            reason = entity.reason
         )
     }
 
     fun toEntity(history: History): HistoryEntity{
         return HistoryEntity(
             id = history.id,
-            date = history.date
+            wineId = history.wineId,
+            quantity = history.quantity,
+            date = history.date,
+            reason = history.reason
         )
     }
 }
