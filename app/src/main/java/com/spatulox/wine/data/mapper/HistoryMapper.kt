@@ -8,7 +8,6 @@ object HistoryMapper {
         return History(
             id = entity.id,
             wineId = entity.wineId,
-            quantity = entity.quantity,
             date = entity.date,
             reason = entity.reason
         )
@@ -18,7 +17,6 @@ object HistoryMapper {
         return HistoryEntity(
             id = history.id,
             wineId = history.wineId,
-            quantity = history.quantity,
             date = history.date,
             reason = history.reason
         )

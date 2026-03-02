@@ -11,7 +11,7 @@ interface HistoryDao {
     @Query("SELECT * FROM history ORDER BY date DESC")
     suspend fun getHistory(): List<HistoryEntity>
 
-    @Query("SELECT * FROM history WHERE id=id")
+    @Query("SELECT * FROM history WHERE id= :id")
     suspend fun getHistoryById(id: Int): HistoryEntity?
 
     @Insert
