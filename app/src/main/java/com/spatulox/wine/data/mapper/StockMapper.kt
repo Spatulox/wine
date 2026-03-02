@@ -3,7 +3,7 @@ package com.spatulox.wine.data.mapper
 import com.spatulox.wine.data.db.entity.StockEntity
 import com.spatulox.wine.domain.model.Stock
 
-class StockMapper {
+object StockMapper {
     fun toDomain(entity: StockEntity): Stock = Stock(
         id = entity.id,
         wineId = entity.wineId,

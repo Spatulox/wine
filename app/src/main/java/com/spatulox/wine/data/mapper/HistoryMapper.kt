@@ -3,7 +3,7 @@ package com.spatulox.wine.data.mapper
 import com.spatulox.wine.data.db.entity.HistoryEntity
 import com.spatulox.wine.domain.model.History
 
-class HistoryMapper {
+object HistoryMapper {
     fun toDomain(entity: HistoryEntity): History {
         return History(
             id = entity.id,

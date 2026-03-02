@@ -4,9 +4,7 @@ import com.spatulox.wine.data.db.entity.WineEntity
 import com.spatulox.wine.domain.enum.WineFormat
 import com.spatulox.wine.domain.model.Wine
 
-class WineMapper {
-
-
+object WineMapper {
     fun toDomain(entity: WineEntity): Wine {
         return Wine(
             id = entity.id,
