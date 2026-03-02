@@ -1,10 +1,16 @@
 package com.spatulox.wine.ui.screens
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -15,6 +21,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import com.spatulox.wine.ui.screens.components.SearchWithFilters
 import com.spatulox.wine.ui.screens.history.HistoryScreen
@@ -31,10 +39,28 @@ fun MainMenu(
     historyViewModel: HistoryViewModel
 ) {
     var selectedTabIndex by remember { mutableStateOf(0) }
-
     val tabs = listOf("Shelves", "Wines", "History")
 
+
+
+    var isFabExpanded by remember { mutableStateOf(false) }
+
     Scaffold(
+        floatingActionButton = {
+            SearchWithFilters(
+                wineViewModel = wineViewModel,
+                stockViewModel = stockViewModel,
+                historyViewModel = historyViewModel,
+                isExpanded = isFabExpanded,
+                onExpandedChange = { expanded ->
+                    isFabExpanded = expanded
+                },
+                onOutsideClick = {
+                    isFabExpanded = false
+                }
+            )
+        },
+        floatingActionButtonPosition = FabPosition.End,
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -61,31 +87,23 @@ fun MainMenu(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
+                    .pointerInput(isFabExpanded) {
+                        if (isFabExpanded) {
+                            detectTapGestures(onTap = { isFabExpanded = false })
+                        }
+                    }
             ) {
                 when (selectedTabIndex) {
                     0 -> OverviewScreen(
                         stockViewModel = stockViewModel,
                         wineViewModel = wineViewModel
                     )
+
                     1 -> HistoryScreen(historyViewModel = historyViewModel)
                     2 -> WineScreen(wineViewModel = wineViewModel)
                     else -> Text("Écran non implémenté")
                 }
             }
-
-            /*// Contenu qui change selon le tab sélectionné
-            when (selectedTabIndex) {
-                0 -> OverviewScreen(stockViewModel = stockViewModel, wineViewModel = wineViewModel)
-                1 -> HistoryScreen(historyViewModel = historyViewModel)
-                2 -> WineScreen(wineViewModel = wineViewModel)
-                else -> Text("Écran non implémenté")
-            }*/
-
-            SearchWithFilters(
-                wineViewModel = wineViewModel,
-                stockViewModel = stockViewModel,
-                historyViewModel = historyViewModel
-            )
         }
     }
 }
