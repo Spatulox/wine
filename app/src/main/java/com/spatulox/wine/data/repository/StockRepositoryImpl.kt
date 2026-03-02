@@ -27,9 +27,9 @@ class StockRepositoryImpl(
         return entity?.let { StockMapper.toDomain(it) }
     }
 
-    override suspend fun insert(stock: Stock): Long {
-        val entity = StockMapper.toEntity(stock)
-        return stockDao.insert(entity)
+    override fun getStockStream(): Flow<List<Stock>> {
+        return stockDao.getStockStream().map { entities -> entities.map { StockMapper.toDomain(it) } }
+    }
     }
 
     override suspend fun withdraw(stock: Stock, reason: String): Long {

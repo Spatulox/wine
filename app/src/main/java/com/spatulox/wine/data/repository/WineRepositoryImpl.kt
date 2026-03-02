@@ -1,9 +1,13 @@
 package com.spatulox.wine.data.repository
 
 import com.spatulox.wine.data.db.dao.WineDao
+import com.spatulox.wine.data.mapper.StockMapper
 import com.spatulox.wine.data.mapper.WineMapper
+import com.spatulox.wine.domain.model.Stock
 import com.spatulox.wine.domain.model.Wine
 import com.spatulox.wine.domain.repository.WineRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 class WineRepositoryImpl(
     private val wineDao: WineDao,
@@ -20,6 +24,10 @@ class WineRepositoryImpl(
 
     override suspend fun getWinesByYear(year: Int): List<Wine> {
         return wineDao.getByYear(year).map { WineMapper.toDomain(it) }
+    }
+
+    override fun getWineStream(): Flow<List<Wine>> {
+        return wineDao.getWineStream().map { entities -> entities.map { WineMapper.toDomain(it) } }
     }
 
     override suspend fun searchWines(query: String): List<Wine> {
