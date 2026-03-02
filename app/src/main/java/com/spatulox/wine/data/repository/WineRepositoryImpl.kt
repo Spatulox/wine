@@ -1,7 +1,47 @@
 package com.spatulox.wine.data.repository
 
 import com.spatulox.wine.data.db.dao.WineDao
+import com.spatulox.wine.data.mapper.WineMapper
+import com.spatulox.wine.domain.model.Wine
 import com.spatulox.wine.domain.repository.WineRepository
 
-class WineRepositoryImpl(private val wineDao: WineDao): WineRepository {
+class WineRepositoryImpl(
+    private val wineDao: WineDao,
+) : WineRepository {
+
+    override suspend fun getWine(): List<Wine> {
+        return wineDao.getWine().map { WineMapper.toDomain(it) }
+    }
+
+    override suspend fun getWineById(id: Int): Wine? {
+        val entity = wineDao.getById(id)
+        return entity?.let { WineMapper.toDomain(it) }
+    }
+
+    override suspend fun getWinesByYear(year: Int): List<Wine> {
+        return wineDao.getByYear(year).map { WineMapper.toDomain(it) }
+    }
+
+    override suspend fun searchWines(query: String): List<Wine> {
+        return wineDao.search(query).map { WineMapper.toDomain(it) }
+    }
+
+    override suspend fun insert(wine: Wine): Long {
+        val entity = WineMapper.toEntity(wine)
+        return wineDao.insert(entity)
+    }
+
+    override suspend fun delete(wineId: Int) {
+        wineDao.deleteById(wineId)
+    }
+
+    override suspend fun delete(wine: Wine) {
+        val entity = WineMapper.toEntity(wine)
+        wineDao.delete(entity)
+    }
+
+    override suspend fun update(wine: Wine): Int {
+        val entity = WineMapper.toEntity(wine)
+        return wineDao.update(entity)
+    }
 }
