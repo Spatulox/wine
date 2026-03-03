@@ -22,7 +22,7 @@ interface WineDao {
     @Query("SELECT * FROM wine WHERE year = :year ORDER BY name ASC")
     suspend fun getByYear(year: Int): List<WineEntity>
 
-    @Query("SELECT * FROM wine")
+    @Query("SELECT * FROM wine ORDER BY name ASC")
     fun getWineStream(): Flow<List<WineEntity>>
 
     @Query("SELECT * FROM wine WHERE name LIKE '%' || :query || '%' OR year = :query")
