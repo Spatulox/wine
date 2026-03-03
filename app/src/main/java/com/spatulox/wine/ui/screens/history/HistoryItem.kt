@@ -32,6 +32,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.spatulox.wine.domain.enum.HistoryType
 import com.spatulox.wine.domain.model.History
+import com.spatulox.wine.domain.model.HistoryWithWine
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -39,9 +40,9 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistoryItem(
-    item: History,
+    item: HistoryWithWine,
     modifier: Modifier = Modifier,
-    onClick: (History) -> Unit = {}
+    onClick: (HistoryWithWine) -> Unit = {}
 ) {
     Card(
         modifier = modifier
@@ -119,6 +120,30 @@ fun HistoryItem(
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f)
                     )
+                }
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = item.wine.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = item.wine.type.displayName,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = item.wine.year.toString(),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
         }
