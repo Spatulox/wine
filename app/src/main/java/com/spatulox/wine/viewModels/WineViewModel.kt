@@ -1,5 +1,6 @@
 package com.spatulox.wine.viewModels
 
+import androidx.compose.ui.text.toLowerCase
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.spatulox.wine.data.repository.WineRepositoryImpl
@@ -17,6 +18,16 @@ open class WineViewModel(
     val wines: StateFlow<Map<Int, Wine>> =
         wineRepository.getWineStream()
             .map { wines -> wines.associateBy { it.id } }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    val winesByYear: StateFlow<Map<Int, Wine>> =
+        wineRepository.getWineStream()
+            .map { wines ->
+                wines
+                    //.sortedByDescending { it.year }
+                    .sortedWith(compareByDescending<Wine> { it.year }.thenBy { it.name.lowercase() })
+                    .associateBy { it.id }
+            }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
     suspend fun addWine(wine: Wine){

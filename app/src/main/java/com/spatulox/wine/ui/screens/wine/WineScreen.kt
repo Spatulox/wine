@@ -23,6 +23,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.spatulox.wine.domain.enum.WineFormat
+import com.spatulox.wine.domain.enum.WineType
 import com.spatulox.wine.domain.model.Wine
 import com.spatulox.wine.ui.screens.components.AddButton
 import com.spatulox.wine.viewModels.WineViewModel
@@ -68,6 +70,7 @@ fun WineScreen(
                     name = "Château Margaux",
                     year = 2018,
                     format = WineFormat.BOTTLE,
+                    type = WineType.ROUGE,
                     stars = 5
                 ),
                 2 to Wine(
@@ -75,6 +78,7 @@ fun WineScreen(
                     name = "Domaine Romanée-Conti",
                     year = 2015,
                     format = WineFormat.MAGNUM,
+                    type = WineType.ROUGE,
                     stars = 4
                 ),
                 3 to Wine(
@@ -82,6 +86,7 @@ fun WineScreen(
                     name = "Pétrus",
                     year = 2020,
                     format = WineFormat.BOTTLE,
+                    type = WineType.ROUGE,
                     stars = 5
                 ),
                 4 to Wine(
@@ -89,6 +94,7 @@ fun WineScreen(
                     name = "Bordeaux Supérieur",
                     year = 2022,
                     format = WineFormat.BOTTLE,
+                    type = WineType.ROUGE,
                     stars = 3
                 )
             )
@@ -98,6 +104,7 @@ fun WineScreen(
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         itemsIndexed(
             wines.values.toList(),

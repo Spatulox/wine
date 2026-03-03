@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.spatulox.wine.domain.enum.WineFormat
+import com.spatulox.wine.domain.enum.WineType
 import com.spatulox.wine.domain.model.Wine
 import kotlin.math.roundToInt
 
@@ -40,6 +41,7 @@ fun WineAddDialog(
     onValidate: (Wine) -> Unit
 ) {
     var name by remember { mutableStateOf("") }
+    var type by remember { mutableStateOf(WineType.ROUGE) }
     var year by remember { mutableStateOf(2023) }
     var stars by remember { mutableStateOf(0) }
     var format by remember { mutableStateOf(WineFormat.BOTTLE) }
@@ -113,6 +115,37 @@ fun WineAddDialog(
                     }
                 }
 
+                var expandedType by remember { mutableStateOf(false) }
+                ExposedDropdownMenuBox(
+                    expanded = expandedType,
+                    onExpandedChange = { expandedType = !expandedType }
+                ) {
+                    OutlinedTextField(
+                        value = type.name,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Type") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedType) },
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = expandedType,
+                        onDismissRequest = { expandedType = false }
+                    ) {
+                        WineType.entries.forEach { wineType ->
+                            DropdownMenuItem(
+                                text = { Text(wineType.name) },
+                                onClick = {
+                                    type = wineType
+                                    expandedType = false
+                                }
+                            )
+                        }
+                    }
+                }
+
                 // Étoiles (slider)
                 Column {
                     Row(
@@ -141,6 +174,7 @@ fun WineAddDialog(
                                 name = name,
                                 year = year,
                                 format = format,
+                                type = type,
                                 stars = stars
                             )
                         )

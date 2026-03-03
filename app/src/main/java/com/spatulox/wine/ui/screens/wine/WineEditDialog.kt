@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.spatulox.wine.domain.enum.WineFormat
+import com.spatulox.wine.domain.enum.WineType
 import com.spatulox.wine.domain.model.Wine
 import kotlin.math.roundToInt
 
@@ -44,6 +45,7 @@ fun WineEditDialog(
     modifier: Modifier = Modifier
 ) {
     var editedName by remember(wine) { mutableStateOf(wine.name) }
+    var editedType by remember { mutableStateOf(WineType.ROUGE) }
     var editedYear by remember(wine) { mutableStateOf(wine.year) }
     var editedStars by remember(wine) { mutableStateOf(wine.stars) }
     var editedFormat by remember(wine) { mutableStateOf(wine.format) }
@@ -103,6 +105,35 @@ fun WineEditDialog(
                                 onClick = {
                                     editedFormat = format
                                     expanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+                var expandedType by remember { mutableStateOf(false) }
+                ExposedDropdownMenuBox(
+                    expanded = expandedType,
+                    onExpandedChange = { expandedType = !expandedType }
+                ) {
+                    OutlinedTextField(
+                        value = editedType.name,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Type") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedType) },
+                        modifier = Modifier.menuAnchor().fillMaxWidth()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = expandedType,
+                        onDismissRequest = { expandedType = false }
+                    ) {
+                        WineType.entries.forEach { type ->
+                            DropdownMenuItem(
+                                text = { Text(editedType.name) },
+                                onClick = {
+                                    editedType = type
+                                    expandedType = false
                                 }
                             )
                         }
