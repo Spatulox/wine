@@ -24,7 +24,7 @@ fun HistoryScreen(
 ) {
     val history by historyViewModel.history.collectAsStateWithLifecycle()
 
-    val historyTest by remember {
+    /*val historyTest by remember {
         mutableStateOf(
             listOf(
                 History(
@@ -64,7 +64,7 @@ fun HistoryScreen(
                 )
             )
         )
-    }
+    }*/
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -72,7 +72,7 @@ fun HistoryScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         itemsIndexed(
-            historyTest,
+            history,
             key = { index, item -> item.id }
         ) { index, item ->
             HistoryItem(item = item)
