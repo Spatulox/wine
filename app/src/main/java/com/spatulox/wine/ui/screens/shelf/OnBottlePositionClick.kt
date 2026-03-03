@@ -20,6 +20,7 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -29,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -46,12 +48,13 @@ fun OnBottlePositionClick(
     stockViewModel: StockViewModel,
     position: Position,
     onDismiss: () -> Unit = {},
-    onPlaceWine: (Int) -> Unit = {},
-    onWithdraw: () -> Unit = {},
-    onDeleteStock: () -> Unit = {}
+    onPlaceWine: (Position, Wine, String) -> Unit = { _, _, _ -> },
+    onWithdraw: (Position, String) -> Unit = { _, _ -> },
+    onDeleteStock: (Position) -> Unit = { _ -> }
 ) {
 
     var selectedWine by remember { mutableStateOf<Wine?>(null) }
+    var reason by remember { mutableStateOf<String>("") }
 
     val stockState by stockViewModel.stockState.collectAsStateWithLifecycle()
     val wineState by wineViewModel.winesByYear.collectAsStateWithLifecycle()
@@ -62,7 +65,7 @@ fun OnBottlePositionClick(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                text = "Position ${position}",
+                text = " ${if (currentStock == null) "Placer" else "Enlever" }",
                 style = MaterialTheme.typography.titleLarge
             )
         },
@@ -117,39 +120,49 @@ fun OnBottlePositionClick(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
-                if (currentStock == null) {
+                when {
+                    // ✅ CAS 1: Position VIDE → Placer vin
+                    currentStock == null -> {
+                        WineDropdownList(
+                            wineViewModel = wineViewModel,
+                            selectedWine = selectedWine,
+                            onSelectWine = { wine -> selectedWine = wine }
+                        )
+                    }
 
-                    WineDropdownList(
-                        wineViewModel = wineViewModel,
-                        selectedWine = selectedWine,
-                        onSelectWine = { wine ->
-                            selectedWine = wine
-                        }
-                    )
+                    // ✅ CAS 2: Position OCCUPÉE → Retrait/Supprimer
+                    else -> {
+                        OutlinedTextField(
+                            value = reason,
+                            onValueChange = { reason = it },
+                            label = { Text("Raison du retrait") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                        )
+                    }
                 }
             }
         },
         confirmButton = {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-
-                if (currentStock == null) {
-                    selectedWine?.let { wineId ->
-                        TextButton(onClick = { onPlaceWine(selectedWine!!.id) }) {
-                            Icon(Icons.Default.Check, null)
-                            Text("Placer")
-                        }
-                    }
-                } else {
-                    TextButton(onClick = onDeleteStock) {
-                        Icon(Icons.Filled.Delete, null)
-                        Text("Supprimer")
-                    }
-                    TextButton(onClick = onWithdraw) {
-                        Icon(Icons.Filled.Remove, null)
-                        Text("Retirer")
-                    }
+            // ✅ UNIQUEMENT quand vide + vin sélectionné
+            if (currentStock == null && selectedWine != null) {
+                TextButton(onClick = {
+                    onPlaceWine(position, selectedWine!!, reason)
+                    onDismiss()
+                }) {
+                    Icon(Icons.Default.Check, null)
+                    Text("Placer")
                 }
-
+            } else if(currentStock != null) {
+                TextButton(
+                    onClick = {
+                        onWithdraw(position, reason)
+                        onDismiss()
+                    }
+                ) {
+                    Icon(Icons.Filled.Remove, null)
+                    Text("Retirer")
+                }
             }
         },
         dismissButton = {

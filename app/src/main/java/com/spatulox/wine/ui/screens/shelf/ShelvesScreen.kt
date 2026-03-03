@@ -27,6 +27,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -36,6 +37,7 @@ import com.spatulox.wine.domain.model.Stock
 import com.spatulox.wine.domain.model.Wine
 import com.spatulox.wine.viewModels.StockViewModel
 import com.spatulox.wine.viewModels.WineViewModel
+import kotlinx.coroutines.launch
 
 @Composable
 fun ShelfScreen(
@@ -46,6 +48,8 @@ fun ShelfScreen(
 ) {
     val stockState by stockViewModel.stockState.collectAsState()
     val wines by wineViewModel.wines.collectAsState()
+
+    var coroutine = rememberCoroutineScope()
 
     var positionClicked by remember { mutableStateOf<Position?>(null) }
 
@@ -69,6 +73,15 @@ fun ShelfScreen(
             wineViewModel = wineViewModel,
             stockViewModel = stockViewModel,
             position = position,
+            onPlaceWine = {position, wine, reason ->
+                coroutine.launch { stockViewModel.insert(position, wine, reason) }
+            },
+            onWithdraw = {position, reason ->
+                coroutine.launch { stockViewModel.withdraw(position, reason) }
+            },
+            onDeleteStock = {position ->
+                coroutine.launch { stockViewModel.delete(position) }
+            },
             onDismiss = { positionClicked = null }
         )
     }
