@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import com.spatulox.wine.domain.enum.WineFormat
 import com.spatulox.wine.domain.enum.WineType
 import com.spatulox.wine.domain.model.Wine
+import com.spatulox.wine.ui.screens.components.DateSelection
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -45,7 +46,7 @@ fun WineEditDialog(
     modifier: Modifier = Modifier
 ) {
     var editedName by remember(wine) { mutableStateOf(wine.name) }
-    var editedType by remember { mutableStateOf(WineType.ROUGE) }
+    var editedType by remember { mutableStateOf<WineType>(wine.type) }
     var editedYear by remember(wine) { mutableStateOf(wine.year) }
     var editedStars by remember(wine) { mutableStateOf(wine.stars) }
     var editedFormat by remember(wine) { mutableStateOf(wine.format) }
@@ -63,23 +64,12 @@ fun WineEditDialog(
                 )
 
                 // Année (Number Picker)
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    IconButton(onClick = { editedYear = (editedYear - 1).coerceAtLeast(1900) }) {
-                        Icon(Icons.Filled.KeyboardArrowLeft, null)
+                DateSelection(
+                    year = editedYear,
+                    onYearChange = { lyear ->
+                        editedYear = lyear
                     }
-                    Text(
-                        "${editedYear}",
-                        style = MaterialTheme.typography.headlineSmall,
-                        modifier = Modifier.weight(1f),
-                        textAlign = TextAlign.Center
-                    )
-                    IconButton(onClick = { editedYear = (editedYear + 1).coerceAtMost(2030) }) {
-                        Icon(Icons.Filled.KeyboardArrowRight, null)
-                    }
-                }
+                )
 
                 // Format (Dropdown)
                 var expanded by remember { mutableStateOf(false) }

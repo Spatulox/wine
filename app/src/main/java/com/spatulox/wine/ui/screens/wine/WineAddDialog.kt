@@ -32,6 +32,8 @@ import androidx.compose.ui.unit.dp
 import com.spatulox.wine.domain.enum.WineFormat
 import com.spatulox.wine.domain.enum.WineType
 import com.spatulox.wine.domain.model.Wine
+import com.spatulox.wine.ui.screens.components.DateSelection
+import java.time.LocalDate
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -41,8 +43,8 @@ fun WineAddDialog(
     onValidate: (Wine) -> Unit
 ) {
     var name by remember { mutableStateOf("") }
-    var type by remember { mutableStateOf(WineType.ROUGE) }
-    var year by remember { mutableStateOf(2023) }
+    var type by remember { mutableStateOf<WineType>(WineType.ROUGE) }
+    var year by remember { mutableStateOf(LocalDate.now().year - 3) }
     var stars by remember { mutableStateOf(0) }
     var format by remember { mutableStateOf(WineFormat.BOTTLE) }
 
@@ -60,28 +62,12 @@ fun WineAddDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                // Année (roue numérique)
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    IconButton(
-                        onClick = { year = (year - 1).coerceAtLeast(1900) }
-                    ) {
-                        Icon(Icons.Filled.KeyboardArrowLeft, null)
+                DateSelection(
+                    year = year,
+                    onYearChange = { localYear ->
+                        year = localYear
                     }
-                    Text(
-                        text = "$year",
-                        style = MaterialTheme.typography.headlineSmall,
-                        modifier = Modifier.weight(1f),
-                        textAlign = TextAlign.Center
-                    )
-                    IconButton(
-                        onClick = { year = (year + 1).coerceAtMost(2030) }
-                    ) {
-                        Icon(Icons.Filled.KeyboardArrowRight, null)
-                    }
-                }
+                )
 
                 // Format (dropdown)
                 var expanded by remember { mutableStateOf(false) }
