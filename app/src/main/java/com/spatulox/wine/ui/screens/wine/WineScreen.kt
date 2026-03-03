@@ -23,8 +23,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.spatulox.wine.domain.enum.WineFormat
-import com.spatulox.wine.domain.enum.WineType
 import com.spatulox.wine.domain.model.Wine
 import com.spatulox.wine.ui.screens.components.AddButton
 import com.spatulox.wine.viewModels.WineViewModel

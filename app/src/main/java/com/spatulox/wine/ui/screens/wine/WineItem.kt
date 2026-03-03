@@ -85,7 +85,7 @@ fun WineItem(
                 )
 
                 Text(
-                    text = "${wine.type}",
+                    text = wine.type.displayName,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
