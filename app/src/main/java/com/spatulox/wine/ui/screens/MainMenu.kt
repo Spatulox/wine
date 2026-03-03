@@ -6,6 +6,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,10 +21,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import com.spatulox.wine.ui.screens.components.AddButton
 import com.spatulox.wine.ui.screens.components.SearchWithFilters
 import com.spatulox.wine.ui.screens.history.HistoryScreen
 import com.spatulox.wine.ui.screens.overview.OverviewScreen
@@ -39,6 +43,7 @@ fun MainMenu(
     historyViewModel: HistoryViewModel
 ) {
     var selectedTabIndex by remember { mutableStateOf(0) }
+    var showAddDialog by remember { mutableStateOf(false) }
     val tabs = listOf("Shelves", "Wines", "History")
 
 
@@ -47,20 +52,28 @@ fun MainMenu(
 
     Scaffold(
         floatingActionButton = {
-            SearchWithFilters(
-                wineViewModel = wineViewModel,
-                stockViewModel = stockViewModel,
-                historyViewModel = historyViewModel,
-                isExpanded = isFabExpanded,
-                onExpandedChange = { expanded ->
-                    isFabExpanded = expanded
-                },
-                onOutsideClick = {
-                    isFabExpanded = false
+            Box(modifier = Modifier.fillMaxWidth()) {
+                // AddButton À GAUCHE (Start)
+                if (selectedTabIndex == 1) {
+                    AddButton (
+                        onClick = { showAddDialog = true },
+                        modifier = Modifier.align(Alignment.BottomStart)//.padding(start = 16.dp)
+                    )
                 }
-            )
+
+                // SearchWithFilters À DROITE (End)
+                SearchWithFilters(
+                    wineViewModel = wineViewModel,
+                    stockViewModel = stockViewModel,
+                    historyViewModel = historyViewModel,
+                    isExpanded = isFabExpanded,
+                    onExpandedChange = { isFabExpanded = it },
+                    onOutsideClick = { isFabExpanded = false },
+                    modifier = Modifier.align(Alignment.BottomEnd)
+                )
+            }
         },
-        floatingActionButtonPosition = FabPosition.End,
+        floatingActionButtonPosition = FabPosition.Center,
     ) { innerPadding ->
         Column(
             modifier = Modifier

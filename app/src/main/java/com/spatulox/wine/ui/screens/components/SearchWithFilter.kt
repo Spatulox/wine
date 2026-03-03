@@ -106,7 +106,7 @@ fun SearchWithFilters(
             }
         },
         modifier = modifier
-            .padding(16.dp)
+            .padding(24.dp)
             .imePadding(),
         containerColor = MaterialTheme.colorScheme.primary,
         shape = MaterialTheme.shapes.large
@@ -115,7 +115,7 @@ fun SearchWithFilters(
             if (expanded) {
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth(1f - (32f/392f))  // ← INCHANGÉ : pleine largeur
+                        .fillMaxWidth()
                         .padding(start = 8.dp, end = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
