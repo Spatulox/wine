@@ -1,13 +1,8 @@
 package com.spatulox.wine.ui.screens
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -23,14 +18,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import com.spatulox.wine.ui.screens.components.AddButton
 import com.spatulox.wine.ui.screens.components.SearchWithFilters
 import com.spatulox.wine.ui.screens.history.HistoryScreen
-import com.spatulox.wine.ui.screens.overview.OverviewScreen
+import com.spatulox.wine.ui.screens.shelf.ShelfScreen
 import com.spatulox.wine.ui.screens.wine.WineScreen
 import com.spatulox.wine.viewModels.HistoryViewModel
 import com.spatulox.wine.viewModels.StockViewModel
@@ -107,7 +100,7 @@ fun MainMenu(
                     }
             ) {
                 when (selectedTabIndex) {
-                    0 -> OverviewScreen(
+                    0 -> ShelfScreen(
                         stockViewModel = stockViewModel,
                         wineViewModel = wineViewModel
                     )

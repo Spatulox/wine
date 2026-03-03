@@ -6,7 +6,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.spatulox.wine.ui.screens.history.HistoryScreen
 import com.spatulox.wine.ui.screens.MainMenu
-import com.spatulox.wine.ui.screens.overview.OverviewScreen
+import com.spatulox.wine.ui.screens.shelf.ShelfScreen
+import com.spatulox.wine.ui.screens.wine.WineScreen
 import com.spatulox.wine.viewModels.HistoryViewModel
 import com.spatulox.wine.viewModels.StockViewModel
 import com.spatulox.wine.viewModels.WineViewModel
@@ -30,16 +31,6 @@ fun AppNavGraph(
                 stockViewModel = stockViewModel,
                 historyViewModel = historyViewModel
             )
-        }
-
-        composable(Destinations.OVERVIEW) {
-            OverviewScreen(
-                stockViewModel = stockViewModel,
-                wineViewModel = wineViewModel
-            )
-        }
-        composable(Destinations.HISTORY) {
-            HistoryScreen(historyViewModel = historyViewModel)
         }
     }
 }

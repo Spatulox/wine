@@ -35,7 +35,7 @@ import com.spatulox.wine.viewModels.StockViewModel
 import com.spatulox.wine.viewModels.WineViewModel
 
 @Composable
-fun OverviewScreen(
+fun ShelfScreen(
     stockViewModel: StockViewModel,
     wineViewModel: WineViewModel,
     modifier: Modifier = Modifier,
