@@ -1,4 +1,4 @@
-package com.spatulox.wine.ui.screens.overview
+package com.spatulox.wine.ui.screens.shelf
 
 object ShelfLayouts {
     val layouts = mapOf(

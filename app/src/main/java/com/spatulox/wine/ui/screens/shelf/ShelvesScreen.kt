@@ -1,4 +1,4 @@
-package com.spatulox.wine.ui.screens.overview
+package com.spatulox.wine.ui.screens.shelf
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -25,6 +25,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -44,6 +47,8 @@ fun ShelfScreen(
     val stockState by stockViewModel.stockState.collectAsState()
     val wines by wineViewModel.wines.collectAsState()
 
+    var positionClicked by remember { mutableStateOf<Position?>(null) }
+
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -54,9 +59,18 @@ fun ShelfScreen(
                 shelfNumber = shelfIndex + 1,
                 stock = stockState,
                 wines = wines,
-                onPositionClick = onPositionClick
+                onPositionClick = { position -> positionClicked = position }
             )
         }
+    }
+
+    positionClicked?.let { position ->
+        OnBottlePositionClick(
+            wineViewModel = wineViewModel,
+            stockViewModel = stockViewModel,
+            position = position,
+            onDismiss = { positionClicked = null }
+        )
     }
 }
 
@@ -92,7 +106,7 @@ private fun ShelfView(
 
                         val fullPosition = Position(
                             shelf = shelfNumber,
-                            row = rowIndex,
+                            row = rowIndex + 1, // Because the forEach begin at 0
                             col = position
                         )
 
