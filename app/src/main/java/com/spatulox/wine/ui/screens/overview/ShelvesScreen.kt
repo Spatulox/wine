@@ -28,6 +28,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.spatulox.wine.domain.model.Position
 import com.spatulox.wine.domain.model.Stock
 import com.spatulox.wine.domain.model.Wine
 import com.spatulox.wine.viewModels.StockViewModel
@@ -62,7 +63,7 @@ fun OverviewScreen(
 @Composable
 private fun ShelfView(
     shelfNumber: Int,
-    stock: Map<Pair<Int, Int>, Stock>,
+    stock: Map<Position, Stock>,
     wines: Map<Int, Wine>,
     onPositionClick: (Int, Int) -> Unit,
     modifier: Modifier = Modifier
@@ -88,11 +89,18 @@ private fun ShelfView(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     row.forEach { position ->
+
+                        val fullPosition = Position(
+                            shelf = shelfNumber,
+                            row = rowIndex,
+                            col = position
+                        )
+
                         BottlePosition(
                             shelf = shelfNumber,
                             position = position,
-                            stock = stock[Pair(shelfNumber, position)],
-                            wine = stock[Pair(shelfNumber, position)]?.wineId?.let { wines[it] },
+                            stock = stock[fullPosition],
+                            wine = stock[fullPosition]?.wineId?.let { wines[it] },
                             onClick = onPositionClick
                         )
                     }

@@ -16,7 +16,7 @@ interface StockDao {
     @Query("SELECT * FROM stock WHERE id= :id")
     suspend fun getStockById(id: Int): StockEntity?
 
-    @Query("SELECT * FROM stock ORDER BY shelf, position")
+    @Query("SELECT * FROM stock ORDER BY shelf, `row`, col")
     fun getStockStream(): Flow<List<StockEntity>>
 
     @Insert

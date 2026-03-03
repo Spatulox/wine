@@ -16,13 +16,14 @@ import androidx.room.PrimaryKey
         )
     ],
     indices = [
-        Index(value = ["shelf", "position"], unique = true)
+        Index(value = ["shelf", "row", "col"], unique = true)
     ]
 )
 data class StockEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val wineId: Int,
     val shelf: Int,
-    val position: Int,
+    val row: Int,
+    val col: Int,
     val date: Long
 )
