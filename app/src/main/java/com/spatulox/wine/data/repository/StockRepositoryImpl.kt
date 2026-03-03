@@ -9,6 +9,7 @@ import com.spatulox.wine.domain.repository.StockRepository
 import com.spatulox.wine.data.mapper.StockMapper
 import com.spatulox.wine.domain.enum.HistoryType
 import com.spatulox.wine.domain.model.History
+import com.spatulox.wine.domain.model.Position
 import com.spatulox.wine.domain.model.Stock
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -28,6 +29,11 @@ class StockRepositoryImpl(
         return entity?.let { StockMapper.toDomain(it) }
     }
 
+    override suspend fun getStockByPos(pos: Position): Stock? {
+        val entity = stockDao.getStockByPos(pos.shelf, pos.row, pos.col)
+        return entity?.let { StockMapper.toDomain(it) }
+    }
+
     override fun getStockStream(): Flow<List<Stock>> {
         return stockDao.getStockStream().map { entities -> entities.map { StockMapper.toDomain(it) } }
     }
@@ -40,11 +46,12 @@ class StockRepositoryImpl(
                 History(
                     wineId = stockEntity.wineId,
                     type = HistoryType.ADD,
-                    date = System.currentTimeMillis(),
+                    date = stock.date,
                     reason = reason
                 )
             )
             stockDao.insert(stockEntity)
+            historyDao.insert(history)
         }
     }
 
@@ -58,9 +65,9 @@ class StockRepositoryImpl(
                     reason = reason
                 )
             )
-            val historyId = historyDao.insert(history)
+
             stockDao.delete(stock.id)
-            historyId
+            historyDao.insert(history)
         }
     }
 
@@ -74,7 +81,14 @@ class StockRepositoryImpl(
         stockDao.delete(entity)
     }
 
-    override suspend fun deleteById(id: Int) {
-        stockDao.delete(id)
+    override suspend fun delete(pos: Position) {
+        val entity = stockDao.getStockByPos(pos.shelf, pos.row, pos.col)
+        if(entity != null){
+            stockDao.delete(entity)
+        }
+    }
+
+    override suspend fun delete(stockId: Int) {
+        stockDao.delete(stockId)
     }
 }

@@ -4,6 +4,5 @@ data class Stock(
     val id: Int = 0,
     val wineId: Int,
     val position: Position,
-    val location: String = "$position",
     val date: Long
 )
