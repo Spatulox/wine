@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import com.spatulox.wine.ui.screens.components.AddButton
+import com.spatulox.wine.ui.screens.components.Filter
 import com.spatulox.wine.ui.screens.components.SearchWithFilters
 import com.spatulox.wine.ui.screens.history.HistoryScreen
 import com.spatulox.wine.ui.screens.shelf.ShelfScreen
@@ -61,7 +62,6 @@ fun MainMenu(
                     historyViewModel = historyViewModel,
                     isExpanded = isFabExpanded,
                     onExpandedChange = { isFabExpanded = it },
-                    onOutsideClick = { isFabExpanded = false },
                     modifier = Modifier.align(Alignment.BottomEnd)
                 )
             }
@@ -95,7 +95,12 @@ fun MainMenu(
                     .fillMaxWidth()
                     .pointerInput(isFabExpanded) {
                         if (isFabExpanded) {
-                            detectTapGestures(onTap = { isFabExpanded = false })
+                            detectTapGestures(onTap = {
+                                isFabExpanded = false
+                                wineViewModel.clearFilter()
+                                stockViewModel.clearFilter()
+                                historyViewModel.clearFilter()
+                            })
                         }
                     }
             ) {
