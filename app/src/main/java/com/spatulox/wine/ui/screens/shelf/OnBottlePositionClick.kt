@@ -34,6 +34,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.spatulox.wine.domain.model.Position
+import com.spatulox.wine.domain.model.Wine
+import com.spatulox.wine.ui.screens.wine.WineDropdownList
 import com.spatulox.wine.viewModels.StockViewModel
 import com.spatulox.wine.viewModels.WineViewModel
 
@@ -49,17 +51,12 @@ fun OnBottlePositionClick(
     onDeleteStock: () -> Unit = {}
 ) {
 
-    var expanded by remember { mutableStateOf(false) }
-    var selectedWineId by remember { mutableStateOf<Int?>(null) }
+    var selectedWine by remember { mutableStateOf<Wine?>(null) }
 
     val stockState by stockViewModel.stockState.collectAsStateWithLifecycle()
     val wineState by wineViewModel.winesByYear.collectAsStateWithLifecycle()
-
-    val wines = wineState
-
     val currentStock = stockState[position]
     val currentWine = currentStock?.wineId?.let { wineState[it] }
-
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -121,43 +118,14 @@ fun OnBottlePositionClick(
                 )
 
                 if (currentStock == null) {
-                    // Sélecteur de vin
-                    ExposedDropdownMenuBox(
-                        expanded = expanded,
-                        onExpandedChange = { expanded = !expanded }
-                    ) {
-                        OutlinedTextField(
-                            value = selectedWineId?.let { wines[it]?.name }
-                                ?: "Sélectionner un vin...",
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text("Placer un vin") },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                            modifier = Modifier
-                                .menuAnchor()
-                                .fillMaxWidth()
-                        )
-                        ExposedDropdownMenu(
-                            expanded = expanded,
-                            onDismissRequest = { expanded = false }
-                        ) {
-                            wines.values.forEach { wine ->
-                                DropdownMenuItem(
-                                    text = {
-                                        Text(
-                                            text = "${wine.name} (${wine.year}, ${wine.format.displayName})",
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
-                                    },
-                                    onClick = {
-                                        selectedWineId = wine.id
-                                        expanded = false
-                                    }
-                                )
-                            }
+
+                    WineDropdownList(
+                        wineViewModel = wineViewModel,
+                        selectedWine = selectedWine,
+                        onSelectWine = { wine ->
+                            selectedWine = wine
                         }
-                    }
+                    )
                 }
             }
         },
@@ -165,8 +133,8 @@ fun OnBottlePositionClick(
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
 
                 if (currentStock == null) {
-                    selectedWineId?.let { wineId ->
-                        TextButton(onClick = { onPlaceWine(wineId) }) {
+                    selectedWine?.let { wineId ->
+                        TextButton(onClick = { onPlaceWine(selectedWine!!.id) }) {
                             Icon(Icons.Default.Check, null)
                             Text("Placer")
                         }
