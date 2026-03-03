@@ -32,11 +32,12 @@ fun DateSelection(
                 onYearChange((year - 1).coerceAtLeast(1900))
             }
         ) {
-            Icon(Icons.Filled.KeyboardArrowLeft, null)
+            Icon(Icons.Filled.KeyboardArrowLeft, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
 
         Text(
             text = "$year",
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             style = MaterialTheme.typography.headlineSmall,
             modifier = Modifier.weight(1f),
             textAlign = TextAlign.Center
@@ -47,7 +48,7 @@ fun DateSelection(
                 onYearChange((year + 1).coerceAtMost(LocalDate.now().year))
             }
         ) {
-            Icon(Icons.Filled.KeyboardArrowRight, null)
+            Icon(Icons.Filled.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
