@@ -39,7 +39,7 @@ fun OverviewScreen(
     stockViewModel: StockViewModel,
     wineViewModel: WineViewModel,
     modifier: Modifier = Modifier,
-    onPositionClick: (shelf: Int, position: Int) -> Unit = { _, _ -> }
+    onPositionClick: (position: Position) -> Unit = { _ -> }
 ) {
     val stockState by stockViewModel.stockState.collectAsState()
     val wines by wineViewModel.wines.collectAsState()
@@ -65,7 +65,7 @@ private fun ShelfView(
     shelfNumber: Int,
     stock: Map<Position, Stock>,
     wines: Map<Int, Wine>,
-    onPositionClick: (Int, Int) -> Unit,
+    onPositionClick: (Position) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val layout = ShelfLayouts.layouts[shelfNumber] ?: return
@@ -97,8 +97,7 @@ private fun ShelfView(
                         )
 
                         BottlePosition(
-                            shelf = shelfNumber,
-                            position = position,
+                            position = fullPosition,
                             stock = stock[fullPosition],
                             wine = stock[fullPosition]?.wineId?.let { wines[it] },
                             onClick = onPositionClick
@@ -112,17 +111,16 @@ private fun ShelfView(
 
 @Composable
 private fun BottlePosition(
-    shelf: Int,
-    position: Int,
+    position: Position,
     stock: Stock?,
     wine: Wine?,
-    onClick: (Int, Int) -> Unit,
+    onClick: (Position) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val isOccupied = stock != null
 
     OutlinedButton(
-        onClick = { onClick(shelf, position) },
+        onClick = { onClick(position) },
         modifier = modifier
             .size(50.dp)  // ✅ Parfaitement carré → cercle
             .padding(2.dp),
