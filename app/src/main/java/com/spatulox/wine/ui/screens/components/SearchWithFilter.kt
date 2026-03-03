@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
@@ -29,6 +30,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.WineBar
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -63,6 +65,18 @@ data class Filter(
     val field: String
 )
 
+data class FilterOption(
+    val id: String,
+    val name: String,
+    val icon: ImageVector
+)
+
+val filterFields = listOf(
+    FilterOption("name", "Nom", Icons.Filled.Person),
+    FilterOption("year", "Année", Icons.Filled.DateRange),
+    FilterOption("format", "Format", Icons.Filled.WineBar)
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchWithFilters(
@@ -78,11 +92,6 @@ fun SearchWithFilters(
     var searchText by remember { mutableStateOf("") }
     var selectedField by remember { mutableStateOf("name") }
 
-    val filterFields = listOf(
-        "name" to Icons.Filled.Person,
-        "year" to Icons.Filled.DateRange,
-        "format" to Icons.Filled.WineBar
-    )
 
     // FAB (inchangé - row pleine largeur)
     FloatingActionButton(
@@ -156,58 +165,54 @@ fun SearchWithFilters(
         }
     }
 
-    // Popup filtres (seulement quand étendu)
+
     if (isFilterPopupVisible && isExpanded) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth(0.85f)
-                .padding(8.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 12.dp)
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
+        AlertDialog(
+            onDismissRequest = { isFilterPopupVisible = false },
+            title = {
                 Text(
                     text = "Filtres",
-                    style = MaterialTheme.typography.titleSmall,
-                    modifier = Modifier.padding(bottom = 12.dp)
+                    style = MaterialTheme.typography.titleLarge
                 )
-
-                filterFields.forEach { (field, icon) ->
-                    FilterButton(
-                        selected = selectedField == field,
-                        icon = icon,
-                        fieldName = field,
-                        onClick = {
-                            selectedField = field
-                            val filter = Filter(content = searchText, field = field)
-                            wineViewModel.updateFilter(filter)
-                            stockViewModel.updateFilter(filter)
-                            historyViewModel.updateFilter(filter)
-                        },
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
+            },
+            text = {
+                LazyColumn {
+                    items(filterFields.size) { index ->
+                        val (field, icon) = filterFields[index]
+                        FilterButton(
+                            selected = selectedField == field,
+                            option = filterFields[index],
+                            onClick = {
+                                selectedField = field
+                                val filter = Filter(content = searchText, field = field)
+                                wineViewModel.updateFilter(filter)
+                                stockViewModel.updateFilter(filter)
+                                historyViewModel.updateFilter(filter)
+                                isFilterPopupVisible = false // Ferme auto
+                            },
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                    }
                 }
-
-                Spacer(modifier = Modifier.height(8.dp))
+            },
+            confirmButton = {},
+            dismissButton = {
                 TextButton(
-                    onClick = {
-                        isFilterPopupVisible = false
-                    },
-                    modifier = Modifier.align(Alignment.End)
+                    onClick = { isFilterPopupVisible = false }
                 ) {
                     Text("Fermer")
                 }
-            }
-        }
+            },
+            shape = MaterialTheme.shapes.large,
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     }
 }
 
 @Composable
 private fun FilterButton(
     selected: Boolean,
-    icon: ImageVector,
-    fieldName: String,
+    option: FilterOption,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -229,7 +234,7 @@ private fun FilterButton(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Icon(
-                imageVector = icon,
+                imageVector = option.icon,
                 contentDescription = null,
                 modifier = Modifier.size(18.dp),
                 tint = if (selected)
@@ -238,12 +243,7 @@ private fun FilterButton(
                     MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
-                text = when (fieldName) {
-                    "name" -> "Nom"
-                    "year" -> "Année"
-                    "format" -> "Format"
-                    else -> fieldName
-                },
+                text = option.name,
                 color = if (selected)
                     MaterialTheme.colorScheme.onPrimaryContainer
                 else
