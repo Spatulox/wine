@@ -19,4 +19,11 @@ open class WineViewModel(
             .map { wines -> wines.associateBy { it.id } }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
+    suspend fun updateWine(wine: Wine){
+        wineRepository.update(wine)
+    }
+
+    suspend fun deleteWine(wine: Wine){
+        wineRepository.delete(wine)
+    }
 }

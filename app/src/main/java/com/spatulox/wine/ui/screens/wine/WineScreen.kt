@@ -1,6 +1,7 @@
 package com.spatulox.wine.ui.screens.wine
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,6 +29,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,6 +41,7 @@ import com.spatulox.wine.domain.model.Wine
 import com.spatulox.wine.ui.screens.components.Filter
 import com.spatulox.wine.ui.screens.components.SearchWithFilters
 import com.spatulox.wine.viewModels.WineViewModel
+import kotlinx.coroutines.launch
 
 @Composable
 fun WineScreen(
@@ -46,17 +49,32 @@ fun WineScreen(
 ) {
     val wines by wineViewModel.wines.collectAsStateWithLifecycle()
 
-    /*LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        items(wines.values.toList(), key = { it.id }) { wine ->
-            WineItem(wine = wine)
-        }
-    }*/
+    var selectedWine by remember { mutableStateOf<Wine?>(null) }
 
-    val winesTest by remember {
+    val coroutineScope = rememberCoroutineScope()
+
+    selectedWine?.let { wine ->
+        WineEditDialog(
+            wine = wine,
+            onDismiss = { selectedWine = null },
+            onValidate = { updatedWine ->
+                coroutineScope.launch {  // ← COROUTINE
+                    wineViewModel.updateWine(updatedWine)
+                }
+                //wineViewModel.updateWine(updatedWine)
+                selectedWine = null
+            },
+            onDelete = {
+                coroutineScope.launch {  // ← COROUTINE
+                    wineViewModel.deleteWine(wine)
+                }
+                //wineViewModel.deleteWine(wine)
+                selectedWine = null
+            }
+        )
+    }
+
+    /*val winesTest by remember {
         mutableStateOf(
             mapOf(
                 1 to Wine(
@@ -89,7 +107,7 @@ fun WineScreen(
                 )
             )
         )
-    }
+    }*/
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -97,77 +115,14 @@ fun WineScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         itemsIndexed(
-            winesTest.values.toList(),
+            wines.values.toList(),
             key = { index, wine -> wine.id }
         ) { index, wine ->
-            WineItem(wine = wine)
+            WineItem(
+                wine = wine,
+                onClick = { selectedWine = wine }
+            )
         }
     }
 
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun WineItem(
-    wine: Wine,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = wine.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                    repeat(wine.stars) {
-                        Icon(
-                            imageVector = Icons.Filled.Star,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                    repeat(5 - wine.stars) {
-                        Icon(
-                            imageVector = Icons.Outlined.StarBorder,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Text(
-                    text = "${wine.year}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                Text(
-                    text = wine.format.displayName,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-    }
 }
