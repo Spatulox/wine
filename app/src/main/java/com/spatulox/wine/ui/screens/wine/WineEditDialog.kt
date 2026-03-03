@@ -50,7 +50,6 @@ fun WineEditDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Modifier ${wine.name}") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 // Nom
