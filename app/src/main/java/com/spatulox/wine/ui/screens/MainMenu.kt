@@ -43,7 +43,7 @@ fun MainMenu(
     historyViewModel: HistoryViewModel
 ) {
     var selectedTabIndex by remember { mutableStateOf(0) }
-    var showAddDialog by remember { mutableStateOf(false) }
+    var showAddWineDialog by remember { mutableStateOf(false) }
     val tabs = listOf("Shelves", "Wines", "History")
 
 
@@ -56,7 +56,7 @@ fun MainMenu(
                 // AddButton À GAUCHE (Start)
                 if (selectedTabIndex == 1) {
                     AddButton (
-                        onClick = { showAddDialog = true },
+                        onClick = { showAddWineDialog = true },
                         modifier = Modifier.align(Alignment.BottomStart)//.padding(start = 16.dp)
                     )
                 }
@@ -111,7 +111,11 @@ fun MainMenu(
                         stockViewModel = stockViewModel,
                         wineViewModel = wineViewModel
                     )
-                    1 -> WineScreen(wineViewModel = wineViewModel)
+                    1 -> WineScreen(
+                        wineViewModel = wineViewModel,
+                        showAddDialog = showAddWineDialog,
+                        onAddDialogChange = { showAddWineDialog = it }
+                    )
                     2 -> HistoryScreen(historyViewModel = historyViewModel)
                     else -> Text("Écran non implémenté")
                 }
