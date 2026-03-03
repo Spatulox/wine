@@ -9,6 +9,7 @@ import com.spatulox.wine.ui.screens.components.Filter
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
@@ -29,6 +30,29 @@ open class WineViewModel(
                     .associateBy { it.id }
             }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    val filteredWines: StateFlow<Map<Int, Wine>> = wines
+        .combine(currentFilter) { winesMap, filter ->
+            filter?.let {
+                when (it.field) {
+                    "name" -> winesMap.values
+                        .filter { wine -> wine.name.contains(it.content, ignoreCase = true) }
+                    "year" -> winesMap.values
+                        .filter { wine -> wine.year.toString().contains(it.content) }
+                    "type" -> winesMap.values
+                        .filter { wine -> wine.type.displayName.contains(it.content, ignoreCase = true) }
+                    "format" -> winesMap.values
+                        .filter { wine -> wine.format.displayName.contains(it.content, ignoreCase = true) }
+                    else -> winesMap.values
+                }.associateBy { it.id }
+            } ?: winesMap
+        }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            emptyMap()
+        )
+
 
     suspend fun addWine(wine: Wine){
         wineRepository.insert(wine)

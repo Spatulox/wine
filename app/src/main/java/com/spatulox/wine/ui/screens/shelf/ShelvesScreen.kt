@@ -47,7 +47,7 @@ fun ShelfScreen(
     onPositionClick: (position: Position) -> Unit = { _ -> }
 ) {
     val stockState by stockViewModel.stockState.collectAsState()
-    val wines by wineViewModel.wines.collectAsState()
+    val wines by wineViewModel.filteredWines.collectAsState()
 
     var coroutine = rememberCoroutineScope()
 
