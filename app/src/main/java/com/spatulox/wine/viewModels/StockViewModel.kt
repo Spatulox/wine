@@ -5,10 +5,12 @@ import androidx.lifecycle.viewModelScope
 import com.spatulox.wine.data.repository.StockRepositoryImpl
 import com.spatulox.wine.domain.model.Position
 import com.spatulox.wine.domain.model.Stock
+import com.spatulox.wine.domain.model.Wine
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import java.time.LocalDate
 
 open class StockViewModel(
     private val stockRepository: StockRepositoryImpl
@@ -22,4 +24,24 @@ open class StockViewModel(
                 started = SharingStarted.WhileSubscribed(5000),
                 initialValue = emptyMap()
             )
+
+    suspend fun insert(position: Position, wine: Wine, reason: String){
+        val stock = Stock(
+            wineId = wine.id,
+            position = position,
+            date = System.currentTimeMillis()
+        )
+        stockRepository.insert(stock, reason)
+    }
+
+    suspend fun withdraw(position: Position, reason: String){
+        val entity = stockRepository.getStockByPos(position)
+        if(entity != null){
+            stockRepository.withdraw(entity, reason)
+        }
+    }
+
+    suspend fun delete(position: Position){
+        stockRepository.delete(position)
+    }
 }
