@@ -13,5 +13,6 @@ data class WineEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val name: String,
     val year: Int,
-    val format: String
+    val format: String,
+    var stars: Int
 )

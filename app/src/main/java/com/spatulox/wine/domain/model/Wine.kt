@@ -6,5 +6,6 @@ data class Wine(
     val id: Int = 0,
     val name: String,
     val year: Int,
-    val format: WineFormat
+    val format: WineFormat,
+    var stars: Int
 )
