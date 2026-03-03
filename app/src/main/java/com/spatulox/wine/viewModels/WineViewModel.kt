@@ -19,22 +19,4 @@ open class WineViewModel(
             .map { wines -> wines.associateBy { it.id } }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
-    fun filteredWines(filter: Filter?): Flow<List<Wine>> {
-        val allWines = wineRepository.getWineStream()
-
-        return if (filter != null && filter.content.isNotBlank()) {
-            allWines.map { wines ->
-                wines.filter { wine ->
-                    when(filter.field) {
-                        "name" -> wine.name.contains(filter.content, ignoreCase = true)
-                        "year" -> wine.year.toString().contains(filter.content)
-                        "format" -> wine.format.name.contains(filter.content, ignoreCase = true)
-                        else -> true
-                    }
-                }
-            }
-        } else {
-            allWines
-        }
-    }
 }

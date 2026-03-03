@@ -98,9 +98,8 @@ fun MainMenu(
                         stockViewModel = stockViewModel,
                         wineViewModel = wineViewModel
                     )
-
-                    1 -> HistoryScreen(historyViewModel = historyViewModel)
-                    2 -> WineScreen(wineViewModel = wineViewModel)
+                    1 -> WineScreen(wineViewModel = wineViewModel)
+                    2 -> HistoryScreen(historyViewModel = historyViewModel)
                     else -> Text("Écran non implémenté")
                 }
             }
