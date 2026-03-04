@@ -5,6 +5,7 @@ import com.spatulox.wine.domain.model.Position
 import com.spatulox.wine.domain.model.Stock
 import kotlinx.coroutines.flow.Flow
 
+// Stock represent a single position in a shelf
 interface StockRepository {
     suspend fun getStock(): List<Stock>
     suspend fun getStockById(id: Int): Stock?

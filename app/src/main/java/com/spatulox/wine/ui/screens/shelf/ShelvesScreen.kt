@@ -118,7 +118,7 @@ private fun ShelfView(
                     row.forEach { position ->
 
                         val fullPosition = Position(
-                            shelf = shelfNumber,
+                            shelfId = shelfNumber,
                             row = rowIndex + 1, // Because the forEach begin at 0
                             col = position
                         )

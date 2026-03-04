@@ -5,6 +5,7 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
+// Stock represent a single position in a shelf
 @Entity(
     tableName = "stock",
     foreignKeys = [
@@ -13,16 +14,22 @@ import androidx.room.PrimaryKey
             parentColumns = ["id"],
             childColumns = ["wineId"],
             onDelete = ForeignKey.RESTRICT
+        ),
+        ForeignKey(
+            entity = ShelfEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["shelfId"],
+            onDelete = ForeignKey.RESTRICT
         )
     ],
     indices = [
-        Index(value = ["shelf", "row", "col"], unique = true)
+        Index(value = ["shelfId", "row", "col"], unique = true)
     ]
 )
 data class StockEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val wineId: Int,
-    val shelf: Int,
+    val shelfId: Int,
     val row: Int,
     val col: Int,
     val date: Long

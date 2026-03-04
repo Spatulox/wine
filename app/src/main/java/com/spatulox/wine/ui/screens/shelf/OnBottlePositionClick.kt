@@ -94,7 +94,7 @@ fun OnBottlePositionClick(
                         verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         Text(
-                            text = "Étagère: ${position.shelf}",
+                            text = "Étagère: ${position.shelfId}",
                             style = MaterialTheme.typography.bodyLarge
                         )
                         Text(
