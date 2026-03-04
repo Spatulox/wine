@@ -24,7 +24,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.spatulox.wine.domain.model.Wine
-import com.spatulox.wine.viewModels.WineViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
