@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.spatulox.wine.SnackbarManager
 import com.spatulox.wine.ui.screens.components.AddButton
 import com.spatulox.wine.ui.screens.components.Filter
@@ -55,6 +56,8 @@ fun MainMenu(
         }
     }
 
+    var availableYears by remember { mutableStateOf<List<Int>?>(null) }
+
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -75,7 +78,8 @@ fun MainMenu(
                     historyViewModel = historyViewModel,
                     isExpanded = isFabExpanded,
                     onExpandedChange = { isFabExpanded = it },
-                    modifier = Modifier.align(Alignment.BottomEnd)
+                    modifier = Modifier.align(Alignment.BottomEnd),
+                    availableYears = availableYears
                 )
             }
         },
@@ -118,16 +122,25 @@ fun MainMenu(
                     }
             ) {
                 when (selectedTabIndex) {
-                    0 -> ShelfScreen(
-                        stockViewModel = stockViewModel,
-                        wineViewModel = wineViewModel
-                    )
-                    1 -> WineScreen(
-                        wineViewModel = wineViewModel,
-                        showAddDialog = showAddWineDialog,
-                        onAddDialogChange = { showAddWineDialog = it }
-                    )
-                    2 -> HistoryScreen(historyViewModel = historyViewModel)
+                    0 -> {
+                        ShelfScreen(
+                            stockViewModel = stockViewModel,
+                            wineViewModel = wineViewModel
+                        )
+                        availableYears = stockViewModel.stockYears.collectAsStateWithLifecycle().value
+                    }
+                    1 -> {
+                        WineScreen(
+                            wineViewModel = wineViewModel,
+                            showAddDialog = showAddWineDialog,
+                            onAddDialogChange = { showAddWineDialog = it }
+                        )
+                        availableYears = null
+                    }
+                    2 -> {
+                        HistoryScreen(historyViewModel = historyViewModel)
+                        availableYears = null
+                    }
                     else -> Text("Écran non implémenté")
                 }
             }

@@ -10,6 +10,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -18,10 +22,19 @@ import java.time.LocalDate
 
 @Composable
 fun DateSelection(
-    year: Int,
+    year: Int?,
     onYearChange: (Int) -> Unit,
+    availableYears: List<Int>? = null,
     modifier: Modifier = Modifier
 ) {
+
+    val displayYear = when {
+        year != null -> year
+        availableYears?.isNotEmpty() == true -> availableYears.last()
+        else -> LocalDate.now().year - 3
+    }
+    onYearChange(displayYear)
+
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
@@ -29,14 +42,21 @@ fun DateSelection(
     ) {
         IconButton(
             onClick = {
-                onYearChange((year - 1).coerceAtLeast(1900))
+                if (availableYears?.isNotEmpty() == true) {
+                    val currentIndex = availableYears.indexOf(year)
+                    if (currentIndex > 0) {
+                        onYearChange( (availableYears[currentIndex - 1]) )
+                    }
+                } else {
+                    onYearChange((displayYear - 1))
+                }
             }
         ) {
             Icon(Icons.Filled.KeyboardArrowLeft, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
 
         Text(
-            text = "$year",
+            text = "${year}",
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             style = MaterialTheme.typography.headlineSmall,
             modifier = Modifier.weight(1f),
@@ -45,7 +65,14 @@ fun DateSelection(
 
         IconButton(
             onClick = {
-                onYearChange((year + 1).coerceAtMost(LocalDate.now().year))
+                if (availableYears?.isNotEmpty() == true) {
+                    val currentIndex = availableYears.indexOf(year)
+                    if (currentIndex < availableYears.lastIndex) {
+                        onYearChange(availableYears[currentIndex + 1])
+                    }
+                } else {
+                    onYearChange((displayYear + 1).coerceAtMost(LocalDate.now().year))
+                }
             }
         ) {
             Icon(Icons.Filled.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)

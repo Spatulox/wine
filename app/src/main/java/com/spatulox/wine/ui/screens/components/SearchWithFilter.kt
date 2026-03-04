@@ -44,10 +44,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.spatulox.wine.domain.enum.WineFormat
 import com.spatulox.wine.domain.enum.WineType
 import com.spatulox.wine.domain.model.Wine
@@ -55,7 +55,6 @@ import com.spatulox.wine.ui.screens.wine.WineDropdownList
 import com.spatulox.wine.viewModels.HistoryViewModel
 import com.spatulox.wine.viewModels.StockViewModel
 import com.spatulox.wine.viewModels.WineViewModel
-import java.time.LocalDate
 import kotlin.reflect.KClass
 
 data class Filter(
@@ -83,6 +82,7 @@ fun SearchWithFilters(
     wineViewModel: WineViewModel,
     stockViewModel: StockViewModel,
     historyViewModel: HistoryViewModel,
+    availableYears: List<Int>?,
     modifier: Modifier = Modifier,
     isExpanded: Boolean,
     onExpandedChange: (Boolean) -> Unit,
@@ -91,7 +91,7 @@ fun SearchWithFilters(
     var selectedField by remember { mutableStateOf("name") }
 
     var selectedWine by remember { mutableStateOf<Wine?>(null) }
-    var year by remember { mutableStateOf<Int?>(LocalDate.now().year - 3) }
+    var year by remember { mutableStateOf<Int?>(null)}
     var selectedWineType by remember { mutableStateOf<WineType?>(null) }
     var selectedWineFormat by remember { mutableStateOf<WineFormat?>(null) }
 
@@ -99,7 +99,6 @@ fun SearchWithFilters(
     var isDateInit by remember { mutableStateOf(true) }
     var isFormatInit by remember { mutableStateOf(true) }
     var isTypeInit by remember { mutableStateOf(true) }
-
 
     // FAB (inchangé - row pleine largeur)
     FloatingActionButton(
@@ -169,7 +168,8 @@ fun SearchWithFilters(
                                 }
                             }
                             DateSelection(
-                                year = year ?: (LocalDate.now().year - 3),
+                                year = year,
+                                availableYears = availableYears,
                                 onYearChange = { lyear ->
                                     year = lyear
                                     val filter = Filter(content = lyear.toString(), field = "year")
