@@ -22,7 +22,7 @@ open class WineViewModel(
             .map { wines -> wines.associateBy { it.id } }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
-    val winesByYear: StateFlow<Map<Int, Wine>> =
+    val winesByYearMap: StateFlow<Map<Int, Wine>> =
         wineRepository.getWineStream()
             .map { wines ->
                 wines
@@ -32,7 +32,46 @@ open class WineViewModel(
             }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
-    val filteredWines: StateFlow<Map<Int, Wine>> = wines
+
+    val winesByYearAsc: StateFlow<List<Wine>> = wines
+        .map { winesMap ->
+            winesMap.values
+                .sortedWith(compareBy<Wine> { it.year }.thenBy { it.name.lowercase() })
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val winesByYearDesc: StateFlow<List<Wine>> = wines  // List !
+        .map { winesMap ->
+            winesMap.values
+                .sortedWith(compareByDescending<Wine> { it.year }.thenBy { it.name.lowercase() })
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+
+    val filteredWinesList: StateFlow<List<Wine>> = winesByYearDesc
+        .combine(currentFilter) { winesList, filter ->
+            filter?.let {
+                when (it.field) {
+                    "name" -> winesList
+                        .filter { wine -> wine.name.contains(it.content, ignoreCase = true) }
+                    "year" -> winesList
+                        .filter { wine -> wine.year.toString().contains(it.content) }
+                    "type" -> winesList
+                        .filter { wine -> wine.type.displayName.contains(it.content, ignoreCase = true) }
+                    "format" -> winesList
+                        .filter { wine -> wine.format.displayName.contains(it.content, ignoreCase = true) }
+                    else -> winesList
+                }
+            } ?: winesList
+        }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            emptyList()
+        )
+
+
+    val filteredWinesMap: StateFlow<Map<Int, Wine>> = winesByYearMap
         .combine(currentFilter) { winesMap, filter ->
             filter?.let {
                 when (it.field) {

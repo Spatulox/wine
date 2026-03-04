@@ -57,7 +57,7 @@ fun OnBottlePositionClick(
     var reason by remember { mutableStateOf<String>("") }
 
     val stockState by stockViewModel.stockState.collectAsStateWithLifecycle()
-    val wineState by wineViewModel.winesByYear.collectAsStateWithLifecycle()
+    val wineState by wineViewModel.wines.collectAsStateWithLifecycle()
     val currentStock = stockState[position]
     val currentWine = currentStock?.wineId?.let { wineState[it] }
 

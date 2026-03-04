@@ -42,7 +42,7 @@ fun WineScreen(
     showAddDialog: Boolean,
     onAddDialogChange: (Boolean) -> Unit,
 ) {
-    val wines by wineViewModel.filteredWines.collectAsStateWithLifecycle()
+    val wines by wineViewModel.filteredWinesList.collectAsStateWithLifecycle()
 
     var selectedWine by remember { mutableStateOf<Wine?>(null) }
 
@@ -111,7 +111,7 @@ fun WineScreen(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        if (wines.values.isEmpty()) {
+        if (wines.isEmpty()) {
             item {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -137,8 +137,8 @@ fun WineScreen(
             }
         } else {
             itemsIndexed(
-                wines.values.toList(),
-                key = { index, wine -> wine.id }
+                wines,
+                key = { _, wine -> wine.id }
             ) { index, wine ->
                 WineItem(
                     wine = wine,

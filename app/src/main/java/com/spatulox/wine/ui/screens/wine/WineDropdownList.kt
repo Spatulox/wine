@@ -31,7 +31,7 @@ fun WineDropdownList(
 ) {
 
     var expanded by remember { mutableStateOf(false) }
-    val wineState by wineViewModel.winesByYear.collectAsStateWithLifecycle()
+    val wineState by wineViewModel.winesByYearDesc.collectAsStateWithLifecycle()
 
     val wines = wineState
 
@@ -62,7 +62,7 @@ fun WineDropdownList(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            wines.values.forEach { wine ->
+            wines.forEach { wine ->
                 DropdownMenuItem(
                     text = {
                         Text(
