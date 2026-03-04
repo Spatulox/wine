@@ -32,6 +32,7 @@ import com.spatulox.wine.ui.screens.history.HistoryScreen
 import com.spatulox.wine.ui.screens.shelf.ShelfScreen
 import com.spatulox.wine.ui.screens.wine.WineScreen
 import com.spatulox.wine.viewModels.HistoryViewModel
+import com.spatulox.wine.viewModels.ShelfViewModel
 import com.spatulox.wine.viewModels.StockViewModel
 import com.spatulox.wine.viewModels.WineViewModel
 import kotlinx.coroutines.flow.StateFlow
@@ -40,7 +41,8 @@ import kotlinx.coroutines.flow.StateFlow
 fun MainMenu(
     wineViewModel: WineViewModel,
     stockViewModel: StockViewModel,
-    historyViewModel: HistoryViewModel
+    historyViewModel: HistoryViewModel,
+    shelfViewModel: ShelfViewModel
 ) {
     var selectedTabIndex by remember { mutableStateOf(0) }
     var showAddWineDialog by remember { mutableStateOf(false) }
@@ -121,7 +123,8 @@ fun MainMenu(
                     0 -> {
                         ShelfScreen(
                             stockViewModel = stockViewModel,
-                            wineViewModel = wineViewModel
+                            wineViewModel = wineViewModel,
+                            shelfViewModel = shelfViewModel
                         )
                     }
                     1 -> {

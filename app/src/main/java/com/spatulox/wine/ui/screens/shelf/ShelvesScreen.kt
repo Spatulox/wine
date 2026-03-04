@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import com.spatulox.wine.domain.model.Position
 import com.spatulox.wine.domain.model.Stock
 import com.spatulox.wine.domain.model.Wine
+import com.spatulox.wine.viewModels.ShelfViewModel
 import com.spatulox.wine.viewModels.StockViewModel
 import com.spatulox.wine.viewModels.WineViewModel
 import kotlinx.coroutines.launch
@@ -43,6 +44,7 @@ import kotlinx.coroutines.launch
 fun ShelfScreen(
     stockViewModel: StockViewModel,
     wineViewModel: WineViewModel,
+    shelfViewModel: ShelfViewModel,
     modifier: Modifier = Modifier,
     onPositionClick: (position: Position) -> Unit = { _ -> }
 ) {
