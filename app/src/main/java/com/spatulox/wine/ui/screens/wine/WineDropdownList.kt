@@ -62,20 +62,33 @@ fun WineDropdownList(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            wines.forEach { wine ->
+            if (wineState.isEmpty()) {
                 DropdownMenuItem(
                     text = {
                         Text(
-                            text = "${wine.name} (${wine.year}, ${wine.format.displayName})",
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                            text = "Pas de vin disponible",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     },
-                    onClick = {
-                        onSelectWine(wine)
-                        expanded = false
-                    }
+                    enabled = false,
+                    onClick = { }
                 )
+            } else {
+                wines.forEach { wine ->
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = "${wine.name} (${wine.year}, ${wine.format.displayName})",
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        },
+                        onClick = {
+                            onSelectWine(wine)
+                            expanded = false
+                        }
+                    )
+                }
             }
         }
     }
