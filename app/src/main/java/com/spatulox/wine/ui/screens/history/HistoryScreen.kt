@@ -22,7 +22,7 @@ import com.spatulox.wine.viewModels.HistoryViewModel
 fun HistoryScreen(
     historyViewModel: HistoryViewModel
 ) {
-    val history by historyViewModel.history.collectAsStateWithLifecycle()
+    val history by historyViewModel.filteredhistoryList.collectAsStateWithLifecycle()
 
     /*val historyTest by remember {
         mutableStateOf(
