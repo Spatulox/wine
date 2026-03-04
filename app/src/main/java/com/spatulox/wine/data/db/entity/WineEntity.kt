@@ -15,5 +15,6 @@ data class WineEntity(
     val year: Int,
     val format: String,
     val type: String,
+    val unitPrice: Float?,
     var stars: Int
 )

@@ -13,6 +13,7 @@ object WineMapper {
             year = entity.year,
             format = WineFormat.valueOf(entity.format),
             type = WineType.valueOf(entity.type),
+            unitPrice = entity.unitPrice,
             stars = entity.stars
         )
     }
@@ -24,6 +25,7 @@ object WineMapper {
             year = wine.year,
             format = wine.format.name,
             type = wine.type.name,
+            unitPrice = wine.unitPrice,
             stars = wine.stars
         )
     }

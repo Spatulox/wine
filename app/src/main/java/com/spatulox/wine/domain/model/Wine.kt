@@ -9,5 +9,6 @@ data class Wine(
     val year: Int,
     val format: WineFormat,
     val type: WineType,
+    val unitPrice: Float?,
     var stars: Int
 )
