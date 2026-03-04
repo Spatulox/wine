@@ -52,24 +52,7 @@ fun WineItem(
                     fontWeight = FontWeight.Bold
                 )
 
-                Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                    repeat(wine.stars) {
-                        Icon(
-                            imageVector = Icons.Filled.Star,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                    repeat(5 - wine.stars) {
-                        Icon(
-                            imageVector = Icons.Outlined.StarBorder,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
+                WineStar(wine = wine)
             }
 
             Spacer(modifier = Modifier.height(8.dp))
