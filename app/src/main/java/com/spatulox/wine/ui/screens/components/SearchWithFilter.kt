@@ -404,6 +404,7 @@ fun EnumDropdownField(
                 DropdownMenuItem(
                     text = { Text(displayName) },
                     onClick = {
+                        onExpandedChange(false)
                         onSelectionChange(displayName, enumEntry)
                     }
                 )
