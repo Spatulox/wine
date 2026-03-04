@@ -60,7 +60,9 @@ fun WineScreen(
             },
             onDelete = {
                 coroutineScope.launch {
-                    wineViewModel.deleteWine(wine)
+                    if(!wineViewModel.deleteWine(wine)){
+                        SnackbarManager.send("Wine exist in cave, cannot delete it !")
+                    }
                 }
                 selectedWine = null
             }

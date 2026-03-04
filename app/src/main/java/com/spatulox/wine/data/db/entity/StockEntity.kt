@@ -12,7 +12,7 @@ import androidx.room.PrimaryKey
             entity = WineEntity::class,
             parentColumns = ["id"],
             childColumns = ["wineId"],
-            onDelete = ForeignKey.CASCADE
+            onDelete = ForeignKey.RESTRICT
         )
     ],
     indices = [
