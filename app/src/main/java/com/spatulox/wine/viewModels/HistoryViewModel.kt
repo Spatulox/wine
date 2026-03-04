@@ -28,19 +28,19 @@ open class HistoryViewModel(
             filter?.let {
                 when (it.field) {
                     "name" -> historyList
-                        .filter { history -> history.wine.name.contains(it.content, ignoreCase = true) }
+                        .filter { history -> history.wine.name.equals(it.content, ignoreCase = true) }
                     "year" -> historyList
                         .filter { history ->
                             val historyYear = LocalDateTime
                                 .ofInstant(Instant.ofEpochMilli(history.date), ZoneId.systemDefault())
                                 .year
                                 .toString()
-                            historyYear.contains(it.content)
+                            historyYear.equals(it.content)
                         }
                     "type" -> historyList
-                        .filter { history -> history.wine.type.displayName.contains(it.content, ignoreCase = true) }
+                        .filter { history -> history.wine.type.displayName.equals(it.content, ignoreCase = true) }
                     "format" -> historyList
-                        .filter { history -> history.wine.format.displayName.contains(it.content, ignoreCase = true) }
+                        .filter { history -> history.wine.format.displayName.equals(it.content, ignoreCase = true) }
                     else -> historyList
                 }
             } ?: historyList

@@ -53,13 +53,13 @@ open class WineViewModel(
             filter?.let {
                 when (it.field) {
                     "name" -> winesList
-                        .filter { wine -> wine.name.contains(it.content, ignoreCase = true) }
+                        .filter { wine -> wine.name.equals(it.content, ignoreCase = true) }
                     "year" -> winesList
-                        .filter { wine -> wine.year.toString().contains(it.content) }
+                        .filter { wine -> wine.year.toString().equals(it.content) }
                     "type" -> winesList
-                        .filter { wine -> wine.type.displayName.contains(it.content, ignoreCase = true) }
+                        .filter { wine -> wine.type.displayName.equals(it.content, ignoreCase = true) }
                     "format" -> winesList
-                        .filter { wine -> wine.format.displayName.contains(it.content, ignoreCase = true) }
+                        .filter { wine -> wine.format.displayName.equals(it.content, ignoreCase = true) }
                     else -> winesList
                 }
             } ?: winesList
@@ -76,13 +76,13 @@ open class WineViewModel(
             filter?.let {
                 when (it.field) {
                     "name" -> winesMap.values
-                        .filter { wine -> wine.name.contains(it.content, ignoreCase = true) }
+                        .filter { wine -> wine.name.equals(it.content, ignoreCase = true) }
                     "year" -> winesMap.values
-                        .filter { wine -> wine.year.toString().contains(it.content) }
+                        .filter { wine -> wine.year.toString().equals(it.content) }
                     "type" -> winesMap.values
-                        .filter { wine -> wine.type.displayName.contains(it.content, ignoreCase = true) }
+                        .filter { wine -> wine.type.displayName.equals(it.content, ignoreCase = true) }
                     "format" -> winesMap.values
-                        .filter { wine -> wine.format.displayName.contains(it.content, ignoreCase = true) }
+                        .filter { wine -> wine.format.displayName.equals(it.content, ignoreCase = true) }
                     else -> winesMap.values
                 }.associateBy { it.id }
             } ?: winesMap
