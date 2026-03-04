@@ -323,6 +323,7 @@ fun SearchWithFilters(
                         }
                     }
 
+
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -381,66 +382,6 @@ private fun FilterButton(
                 else
                     MaterialTheme.colorScheme.onSurfaceVariant
             )
-        }
-    }
-}
-
-
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun EnumDropdownField(
-    selectedEnum: Any?,
-    enumClass: KClass<out Enum<*>>,
-    onSelectionChange: (String, Any) -> Unit,
-    expanded: Boolean,
-    onExpandedChange: (Boolean) -> Unit,
-    placeholder: String = "Sélectionner...",
-    modifier: Modifier = Modifier
-) {
-    val enumEntries = enumClass.java.enumConstants ?: emptyArray()
-
-    fun getDisplayName(enumEntry: Any): String = when (enumEntry) {
-        is WineType -> enumEntry.displayName
-        is WineFormat -> enumEntry.displayName
-        else -> enumEntry.toString()
-    }
-
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = onExpandedChange,
-        modifier = modifier
-    ) {
-        OutlinedTextField(
-            value = selectedEnum?.let { getDisplayName(it) } ?: placeholder,
-            onValueChange = { },
-            readOnly = true,
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = Color.Transparent,
-                unfocusedContainerColor = Color.Transparent,
-                focusedBorderColor = Color.Transparent,
-                unfocusedBorderColor = Color.Transparent,
-                focusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-            ),
-            modifier = Modifier.menuAnchor().fillMaxWidth()
-        )
-
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { onExpandedChange(false) }
-        ) {
-            enumEntries.forEach { enumEntry ->
-                val displayName = getDisplayName(enumEntry)
-                DropdownMenuItem(
-                    text = { Text(displayName) },
-                    onClick = {
-                        onExpandedChange(false)
-                        onSelectionChange(displayName, enumEntry)
-                    }
-                )
-            }
         }
     }
 }
