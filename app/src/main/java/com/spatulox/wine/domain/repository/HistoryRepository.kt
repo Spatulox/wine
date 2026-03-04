@@ -10,5 +10,6 @@ interface HistoryRepository {
     fun getHistoryStream(): Flow<List<History>>
     fun getHistoryWithWineStream(): Flow<List<HistoryWithWine>>
     suspend fun getHistoryWithWineById(id: Int): HistoryWithWine?
+    fun getHistoryYearStream(): Flow<List<Int>>
     suspend fun insert(history: History): Long
 }

@@ -8,6 +8,8 @@ import com.spatulox.wine.domain.model.HistoryWithWine
 import com.spatulox.wine.domain.repository.HistoryRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.time.Instant
+import java.time.ZoneId
 
 class HistoryRepositoryImpl(private val historyDao: HistoryDao): HistoryRepository {
     override suspend fun getHistory(): List<History> {
@@ -25,6 +27,21 @@ class HistoryRepositoryImpl(private val historyDao: HistoryDao): HistoryReposito
     override suspend fun getHistoryWithWineById(id: Int): HistoryWithWine? {
         val entity = historyDao.getHistoryWithWineById(id)
         return entity?.let { HistoryMapper.toDomainWithWine(it) }
+    }
+
+    override fun getHistoryYearStream(): Flow<List<Int>> {
+        return historyDao.getHistoryYearStream()
+            .map { timestamps ->
+                timestamps
+                    .map { timestamp ->
+                        Instant
+                            .ofEpochMilli(timestamp)
+                            .atZone(ZoneId.systemDefault())
+                            .year
+                    }
+                    .distinct()
+                    .sorted()
+            }
     }
 
     override suspend fun getHistoryById(id: Int): History? {

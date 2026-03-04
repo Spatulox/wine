@@ -28,6 +28,11 @@ interface HistoryDao {
     @Query("SELECT * FROM history WHERE id= :id")
     suspend fun getHistoryWithWineById(id: Int): HistoryEntityWithWine?
 
+    @Query("""
+        SELECT DISTINCT date FROM history
+    """)
+    fun getHistoryYearStream(): Flow<List<Long>>
+
     @Insert
     suspend fun insert(history: HistoryEntity): Long
 }
