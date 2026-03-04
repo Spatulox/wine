@@ -40,6 +40,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.spatulox.wine.domain.model.Position
 import com.spatulox.wine.domain.model.Wine
 import com.spatulox.wine.ui.screens.wine.WineDropdownList
+import com.spatulox.wine.ui.screens.wine.WineStar
 import com.spatulox.wine.viewModels.StockViewModel
 import com.spatulox.wine.viewModels.WineViewModel
 
@@ -77,12 +78,17 @@ fun OnBottlePositionClick(
             Column(
                 modifier = Modifier.padding(24.dp)
             ) {
-                // Titre
-                Text(
-                    text = currentWine?.name ?: "Unknow Wine",
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
+                Row(
+                    //verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = currentWine?.name ?: "Ajouter",
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+                    currentWine?.let { wine -> WineStar(wine = wine) }
+                }
 
                 // Contenu
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -150,6 +156,16 @@ fun OnBottlePositionClick(
                                 selectedWine = selectedWine,
                                 onSelectWine = { wine -> selectedWine = wine }
                             )
+
+                            if(selectedWine != null){
+                                OutlinedTextField(
+                                    value = reason,
+                                    onValueChange = { reason = it },
+                                    label = { Text("Raison de l'ajout") },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    singleLine = true,
+                                )
+                            }
                         }
                         // CAS 2: Position OCCUPÉE → Retrait
                         else -> {
