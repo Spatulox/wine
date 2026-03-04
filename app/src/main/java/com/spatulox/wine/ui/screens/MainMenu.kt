@@ -23,10 +23,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.spatulox.wine.SnackbarManager
 import com.spatulox.wine.ui.screens.components.AddButton
-import com.spatulox.wine.ui.screens.components.Filter
 import com.spatulox.wine.ui.screens.components.SearchWithFilters
 import com.spatulox.wine.ui.screens.history.HistoryScreen
 import com.spatulox.wine.ui.screens.shelf.ShelfScreen
@@ -35,7 +33,6 @@ import com.spatulox.wine.viewModels.HistoryViewModel
 import com.spatulox.wine.viewModels.ShelfViewModel
 import com.spatulox.wine.viewModels.StockViewModel
 import com.spatulox.wine.viewModels.WineViewModel
-import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 fun MainMenu(
