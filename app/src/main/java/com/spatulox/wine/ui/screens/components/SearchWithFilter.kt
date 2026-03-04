@@ -40,6 +40,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,6 +59,7 @@ import com.spatulox.wine.ui.screens.wine.WineDropdownList
 import com.spatulox.wine.viewModels.HistoryViewModel
 import com.spatulox.wine.viewModels.StockViewModel
 import com.spatulox.wine.viewModels.WineViewModel
+import kotlinx.coroutines.flow.StateFlow
 import kotlin.reflect.KClass
 
 data class Filter(
@@ -85,7 +87,7 @@ fun SearchWithFilters(
     wineViewModel: WineViewModel,
     stockViewModel: StockViewModel,
     historyViewModel: HistoryViewModel,
-    availableYears: List<Int>?,
+    selectedTabIndex: Int,
     modifier: Modifier = Modifier,
     isExpanded: Boolean,
     onExpandedChange: (Boolean) -> Unit,
@@ -94,7 +96,7 @@ fun SearchWithFilters(
     var selectedField by remember { mutableStateOf("name") }
 
     var selectedWine by remember { mutableStateOf<Wine?>(null) }
-    var year by remember { mutableStateOf<Int?>(null)}
+    var year by remember(selectedTabIndex) { mutableStateOf<Int?>(null) }
     var selectedWineType by remember { mutableStateOf<WineType?>(null) }
     var selectedWineFormat by remember { mutableStateOf<WineFormat?>(null) }
 
@@ -102,6 +104,14 @@ fun SearchWithFilters(
     var isDateInit by remember { mutableStateOf(true) }
     var isFormatInit by remember { mutableStateOf(true) }
     var isTypeInit by remember { mutableStateOf(true) }
+
+    val stockYears by stockViewModel.stockYears.collectAsStateWithLifecycle()
+    val historyYears by historyViewModel.historyYears.collectAsStateWithLifecycle()
+    val availableYears = when(selectedTabIndex) {
+        0 -> stockYears
+        2 -> historyYears
+        else -> emptyList()
+    }
 
     // FAB (inchangé - row pleine largeur)
     FloatingActionButton(

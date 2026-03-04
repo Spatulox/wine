@@ -34,6 +34,7 @@ import com.spatulox.wine.ui.screens.wine.WineScreen
 import com.spatulox.wine.viewModels.HistoryViewModel
 import com.spatulox.wine.viewModels.StockViewModel
 import com.spatulox.wine.viewModels.WineViewModel
+import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 fun MainMenu(
@@ -56,9 +57,6 @@ fun MainMenu(
         }
     }
 
-    var availableYears by remember { mutableStateOf<List<Int>?>(null) }
-
-
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
@@ -79,7 +77,7 @@ fun MainMenu(
                     isExpanded = isFabExpanded,
                     onExpandedChange = { isFabExpanded = it },
                     modifier = Modifier.align(Alignment.BottomEnd),
-                    availableYears = availableYears
+                    selectedTabIndex = selectedTabIndex
                 )
             }
         },
@@ -127,7 +125,6 @@ fun MainMenu(
                             stockViewModel = stockViewModel,
                             wineViewModel = wineViewModel
                         )
-                        availableYears = stockViewModel.stockYears.collectAsStateWithLifecycle().value
                     }
                     1 -> {
                         WineScreen(
@@ -135,11 +132,9 @@ fun MainMenu(
                             showAddDialog = showAddWineDialog,
                             onAddDialogChange = { showAddWineDialog = it }
                         )
-                        availableYears = null
                     }
                     2 -> {
                         HistoryScreen(historyViewModel = historyViewModel)
-                        availableYears = null
                     }
                     else -> Text("Écran non implémenté")
                 }
