@@ -29,7 +29,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.spatulox.wine.SnackbarManager
 import com.spatulox.wine.domain.model.Wine
+import com.spatulox.wine.send
 import com.spatulox.wine.ui.screens.components.AddButton
 import com.spatulox.wine.viewModels.WineViewModel
 import kotlinx.coroutines.launch
@@ -151,10 +153,13 @@ fun WineScreen(
             onDismiss = { onAddDialogChange(false) },
             onValidate = { newWine ->
                 coroutineScope.launch {
-                    wineViewModel.addWine(newWine)
+                    if(!wineViewModel.addWine(newWine)){
+                        SnackbarManager.send("Duplicate entry")
+                    }
                 }
                 onAddDialogChange(false)
-            }
+            },
+            wineViewModel = wineViewModel
         )
     }
 }

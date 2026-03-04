@@ -8,10 +8,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -20,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
+import com.spatulox.wine.SnackbarManager
 import com.spatulox.wine.ui.screens.components.AddButton
 import com.spatulox.wine.ui.screens.components.Filter
 import com.spatulox.wine.ui.screens.components.SearchWithFilters
@@ -40,11 +44,20 @@ fun MainMenu(
     var showAddWineDialog by remember { mutableStateOf(false) }
     val tabs = listOf("Shelves", "Wines", "History")
 
-
-
     var isFabExpanded by remember { mutableStateOf(false) }
 
+
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(Unit) {
+        SnackbarManager.INSTANCE.messageFlow.collect { message ->
+            snackbarHostState.showSnackbar(message)
+        }
+    }
+
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
             Box(modifier = Modifier.fillMaxWidth()) {
                 // AddButton À GAUCHE (Start)

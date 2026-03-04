@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.spatulox.wine.domain.model.Wine
+import com.spatulox.wine.viewModels.WineViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -92,6 +93,12 @@ fun WineItem(
 
                 Text(
                     text = wine.format.displayName,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Text(
+                    text =  "${wine.unitPrice ?: "N/A"} €",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

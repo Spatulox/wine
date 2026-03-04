@@ -1,5 +1,6 @@
 package com.spatulox.wine.viewModels
 
+import android.database.sqlite.SQLiteConstraintException
 import androidx.compose.ui.text.toLowerCase
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -54,9 +55,15 @@ open class WineViewModel(
         )
 
 
-    suspend fun addWine(wine: Wine){
-        wineRepository.insert(wine)
+    suspend fun addWine(wine: Wine): Boolean {
+        return try {
+            wineRepository.insert(wine)
+            true
+        } catch (e: SQLiteConstraintException) {
+            false
+        }
     }
+
     suspend fun updateWine(wine: Wine){
         wineRepository.update(wine)
     }
