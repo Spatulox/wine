@@ -38,6 +38,10 @@ class StockRepositoryImpl(
         return stockDao.getStockStream().map { entities -> entities.map { StockMapper.toDomain(it) } }
     }
 
+    override fun getStockYearsStream(): Flow<List<Int>> {
+        return stockDao.getStockYearsStream()
+    }
+
     override suspend fun insert(stock: Stock, reason: String): Long {
 
         return transactionProvider.run {

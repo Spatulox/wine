@@ -10,6 +10,7 @@ interface StockRepository {
     suspend fun getStockById(id: Int): Stock?
     suspend fun getStockByPos(pos: Position): Stock?
     fun getStockStream(): Flow<List<Stock>>
+    fun getStockYearsStream(): Flow<List<Int>>
     suspend fun insert(stock: Stock, reason: String): Long
     suspend fun withdraw(stock: Stock, reason: String): Long
     suspend fun withdraw(stockId: Int, reason: String): Long

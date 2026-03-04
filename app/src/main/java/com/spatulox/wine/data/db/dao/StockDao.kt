@@ -23,6 +23,14 @@ interface StockDao {
     @Query("SELECT * FROM stock ORDER BY shelf, `row`, col")
     fun getStockStream(): Flow<List<StockEntity>>
 
+    @Query("""
+        SELECT DISTINCT w.year 
+        FROM wine w
+        INNER JOIN stock s ON w.id = s.wineId
+        ORDER BY w.year ASC
+    """)
+    fun getStockYearsStream(): Flow<List<Int>>
+
     @Insert
     suspend fun insert(stock: StockEntity): Long
 

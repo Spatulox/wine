@@ -8,6 +8,7 @@ import com.spatulox.wine.domain.model.Stock
 import com.spatulox.wine.domain.model.Wine
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import java.time.LocalDate
@@ -23,6 +24,14 @@ open class StockViewModel(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5000),
                 initialValue = emptyMap()
+            )
+
+    val stockYears: StateFlow<List<Int>> =
+        stockRepository.getStockYearsStream()
+            .stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5000),
+                emptyList()
             )
 
     suspend fun insert(position: Position, wine: Wine, reason: String){
