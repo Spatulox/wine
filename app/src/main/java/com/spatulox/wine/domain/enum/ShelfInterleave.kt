@@ -1,6 +1,6 @@
 package com.spatulox.wine.domain.enum
 
-enum class ShelfInterleave {
-    STRAIGHT,
-    STAGGERED
+enum class ShelfInterleave(val displayName: String) {
+    STRAIGHT("Straight"),
+    STAGGERED("Staggered")
 }
