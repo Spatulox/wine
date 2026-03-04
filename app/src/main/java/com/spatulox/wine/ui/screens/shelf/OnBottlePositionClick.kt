@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
@@ -34,6 +35,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.spatulox.wine.domain.model.Position
 import com.spatulox.wine.domain.model.Wine
@@ -61,114 +63,150 @@ fun OnBottlePositionClick(
     val currentStock = stockState[position]
     val currentWine = currentStock?.wineId?.let { wineState[it] }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = " ${if (currentStock == null) "Placer" else "Enlever" }",
-                style = MaterialTheme.typography.titleLarge
+    Dialog (
+        onDismissRequest = onDismiss
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth(),
+            shape = MaterialTheme.shapes.large,
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
             )
-        },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                // Position actuelle
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Text(
-                        text = "Étagère: ${position.shelf}",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    Text(
-                        text = "Ligne: ${position.row}",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    Text(
-                        text = "Colonne: ${position.col}",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                }
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp)
+            ) {
+                // Titre
+                Text(
+                    text = if (currentStock == null) "Placer" else "Enlever",
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
 
-                // Vin actuel
-                currentWine?.let { wine ->
-                    Card(
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
-                        ),
-                        modifier = Modifier.fillMaxWidth()
+                // Contenu
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    // Position actuelle
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        Row(
-                            modifier = Modifier.padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                        Text(
+                            text = "Étagère: ${position.shelf}",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                        Text(
+                            text = "Ligne: ${position.row}",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                        Text(
+                            text = "Colonne: ${position.col}",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+
+                    // Vin actuel
+                    currentWine?.let { wine ->
+                        Card(
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
+                            ),
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text(
-                                text = wine.name,
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.weight(1f)
+                            Row(
+                                modifier = Modifier.padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = wine.name,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Text(
+                                    text = "${wine.year}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    } ?: Text(
+                        text = "Vide",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    // Action selon état
+                    when {
+                        // CAS 1: Position VIDE → Placer vin
+                        currentStock == null -> {
+                            WineDropdownList(
+                                wineViewModel = wineViewModel,
+                                selectedWine = selectedWine,
+                                onSelectWine = { wine -> selectedWine = wine }
                             )
-                            Text(
-                                text = "${wine.year}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                        }
+                        // CAS 2: Position OCCUPÉE → Retrait
+                        else -> {
+                            OutlinedTextField(
+                                value = reason,
+                                onValueChange = { reason = it },
+                                label = { Text("Raison du retrait") },
+                                modifier = Modifier.fillMaxWidth(),
+                                singleLine = true,
                             )
                         }
                     }
-                } ?: Text(
-                    text = "Vide",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                when {
-                    // ✅ CAS 1: Position VIDE → Placer vin
-                    currentStock == null -> {
-                        WineDropdownList(
-                            wineViewModel = wineViewModel,
-                            selectedWine = selectedWine,
-                            onSelectWine = { wine -> selectedWine = wine }
-                        )
-                    }
-
-                    // ✅ CAS 2: Position OCCUPÉE → Retrait/Supprimer
-                    else -> {
-                        OutlinedTextField(
-                            value = reason,
-                            onValueChange = { reason = it },
-                            label = { Text("Raison du retrait") },
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true,
-                        )
-                    }
                 }
-            }
-        },
-        confirmButton = {
-            // ✅ UNIQUEMENT quand vide + vin sélectionné
-            if (currentStock == null && selectedWine != null) {
-                TextButton(onClick = {
-                    onPlaceWine(position, selectedWine!!, reason)
-                    onDismiss()
-                }) {
-                    Icon(Icons.Default.Check, null)
-                    Text("Placer")
-                }
-            } else if(currentStock != null) {
-                TextButton(
-                    onClick = {
-                        onWithdraw(position, reason)
-                        onDismiss()
-                    }
+
+                // Boutons
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 24.dp),
+                    horizontalArrangement = Arrangement.End// spacedBy(12.dp)
                 ) {
-                    Icon(Icons.Filled.Remove, null)
-                    Text("Retirer")
+
+                    val hasActionButton = currentStock == null && selectedWine != null || currentStock != null
+
+                    TextButton(
+                        onClick = onDismiss,
+                        modifier = if (hasActionButton) {
+                            Modifier.weight(1f)
+                        } else {
+                            Modifier
+                        }
+                    ) {
+                        Text("Annuler")
+                    }
+
+                    // Action principale (conditionnelle)
+                    if (currentStock == null && selectedWine != null) {
+                        // Placer
+                        Button(
+                            onClick = {
+                                onPlaceWine(position, selectedWine!!, reason)
+                                onDismiss()
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(Icons.Default.Check, null)
+                            Text("Placer")
+                        }
+                    } else if (currentStock != null) {
+                        // Retirer
+                        Button(
+                            onClick = {
+                                onWithdraw(position, reason)
+                                onDismiss()
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(Icons.Filled.Remove, null)
+                            Text("Retirer")
+                        }
+                    }
                 }
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Annuler")
             }
         }
-    )
+    }
 }

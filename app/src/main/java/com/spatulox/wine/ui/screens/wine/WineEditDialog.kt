@@ -4,12 +4,16 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -30,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import com.spatulox.wine.domain.enum.WineFormat
 import com.spatulox.wine.domain.enum.WineType
 import com.spatulox.wine.domain.model.Wine
@@ -51,123 +56,161 @@ fun WineEditDialog(
     var editedStars by remember(wine) { mutableStateOf(wine.stars) }
     var editedFormat by remember(wine) { mutableStateOf(wine.format) }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                // Nom
-                OutlinedTextField(
-                    value = editedName,
-                    onValueChange = { editedName = it },
-                    label = { Text("Nom") },
-                    singleLine = true
+    Dialog (
+        onDismissRequest = onDismiss
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth(),
+            shape = MaterialTheme.shapes.large,
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainer
+            )
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                // Titre (optionnel)
+                Text(
+                    text = "Modifier le vin",
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(bottom = 16.dp)
                 )
 
-                // Année (Number Picker)
-                DateSelection(
-                    year = editedYear,
-                    onYearChange = { lyear ->
-                        editedYear = lyear
-                    }
-                )
-
-                // Format (Dropdown)
-                var expanded by remember { mutableStateOf(false) }
-                ExposedDropdownMenuBox(
-                    expanded = expanded,
-                    onExpandedChange = { expanded = !expanded }
-                ) {
+                // Formulaire complet
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    // Nom
                     OutlinedTextField(
-                        value = editedFormat.displayName,
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("Format") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                        modifier = Modifier.menuAnchor().fillMaxWidth()
-                    )
-                    ExposedDropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false }
-                    ) {
-                        WineFormat.entries.forEach { format ->
-                            DropdownMenuItem(
-                                text = { Text(format.displayName) },
-                                onClick = {
-                                    editedFormat = format
-                                    expanded = false
-                                }
-                            )
-                        }
-                    }
-                }
-
-                var expandedType by remember { mutableStateOf(false) }
-                ExposedDropdownMenuBox(
-                    expanded = expandedType,
-                    onExpandedChange = { expandedType = !expandedType }
-                ) {
-                    OutlinedTextField(
-                        value = editedType.name,
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("Type") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedType) },
-                        modifier = Modifier.menuAnchor().fillMaxWidth()
-                    )
-                    ExposedDropdownMenu(
-                        expanded = expandedType,
-                        onDismissRequest = { expandedType = false }
-                    ) {
-                        WineType.entries.forEach { type ->
-                            DropdownMenuItem(
-                                text = { Text(editedType.name) },
-                                onClick = {
-                                    editedType = type
-                                    expandedType = false
-                                }
-                            )
-                        }
-                    }
-                }
-
-                // Étoiles (Slider)
-                Column {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text("Note (${editedStars}/5)")
-                        Text("$editedStars ⭐")
-                    }
-                    Slider(
-                        value = editedStars.toFloat(),
-                        onValueChange = { editedStars = it.roundToInt().coerceIn(0, 5) },
-                        valueRange = 0f..5f,
-                        steps = 4,
+                        value = editedName,
+                        onValueChange = { editedName = it },
+                        label = { Text("Nom") },
+                        singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    onValidate(
-                        wine.copy(
-                            name = editedName,
-                            year = editedYear,
-                            format = editedFormat,
-                            stars = editedStars
-                        )
+
+                    // Année
+                    DateSelection(
+                        year = editedYear,
+                        onYearChange = { editedYear = it }
                     )
+
+                    // Format (Dropdown)
+                    var expanded by remember { mutableStateOf(false) }
+                    ExposedDropdownMenuBox(
+                        expanded = expanded,
+                        onExpandedChange = { expanded = !expanded }
+                    ) {
+                        OutlinedTextField(
+                            value = editedFormat.displayName,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Format") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                            modifier = Modifier.menuAnchor().fillMaxWidth()
+                        )
+                        ExposedDropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false }
+                        ) {
+                            WineFormat.entries.forEach { format ->
+                                DropdownMenuItem(
+                                    text = { Text(format.displayName) },
+                                    onClick = {
+                                        editedFormat = format
+                                        expanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    // Type (Dropdown) - CORRIGÉ
+                    var expandedType by remember { mutableStateOf(false) }
+                    ExposedDropdownMenuBox(
+                        expanded = expandedType,
+                        onExpandedChange = { expandedType = !expandedType }
+                    ) {
+                        OutlinedTextField(
+                            value = editedType.name,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Type") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedType) },
+                            modifier = Modifier.menuAnchor().fillMaxWidth()
+                        )
+                        ExposedDropdownMenu(
+                            expanded = expandedType,
+                            onDismissRequest = { expandedType = false }
+                        ) {
+                            WineType.entries.forEach { type ->
+                                DropdownMenuItem(
+                                    text = { Text(type.name) },  // ✅ CORRIGÉ : type.name
+                                    onClick = {
+                                        editedType = type
+                                        expandedType = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    // Étoiles (Slider)
+                    Column {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text("Note (${editedStars}/5)")
+                            Text("$editedStars ⭐")
+                        }
+                        Slider(
+                            value = editedStars.toFloat(),
+                            onValueChange = { editedStars = it.roundToInt().coerceIn(0, 5) },
+                            valueRange = 0f..5f,
+                            steps = 4,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
                 }
-            ) { Text("Valider") }
-        },
-        dismissButton = {
-            Row {
-                TextButton(onClick = onDelete) { Text("Supprimer") }
-                TextButton(onClick = onDismiss) { Text("Annuler") }
+
+                // Boutons
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 24.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // Supprimer
+                    TextButton(
+                        onClick = onDelete,
+                    ) {
+                        Text("Supprimer")
+                    }
+
+                    // Annuler
+                    TextButton(
+                        onClick = onDismiss,
+                    ) {
+                        Text("Annuler")
+                    }
+
+                    // Valider
+                    Button(
+                        onClick = {
+                            onValidate(
+                                wine.copy(
+                                    name = editedName,
+                                    year = editedYear,
+                                    format = editedFormat,
+                                    stars = editedStars
+                                )
+                            )
+                        },
+                    ) {
+                        Text("Valider")
+                    }
+                }
             }
         }
-    )
+    }
 }

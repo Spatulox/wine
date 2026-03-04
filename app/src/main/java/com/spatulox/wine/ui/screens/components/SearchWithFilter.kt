@@ -23,6 +23,8 @@ import androidx.compose.material.icons.filled.WineBar
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -47,6 +49,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.spatulox.wine.domain.enum.WineFormat
 import com.spatulox.wine.domain.enum.WineType
@@ -260,52 +263,75 @@ fun SearchWithFilters(
 
 
     if (isFilterPopupVisible && isExpanded) {
-        AlertDialog(
-            onDismissRequest = { isFilterPopupVisible = false },
-            title = {
-                Column {
-                    Text(
-                        text = "Filtres",
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                    Text(
-                        text = "Un seul filtre actif à la fois",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            },
-            text = {
-                LazyColumn {
-                    items(filterFields.size) { index ->
-                        val (field, icon) = filterFields[index]
-                        FilterButton(
-                            selected = selectedField == field,
-                            option = filterFields[index],
-                            onClick = {
-                                selectedField = field
-                                val filter = Filter(content = "", field = field)
-                                wineViewModel.updateFilter(filter)
-                                stockViewModel.updateFilter(filter)
-                                historyViewModel.updateFilter(filter)
-                                isFilterPopupVisible = false // Ferme auto
-                            },
-                            modifier = Modifier.padding(bottom = 8.dp)
+        Dialog(
+            onDismissRequest = { isFilterPopupVisible = false }
+        ) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                shape = MaterialTheme.shapes.large,
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp)
+                ) {
+                    // Titre
+                    Column(
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    ) {
+                        Text(
+                            text = "Filtres",
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                        Text(
+                            text = "Un seul filtre actif à la fois",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
+
+                    // Contenu LazyColumn
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    ) {
+                        items(filterFields.size) { index ->
+                            val (field, icon) = filterFields[index]
+                            FilterButton(
+                                selected = selectedField == field,
+                                option = filterFields[index],
+                                onClick = {
+                                    selectedField = field
+                                    val filter = Filter(content = "", field = field)
+                                    wineViewModel.updateFilter(filter)
+                                    stockViewModel.updateFilter(filter)
+                                    historyViewModel.updateFilter(filter)
+                                    isFilterPopupVisible = false
+                                },
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                        }
+                    }
+
+                    // Bouton Fermer
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 16.dp),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        TextButton(
+                            onClick = { isFilterPopupVisible = false }
+                        ) {
+                            Text("Fermer")
+                        }
+                    }
                 }
-            },
-            confirmButton = {},
-            dismissButton = {
-                TextButton(
-                    onClick = { isFilterPopupVisible = false }
-                ) {
-                    Text("Fermer")
-                }
-            },
-            shape = MaterialTheme.shapes.large,
-            containerColor = MaterialTheme.colorScheme.surface
-        )
+            }
+        }
     }
 }
 
