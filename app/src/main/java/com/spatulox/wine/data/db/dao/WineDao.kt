@@ -25,7 +25,7 @@ interface WineDao {
     @Query("SELECT * FROM wine ORDER BY name ASC")
     fun getWineStream(): Flow<List<WineEntity>>
 
-    @Query("SELECT * FROM wine WHERE name LIKE '%' || :query || '%' OR year = :query")
+    @Query("SELECT * FROM wine WHERE name = :query OR year = :query") // We do not user " LIKE '%' || :query || '%' " because the search field is not user powered but absolute list powered
     suspend fun search(query: String): List<WineEntity>
 
     @Insert
