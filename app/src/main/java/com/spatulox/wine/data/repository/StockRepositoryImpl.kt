@@ -14,6 +14,8 @@ import com.spatulox.wine.domain.model.Stock
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
+
+// Stock represent a single position in a shelf
 class StockRepositoryImpl(
     private val stockDao: StockDao,
     private val historyDao: HistoryDao,
@@ -30,7 +32,7 @@ class StockRepositoryImpl(
     }
 
     override suspend fun getStockByPos(pos: Position): Stock? {
-        val entity = stockDao.getStockByPos(pos.shelf, pos.row, pos.col)
+        val entity = stockDao.getStockByPos(pos.shelfId, pos.row, pos.col)
         return entity?.let { StockMapper.toDomain(it) }
     }
 
@@ -86,7 +88,7 @@ class StockRepositoryImpl(
     }
 
     override suspend fun delete(pos: Position) {
-        val entity = stockDao.getStockByPos(pos.shelf, pos.row, pos.col)
+        val entity = stockDao.getStockByPos(pos.shelfId, pos.row, pos.col)
         if(entity != null){
             stockDao.delete(entity)
         }
