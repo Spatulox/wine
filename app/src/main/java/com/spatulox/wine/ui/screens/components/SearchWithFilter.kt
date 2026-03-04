@@ -113,7 +113,6 @@ fun SearchWithFilters(
         else -> emptyList()
     }
 
-    // FAB (inchangé - row pleine largeur)
     FloatingActionButton(
         onClick = {
             onExpandedChange(!isExpanded)
@@ -287,7 +286,6 @@ fun SearchWithFilters(
                 Column(
                     modifier = Modifier.padding(24.dp)
                 ) {
-                    // Titre
                     Column(
                         modifier = Modifier.padding(bottom = 16.dp)
                     ) {
@@ -302,7 +300,6 @@ fun SearchWithFilters(
                         )
                     }
 
-                    // Contenu LazyColumn
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier
@@ -326,7 +323,6 @@ fun SearchWithFilters(
                         }
                     }
 
-                    // Bouton Fermer
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()

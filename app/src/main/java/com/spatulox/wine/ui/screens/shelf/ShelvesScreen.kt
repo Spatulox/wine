@@ -149,7 +149,7 @@ private fun BottlePosition(
     OutlinedButton(
         onClick = { onClick(position) },
         modifier = modifier
-            .size(50.dp)  // ✅ Parfaitement carré → cercle
+            .size(50.dp)
             .padding(2.dp),
         shape = CircleShape,
         colors = ButtonDefaults.outlinedButtonColors(
@@ -164,7 +164,6 @@ private fun BottlePosition(
         contentPadding = PaddingValues(0.dp)
     ) {
         if (isOccupied && wine != null) {
-            // Bouteille occupée
             Icon(
                 imageVector = Icons.Default.Info,
                 contentDescription = wine.name,
@@ -172,7 +171,6 @@ private fun BottlePosition(
                 modifier = Modifier.size(24.dp)
             )
         } else {
-            // Cercle vide
             Box(
                 modifier = Modifier
                     .size(24.dp)

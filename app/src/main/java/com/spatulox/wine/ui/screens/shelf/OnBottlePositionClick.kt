@@ -79,7 +79,6 @@ fun OnBottlePositionClick(
                 modifier = Modifier.padding(24.dp)
             ) {
                 Row(
-                    //verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
@@ -90,9 +89,7 @@ fun OnBottlePositionClick(
                     currentWine?.let { wine -> WineStar(wine = wine) }
                 }
 
-                // Contenu
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    // Position actuelle
                     Column(
                         verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
@@ -110,7 +107,6 @@ fun OnBottlePositionClick(
                         )
                     }
 
-                    // Vin actuel
                     currentWine?.let { wine ->
                         Card(
                             colors = CardDefaults.cardColors(
@@ -147,7 +143,6 @@ fun OnBottlePositionClick(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
-                    // Action selon état
                     when {
                         // CAS 1: Position VIDE → Placer vin
                         currentStock == null -> {
@@ -180,12 +175,11 @@ fun OnBottlePositionClick(
                     }
                 }
 
-                // Boutons
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 24.dp),
-                    horizontalArrangement = Arrangement.End// spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.End
                 ) {
 
                     val hasActionButton = currentStock == null && selectedWine != null || currentStock != null
@@ -203,7 +197,6 @@ fun OnBottlePositionClick(
 
                     // Action principale (conditionnelle)
                     if (currentStock == null && selectedWine != null) {
-                        // Placer
                         Button(
                             onClick = {
                                 onPlaceWine(position, selectedWine!!, reason)
@@ -215,7 +208,6 @@ fun OnBottlePositionClick(
                             Text("Placer")
                         }
                     } else if (currentStock != null) {
-                        // Retirer
                         Button(
                             onClick = {
                                 onWithdraw(position, reason)

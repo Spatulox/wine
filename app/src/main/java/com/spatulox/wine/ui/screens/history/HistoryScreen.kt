@@ -24,48 +24,6 @@ fun HistoryScreen(
 ) {
     val history by historyViewModel.filteredhistoryList.collectAsStateWithLifecycle()
 
-    /*val historyTest by remember {
-        mutableStateOf(
-            listOf(
-                History(
-                    id = 1,
-                    wineId = 1,
-                    type = HistoryType.ADD,
-                    date = System.currentTimeMillis(),
-                    reason = "Ajout Château Margaux (75cl)"
-                ),
-                History(
-                    id = 2,
-                    wineId = 2,
-                    type = HistoryType.WITHDRAW,
-                    date = System.currentTimeMillis() - 86400000, // Hier
-                    reason = "Retrait dégustation Romanée-Conti"
-                ),
-                History(
-                    id = 3,
-                    wineId = 3,
-                    type = HistoryType.ADD,
-                    date = System.currentTimeMillis() - 2 * 86400000, // Avant-hier
-                    reason = null
-                ),
-                History(
-                    id = 4,
-                    wineId = 1,
-                    type = HistoryType.WITHDRAW,
-                    date = System.currentTimeMillis() - 7 * 86400000, // Semaine dernière
-                    reason = "Cadeau anniversaire"
-                ),
-                History(
-                    id = 5,
-                    wineId = 4,
-                    type = HistoryType.ADD,
-                    date = System.currentTimeMillis() - 30 * 86400000, // Mois dernier
-                    reason = "Achat Bordeaux Supérieur (x6)"
-                )
-            )
-        )
-    }*/
-
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),

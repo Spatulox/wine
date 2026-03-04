@@ -61,15 +61,13 @@ fun MainMenu(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
             Box(modifier = Modifier.fillMaxWidth()) {
-                // AddButton À GAUCHE (Start)
                 if (selectedTabIndex == 1) {
                     AddButton (
                         onClick = { showAddWineDialog = true },
-                        modifier = Modifier.align(Alignment.BottomStart)//.padding(start = 16.dp)
+                        modifier = Modifier.align(Alignment.BottomStart)
                     )
                 }
 
-                // SearchWithFilters À DROITE (End)
                 SearchWithFilters(
                     wineViewModel = wineViewModel,
                     stockViewModel = stockViewModel,

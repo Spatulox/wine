@@ -27,7 +27,6 @@ open class WineViewModel(
         wineRepository.getWineStream()
             .map { wines ->
                 wines
-                    //.sortedByDescending { it.year }
                     .sortedWith(compareByDescending<Wine> { it.year }.thenBy { it.name.lowercase() })
                     .associateBy { it.id }
             }
@@ -41,7 +40,7 @@ open class WineViewModel(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val winesByYearDesc: StateFlow<List<Wine>> = wines  // List !
+    val winesByYearDesc: StateFlow<List<Wine>> = wines
         .map { winesMap ->
             winesMap.values
                 .sortedWith(compareByDescending<Wine> { it.year }.thenBy { it.name.lowercase() })

@@ -35,7 +35,6 @@ fun WineDropdownList(
 
     val wines = wineState
 
-    // Sélecteur de vin
     ExposedDropdownMenuBox(
         expanded = expanded,
         onExpandedChange = { expanded = !expanded },

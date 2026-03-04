@@ -70,16 +70,13 @@ fun WineEditDialog(
             Column(
                 modifier = Modifier.padding(16.dp)
             ) {
-                // Titre (optionnel)
                 Text(
                     text = "Modifier le vin",
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
-                // Formulaire complet
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    // Nom
                     OutlinedTextField(
                         value = editedName,
                         onValueChange = { editedName = it },
@@ -88,13 +85,11 @@ fun WineEditDialog(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    // Année
                     DateSelection(
                         year = editedYear,
                         onYearChange = { editedYear = it }
                     )
 
-                    // Format (Dropdown)
                     var expanded by remember { mutableStateOf(false) }
                     ExposedDropdownMenuBox(
                         expanded = expanded,
@@ -124,7 +119,6 @@ fun WineEditDialog(
                         }
                     }
 
-                    // Type (Dropdown) - CORRIGÉ
                     var expandedType by remember { mutableStateOf(false) }
                     ExposedDropdownMenuBox(
                         expanded = expandedType,
@@ -144,7 +138,7 @@ fun WineEditDialog(
                         ) {
                             WineType.entries.forEach { type ->
                                 DropdownMenuItem(
-                                    text = { Text(type.name) },  // ✅ CORRIGÉ : type.name
+                                    text = { Text(type.name) },
                                     onClick = {
                                         editedType = type
                                         expandedType = false
@@ -154,7 +148,6 @@ fun WineEditDialog(
                         }
                     }
 
-                    // Étoiles (Slider)
                     Column {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -173,28 +166,24 @@ fun WineEditDialog(
                     }
                 }
 
-                // Boutons
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 24.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // Supprimer
                     TextButton(
                         onClick = onDelete,
                     ) {
                         Text("Supprimer")
                     }
 
-                    // Annuler
                     TextButton(
                         onClick = onDismiss,
                     ) {
                         Text("Annuler")
                     }
 
-                    // Valider
                     Button(
                         onClick = {
                             onValidate(

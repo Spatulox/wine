@@ -53,7 +53,6 @@ fun HistoryItem(
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            // En-tête : Type + Date
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -63,7 +62,6 @@ fun HistoryItem(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Icône type
                     Box(
                         modifier = Modifier
                             .size(32.dp)
@@ -111,7 +109,6 @@ fun HistoryItem(
                     modifier = Modifier.width(20.dp)
                 )
 
-                // Raison (si présente)
                 item.reason?.let { reason ->
                     Text(
                         text = reason,

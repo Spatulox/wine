@@ -107,7 +107,6 @@ fun WineAddDialog(
                 }
 
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    // Nom
                     OutlinedTextField(
                         value = name,
                         onValueChange = { name = it },
@@ -123,7 +122,6 @@ fun WineAddDialog(
                         }
                     )
 
-                    // Format (dropdown)
                     var expanded by remember { mutableStateOf(false) }
                     ExposedDropdownMenuBox(
                         expanded = expanded,
@@ -208,7 +206,6 @@ fun WineAddDialog(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    // Étoiles (slider)
                     Column {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
