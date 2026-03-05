@@ -34,13 +34,14 @@ open class StockViewModel(
                 emptyList()
             )
 
-    suspend fun insert(position: Position, wine: Wine, reason: String){
+    suspend fun insert(position: Position, wine: Wine, comment: String){
         val stock = Stock(
             wineId = wine.id,
             position = position,
+            comment = comment,
             date = System.currentTimeMillis()
         )
-        stockRepository.insert(stock, reason)
+        stockRepository.insert(stock, comment)
     }
 
     suspend fun withdraw(position: Position, reason: String){

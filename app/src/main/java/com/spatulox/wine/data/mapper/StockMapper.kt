@@ -10,6 +10,7 @@ object StockMapper {
         id = entity.id,
         wineId = entity.wineId,
         position = Position(entity.shelfId, entity.row, entity.col),
+        comment = entity.comment,
         date = entity.date
     )
 
@@ -19,6 +20,7 @@ object StockMapper {
         shelfId = stock.position.shelfId,
         row = stock.position.row,
         col = stock.position.col,
+        comment = stock.comment,
         date = stock.date
     )
 }

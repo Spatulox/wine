@@ -136,6 +136,12 @@ fun OnBottlePositionClick(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
+
+                            Text(
+                                modifier = Modifier.padding(12.dp),
+                                text = currentStock.comment
+                            )
+
                         }
                     } ?: Text(
                         text = "Vide",
@@ -156,21 +162,10 @@ fun OnBottlePositionClick(
                                 OutlinedTextField(
                                     value = reason,
                                     onValueChange = { reason = it },
-                                    label = { Text("Raison de l'ajout") },
+                                    label = { Text("Commentaire") },
                                     modifier = Modifier.fillMaxWidth(),
-                                    singleLine = true,
                                 )
                             }
-                        }
-                        // CAS 2: Position OCCUPÉE → Retrait
-                        else -> {
-                            OutlinedTextField(
-                                value = reason,
-                                onValueChange = { reason = it },
-                                label = { Text("Raison du retrait") },
-                                modifier = Modifier.fillMaxWidth(),
-                                singleLine = true,
-                            )
                         }
                     }
                 }

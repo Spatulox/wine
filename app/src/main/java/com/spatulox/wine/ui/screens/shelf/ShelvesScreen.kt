@@ -141,11 +141,11 @@ fun ShelfScreen(
             wineViewModel = wineViewModel,
             stockViewModel = stockViewModel,
             position = position,
-            onPlaceWine = {position, wine, reason ->
-                coroutine.launch { stockViewModel.insert(position, wine, reason) }
+            onPlaceWine = {position, wine, comment ->
+                coroutine.launch { stockViewModel.insert(position, wine, comment) }
             },
-            onWithdraw = {position, reason ->
-                coroutine.launch { stockViewModel.withdraw(position, reason) }
+            onWithdraw = {position, comment ->
+                coroutine.launch { stockViewModel.withdraw(position, comment) }
             },
             onDeleteStock = {position ->
                 coroutine.launch { stockViewModel.delete(position) }

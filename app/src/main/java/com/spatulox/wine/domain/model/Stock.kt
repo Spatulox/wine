@@ -5,5 +5,6 @@ data class Stock(
     val id: Int = 0,
     val wineId: Int,
     val position: Position,
+    val comment: String,
     val date: Long
 )
