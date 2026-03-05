@@ -227,7 +227,7 @@ fun WineAddDialog(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 24.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        horizontalArrangement = Arrangement.End
                     ) {
                         TextButton(
                             onClick = onDismiss,

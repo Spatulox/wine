@@ -187,10 +187,11 @@ fun WineEditDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 24.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.End
                 ) {
                     TextButton(
                         onClick = onDismiss,
+                        modifier = Modifier.weight(1f)
                     ) {
                         Text("Annuler")
                     }
@@ -206,6 +207,7 @@ fun WineEditDialog(
                                 )
                             )
                         },
+                        modifier = Modifier.weight(1f)
                     ) {
                         Text("Valider")
                     }
