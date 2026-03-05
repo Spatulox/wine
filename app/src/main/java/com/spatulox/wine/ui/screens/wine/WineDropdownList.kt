@@ -26,6 +26,7 @@ import com.spatulox.wine.viewModels.WineViewModel
 fun WineDropdownList(
     modifier: Modifier = Modifier,
     wineViewModel: WineViewModel,
+    excludeWineId: List<Int>? = null,
     selectedWine: Wine?,
     onSelectWine: (Wine) -> Unit,
     distinctWineList: Boolean = false
@@ -36,6 +37,10 @@ fun WineDropdownList(
     val distinctWineState by wineViewModel.distinctWinesNameByYearDesc.collectAsStateWithLifecycle()
 
     val wines = if(distinctWineList) distinctWineState else wineState
+
+    val availableWines = wines.filter { wine ->
+        excludeWineId?.contains(wine.id) != true
+    }
 
     ExposedDropdownMenuBox(
         expanded = expanded,
@@ -63,7 +68,7 @@ fun WineDropdownList(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            if (wineState.isEmpty()) {
+            if (availableWines.isEmpty()) {
                 DropdownMenuItem(
                     text = {
                         Text(
@@ -75,7 +80,7 @@ fun WineDropdownList(
                     onClick = { }
                 )
             } else {
-                wines.forEach { wine ->
+                availableWines.forEach { wine ->
                     val text = "${wine.name} " + if(distinctWineList) "" else "(${wine.year}, ${wine.format.displayName})"
                     DropdownMenuItem(
                         text = {

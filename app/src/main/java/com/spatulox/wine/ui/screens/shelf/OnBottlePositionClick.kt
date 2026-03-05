@@ -65,9 +65,18 @@ fun OnBottlePositionClick(
     var reason by remember { mutableStateOf<String>("") }
 
     val stockState by stockViewModel.stockState.collectAsStateWithLifecycle()
+    val countStockedWine by stockViewModel.countWineIdStocked.collectAsStateWithLifecycle()
     val wineState by wineViewModel.wines.collectAsStateWithLifecycle()
     val currentStock = stockState[position]
     val currentWine = currentStock?.wineId?.let { wineState[it] }
+
+    val excludeWineIds = countStockedWine.entries
+        .filter { (wineId, count) ->
+            val wine = wineState[wineId]
+            count == 0 || (wine != null && count >= wine.qte)
+        }
+        .map { it.key }
+
 
     Dialog (
         onDismissRequest = onDismiss
@@ -156,6 +165,7 @@ fun OnBottlePositionClick(
                         currentStock == null -> {
                             WineDropdownList(
                                 wineViewModel = wineViewModel,
+                                excludeWineId = excludeWineIds,
                                 selectedWine = selectedWine,
                                 onSelectWine = { wine -> selectedWine = wine }
                             )
@@ -262,8 +272,12 @@ fun CommentCard(
                     modifier = Modifier
                         .weight(1f)
                         .padding(12.dp),
-                    text = comment,
+                    text = if(comment.isEmpty()) "Pas de commentaire" else comment,
                     style = MaterialTheme.typography.bodyMedium,
+                    color = when {
+                        comment.isEmpty() -> MaterialTheme.colorScheme.onSurfaceVariant
+                        else -> MaterialTheme.colorScheme.onSurface  // couleur normale
+                    }
                 )
             }
 
