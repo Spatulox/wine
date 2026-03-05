@@ -219,7 +219,8 @@ fun SearchWithFilters(
                                 modifier = Modifier.weight(1f),
                                 expanded = expanded,
                                 onExpandedChange = { expanded = it },
-                                placeholder = "Sélectionner type..."
+                                placeholder = "Sélectionner type...",
+                                invisibleBorder = true
                             )
                         }
 
@@ -246,7 +247,8 @@ fun SearchWithFilters(
                                 modifier = Modifier.weight(1f),
                                 expanded = expanded,
                                 onExpandedChange = { expanded = it },
-                                placeholder = "Sélectionner format..."
+                                placeholder = "Sélectionner format...",
+                                invisibleBorder = true
                             )
                         }
                     }

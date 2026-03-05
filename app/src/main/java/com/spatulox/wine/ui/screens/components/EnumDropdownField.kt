@@ -29,6 +29,7 @@ fun EnumDropdownField(
     onExpandedChange: (Boolean) -> Unit,
     placeholder: String = "Sélectionner...",
     defaultValue: Any? = null,
+    invisibleBorder: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val enumEntries = enumClass.java.enumConstants ?: emptyArray()
@@ -61,8 +62,8 @@ fun EnumDropdownField(
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = Color.Transparent,
                 unfocusedContainerColor = Color.Transparent,
-                focusedBorderColor = Color.Transparent,
-                unfocusedBorderColor = Color.Transparent,
+                focusedBorderColor = if (invisibleBorder) Color.Transparent else MaterialTheme.colorScheme.onSurfaceVariant,
+                unfocusedBorderColor = if (invisibleBorder) Color.Transparent else MaterialTheme.colorScheme.onSurfaceVariant,
                 focusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
             ),
