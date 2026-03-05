@@ -31,9 +31,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.spatulox.wine.domain.enum.WineFormat
+import com.spatulox.wine.domain.enum.WineRegion
 import com.spatulox.wine.domain.enum.WineType
 import com.spatulox.wine.domain.model.Wine
 import com.spatulox.wine.ui.screens.components.DateSelection
+import com.spatulox.wine.ui.screens.components.EnumDropdownField
+import com.spatulox.wine.ui.screens.components.NumberField
 import com.spatulox.wine.viewModels.WineViewModel
 import java.time.LocalDate
 import kotlin.math.roundToInt
@@ -50,6 +53,9 @@ fun WineAddDialog(
     var year by remember { mutableStateOf(LocalDate.now().year - 3) }
     var stars by remember { mutableStateOf(0) }
     var format by remember { mutableStateOf(WineFormat.BOTTLE) }
+    var qte by remember { mutableStateOf(6) }
+    val qteText by remember(qte) { derivedStateOf { qte.toString() } }
+    var region by remember { mutableStateOf<WineRegion?>(null) }
     var unitPrice by remember { mutableStateOf<Float?>(null) }
     val priceText by remember(unitPrice) { derivedStateOf { unitPrice?.toString() ?: "" } }
 
@@ -122,67 +128,44 @@ fun WineAddDialog(
                         }
                     )
 
-                    var expanded by remember { mutableStateOf(false) }
-                    ExposedDropdownMenuBox(
-                        expanded = expanded,
-                        onExpandedChange = { expanded = !expanded }
-                    ) {
-                        OutlinedTextField(
-                            value = format.displayName,
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text("Format") },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                            modifier = Modifier
-                                .menuAnchor()
-                                .fillMaxWidth()
-                        )
-                        ExposedDropdownMenu(
-                            expanded = expanded,
-                            onDismissRequest = { expanded = false }
-                        ) {
-                            WineFormat.entries.forEach { wineFormat ->
-                                DropdownMenuItem(
-                                    text = { Text(wineFormat.displayName) },
-                                    onClick = {
-                                        format = wineFormat
-                                        expanded = false
-                                    }
-                                )
-                            }
-                        }
-                    }
+                    var expandedFormat by remember { mutableStateOf(false) }
+                    EnumDropdownField(
+                        selectedEnum = format,
+                        enumClass = WineFormat::class,
+                        onSelectionChange = { _, selectedFormat -> format = selectedFormat as WineFormat },
+                        expanded = expandedFormat,
+                        onExpandedChange = { expandedFormat = it },
+                        placeholder = "Format"
+                    )
 
                     var expandedType by remember { mutableStateOf(false) }
-                    ExposedDropdownMenuBox(
+                    EnumDropdownField(
+                        selectedEnum = type,
+                        enumClass = WineType::class,
+                        onSelectionChange = { _, selectedType -> type = selectedType as WineType },
                         expanded = expandedType,
-                        onExpandedChange = { expandedType = !expandedType }
-                    ) {
-                        OutlinedTextField(
-                            value = type.name,
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text("Type") },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedType) },
-                            modifier = Modifier
-                                .menuAnchor()
-                                .fillMaxWidth()
-                        )
-                        ExposedDropdownMenu(
-                            expanded = expandedType,
-                            onDismissRequest = { expandedType = false }
-                        ) {
-                            WineType.entries.forEach { wineType ->
-                                DropdownMenuItem(
-                                    text = { Text(wineType.name) },
-                                    onClick = {
-                                        type = wineType
-                                        expandedType = false
-                                    }
-                                )
-                            }
-                        }
-                    }
+                        onExpandedChange = { expandedType = it },
+                        placeholder = "Type"
+                    )
+
+                    var expandedRegion by remember { mutableStateOf(false) }
+                    EnumDropdownField(
+                        selectedEnum = region,
+                        enumClass = WineRegion::class,
+                        onSelectionChange = { _, selectedRegion -> region = selectedRegion as WineRegion },
+                        expanded = expandedRegion,
+                        onExpandedChange = { expandedRegion = it },
+                        placeholder = "Region"
+                    )
+
+                    NumberField(
+                        modifier = Modifier.fillMaxWidth(),
+                        value = qte,
+                        onValueChange = { qte = it },
+                        minValue = 0,
+                        startValue = 6,
+                        label = "Nombres de bouteilles :"
+                    )
 
                     OutlinedTextField(
                         value = priceText,
@@ -244,7 +227,9 @@ fun WineAddDialog(
                                         format = format,
                                         type = type,
                                         unitPrice = unitPrice,
-                                        stars = stars
+                                        stars = stars,
+                                        qte = qte,
+                                        region = region
                                     ))
                                 }
                             },
