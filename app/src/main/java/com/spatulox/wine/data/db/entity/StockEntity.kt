@@ -32,6 +32,6 @@ data class StockEntity(
     val shelfId: Int,
     val row: Int,
     val col: Int,
-    val comment: String,
+    val comment: String?,
     val date: Long,
 )

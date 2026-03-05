@@ -137,10 +137,12 @@ fun OnBottlePositionClick(
                                 )
                             }
 
-                            Text(
-                                modifier = Modifier.padding(12.dp),
-                                text = currentStock.comment
-                            )
+                            if(currentStock.comment != null) {
+                                Text(
+                                    modifier = Modifier.padding(12.dp),
+                                    text = currentStock.comment
+                                )
+                            }
 
                         }
                     } ?: Text(
