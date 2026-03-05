@@ -34,14 +34,22 @@ open class StockViewModel(
                 emptyList()
             )
 
-    suspend fun insert(position: Position, wine: Wine, comment: String){
-        val stock = Stock(
-            wineId = wine.id,
-            position = position,
-            comment = comment,
-            date = System.currentTimeMillis()
+    val stockDistinctWineCount: StateFlow<Map<Int, Int>> = stockRepository.getStockStream()
+        .map { stocks ->
+            stocks.groupingBy { it.wineId }.eachCount()
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyMap()
         )
-        stockRepository.insert(stock, comment)
+
+    suspend fun insert(stock: Stock){
+        stockRepository.insert(stock, "")
+    }
+
+    suspend fun update(stock: Stock){
+        stockRepository.update(stock)
     }
 
     suspend fun withdraw(position: Position, reason: String){

@@ -33,16 +33,20 @@ import com.spatulox.wine.SnackbarManager
 import com.spatulox.wine.domain.model.Wine
 import com.spatulox.wine.send
 import com.spatulox.wine.ui.screens.components.AddButton
+import com.spatulox.wine.ui.screens.components.Filter
+import com.spatulox.wine.viewModels.StockViewModel
 import com.spatulox.wine.viewModels.WineViewModel
 import kotlinx.coroutines.launch
 
 @Composable
 fun WineScreen(
     wineViewModel: WineViewModel,
+    stockViewModel: StockViewModel,
     showAddDialog: Boolean,
     onAddDialogChange: (Boolean) -> Unit,
 ) {
     val wines by wineViewModel.filteredWinesList.collectAsStateWithLifecycle()
+    val distincWineCounts by stockViewModel.stockDistinctWineCount.collectAsStateWithLifecycle()
 
     var selectedWine by remember { mutableStateOf<Wine?>(null) }
 
@@ -51,6 +55,7 @@ fun WineScreen(
     selectedWine?.let { wine ->
         WineEditDialog(
             wine = wine,
+            distincWineCounts = distincWineCounts,
             onDismiss = { selectedWine = null },
             onValidate = { updatedWine ->
                 coroutineScope.launch {

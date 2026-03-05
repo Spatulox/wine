@@ -127,6 +127,7 @@ fun MainMenu(
                     1 -> {
                         WineScreen(
                             wineViewModel = wineViewModel,
+                            stockViewModel = stockViewModel,
                             showAddDialog = showAddWineDialog,
                             onAddDialogChange = { showAddWineDialog = it }
                         )

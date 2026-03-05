@@ -37,9 +37,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.spatulox.wine.domain.enum.WineFormat
+import com.spatulox.wine.domain.enum.WineRegion
 import com.spatulox.wine.domain.enum.WineType
 import com.spatulox.wine.domain.model.Wine
 import com.spatulox.wine.ui.screens.components.DateSelection
+import com.spatulox.wine.ui.screens.components.EnumDropdownField
+import com.spatulox.wine.ui.screens.components.NumberField
 import com.spatulox.wine.ui.screens.shelf.ShelfActionType
 import kotlin.math.roundToInt
 
@@ -47,16 +50,21 @@ import kotlin.math.roundToInt
 @Composable
 fun WineEditDialog(
     wine: Wine,
+    distincWineCounts: Map<Int, Int>,
     onDismiss: () -> Unit,
     onValidate: (Wine) -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var editedName by remember(wine) { mutableStateOf(wine.name) }
-    var editedType by remember { mutableStateOf<WineType>(wine.type) }
     var editedYear by remember(wine) { mutableStateOf(wine.year) }
-    var editedStars by remember(wine) { mutableStateOf(wine.stars) }
+    var editedType by remember { mutableStateOf<WineType>(wine.type) }
     var editedFormat by remember(wine) { mutableStateOf(wine.format) }
+    var editedRegion by remember(wine) { mutableStateOf(wine.region) }
+    var editedQte by remember(wine) { mutableStateOf(wine.qte) }
+    var editedStars by remember(wine) { mutableStateOf(wine.stars) }
+
+    var errorMessage by remember(editedQte, distincWineCounts[wine.id]) { mutableStateOf("") }
 
     Dialog (
         onDismissRequest = onDismiss
@@ -107,63 +115,70 @@ fun WineEditDialog(
                         onYearChange = { editedYear = it }
                     )
 
-                    var expanded by remember { mutableStateOf(false) }
-                    ExposedDropdownMenuBox(
-                        expanded = expanded,
-                        onExpandedChange = { expanded = !expanded }
-                    ) {
-                        OutlinedTextField(
-                            value = editedFormat.displayName,
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text("Format") },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                            modifier = Modifier.menuAnchor().fillMaxWidth()
-                        )
-                        ExposedDropdownMenu(
-                            expanded = expanded,
-                            onDismissRequest = { expanded = false }
+
+                    var expandedFormat by remember { mutableStateOf(false) }
+                    EnumDropdownField(
+                        selectedEnum = editedFormat.displayName,
+                        enumClass = WineFormat::class,
+                        onSelectionChange = { _, selectedFormat -> editedFormat = selectedFormat as WineFormat },
+                        expanded = expandedFormat,
+                        onExpandedChange = { expandedFormat = it },
+                        placeholder = "Format"
+                    )
+
+                    var expandedType by remember { mutableStateOf(false) }
+                    EnumDropdownField(
+                        selectedEnum = editedType,
+                        enumClass = WineType::class,
+                        onSelectionChange = { _, selectedType -> editedType = selectedType as WineType },
+                        expanded = expandedType,
+                        onExpandedChange = { expandedType = it },
+                        placeholder = "Type"
+                    )
+
+                    var expandedRegion by remember { mutableStateOf(false) }
+                    EnumDropdownField(
+                        selectedEnum = editedRegion,
+                        enumClass = WineRegion::class,
+                        onSelectionChange = { _, selectedRegion -> editedRegion = selectedRegion as WineRegion },
+                        expanded = expandedRegion,
+                        onExpandedChange = { expandedRegion = it },
+                        placeholder = "Region"
+                    )
+
+                    if (errorMessage.isNotBlank()) {
+                        Card(
+                            colors = CardDefaults.elevatedCardColors(
+                                containerColor = MaterialTheme.colorScheme.errorContainer,
+                                contentColor = MaterialTheme.colorScheme.onErrorContainer
+                            ),
+                            shape = MaterialTheme.shapes.small,
+                            modifier = Modifier.padding(bottom = 16.dp).fillMaxWidth()
                         ) {
-                            WineFormat.entries.forEach { format ->
-                                DropdownMenuItem(
-                                    text = { Text(format.displayName) },
-                                    onClick = {
-                                        editedFormat = format
-                                        expanded = false
-                                    }
-                                )
-                            }
+                            Text(
+                                text = errorMessage,
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(12.dp)
+                            )
                         }
                     }
 
-                    var expandedType by remember { mutableStateOf(false) }
-                    ExposedDropdownMenuBox(
-                        expanded = expandedType,
-                        onExpandedChange = { expandedType = !expandedType }
-                    ) {
-                        OutlinedTextField(
-                            value = editedType.name,
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text("Type") },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedType) },
-                            modifier = Modifier.menuAnchor().fillMaxWidth()
-                        )
-                        ExposedDropdownMenu(
-                            expanded = expandedType,
-                            onDismissRequest = { expandedType = false }
-                        ) {
-                            WineType.entries.forEach { type ->
-                                DropdownMenuItem(
-                                    text = { Text(type.name) },
-                                    onClick = {
-                                        editedType = type
-                                        expandedType = false
-                                    }
-                                )
+                    NumberField(
+                        modifier = Modifier.fillMaxWidth(),
+                        value = editedQte,
+                        onValueChange = { qte ->
+                            editedQte = qte
+                            val currentStockCount = distincWineCounts[wine.id] ?: 0
+                            if (qte <= currentStockCount) {
+                                errorMessage = "Impossible de mettre moins que le stock actuel ($currentStockCount) minimum"
+                            } else {
+                                errorMessage = ""
                             }
-                        }
-                    }
+                        },
+                        minValue = distincWineCounts[wine.id] ?: 0,
+                        startValue = wine.qte,
+                        label = "Nombres de bouteilles :"
+                    )
 
                     Column {
                         Row(
@@ -202,7 +217,10 @@ fun WineEditDialog(
                                 wine.copy(
                                     name = editedName,
                                     year = editedYear,
+                                    type = editedType,
                                     format = editedFormat,
+                                    region = editedRegion,
+                                    qte = editedQte,
                                     stars = editedStars
                                 )
                             )
