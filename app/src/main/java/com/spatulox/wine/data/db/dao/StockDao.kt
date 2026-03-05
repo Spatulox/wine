@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
+import androidx.room.Update
 import com.spatulox.wine.data.db.entity.StockEntity
 import com.spatulox.wine.domain.model.Position
 import kotlinx.coroutines.flow.Flow
@@ -33,6 +34,9 @@ interface StockDao {
 
     @Insert
     suspend fun insert(stock: StockEntity): Long
+
+    @Update
+    suspend fun update(stock: StockEntity)
 
     @Delete
     suspend fun delete(stock: StockEntity)

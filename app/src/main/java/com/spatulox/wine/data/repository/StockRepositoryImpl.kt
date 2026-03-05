@@ -61,6 +61,10 @@ class StockRepositoryImpl(
         }
     }
 
+    override suspend fun update(stock: Stock){
+        stockDao.update(StockMapper.toEntity(stock))
+    }
+
     override suspend fun withdraw(stock: Stock, reason: String): Long {
         return transactionProvider.run {
             val history = HistoryMapper.toEntity(

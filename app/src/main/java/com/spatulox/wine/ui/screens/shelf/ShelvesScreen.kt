@@ -141,8 +141,11 @@ fun ShelfScreen(
             wineViewModel = wineViewModel,
             stockViewModel = stockViewModel,
             position = position,
-            onPlaceWine = {position, wine, comment ->
-                coroutine.launch { stockViewModel.insert(position, wine, comment) }
+            onPlaceStock = {stock ->
+                coroutine.launch { stockViewModel.insert(stock) }
+            },
+            onEditStock = {stock ->
+                coroutine.launch { stockViewModel.update(stock) }
             },
             onWithdraw = {position, comment ->
                 coroutine.launch { stockViewModel.withdraw(position, comment) }

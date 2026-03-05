@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -20,6 +21,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -39,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.spatulox.wine.domain.model.Position
+import com.spatulox.wine.domain.model.Stock
 import com.spatulox.wine.domain.model.Wine
 import com.spatulox.wine.ui.screens.wine.WineDropdownList
 import com.spatulox.wine.ui.screens.wine.WineStar
@@ -52,7 +55,8 @@ fun OnBottlePositionClick(
     stockViewModel: StockViewModel,
     position: Position,
     onDismiss: () -> Unit = {},
-    onPlaceWine: (Position, Wine, String) -> Unit = { _, _, _ -> },
+    onPlaceStock: (Stock) -> Unit = { _ -> },
+    onEditStock: (Stock) -> Unit = { _ -> },
     onWithdraw: (Position, String) -> Unit = { _, _ -> },
     onDeleteStock: (Position) -> Unit = { _ -> }
 ) {
@@ -91,22 +95,6 @@ fun OnBottlePositionClick(
                 }
 
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    /*Column(
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Text(
-                            text = "Étagère: ${position.shelfId}",
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                        Text(
-                            text = "Ligne: ${position.row}",
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                        Text(
-                            text = "Colonne: ${position.col}",
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                    }*/
 
                     currentWine?.let { wine ->
 
@@ -142,20 +130,24 @@ fun OnBottlePositionClick(
                             }
                         }
 
-                        if (currentStock.comment?.isNotBlank() == true) {
-                            Card(
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
-                                ),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text(
-                                    modifier = Modifier.padding(12.dp),
-                                    text = currentStock.comment,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                )
-                            }
-                        }
+                        //if (currentStock.comment?.isNotBlank() == true) {
+                            var isEditing by remember { mutableStateOf(false) }
+                            var editedComment by remember { mutableStateOf(currentStock.comment ?: "") }
+
+                            CommentCard(
+                                comment = editedComment,
+                                isEditing = isEditing,
+                                onEditClick = { isEditing = true },
+                                onCommentChange = { editedComment = it },
+                                onSave = {
+                                    val stock: Stock = currentStock.copy(
+                                        comment = editedComment
+                                    )
+                                    onEditStock(stock)
+                                    isEditing = false
+                                }
+                            )
+                        //}
 
                     }
 
@@ -204,7 +196,13 @@ fun OnBottlePositionClick(
                     if (currentStock == null && selectedWine != null) {
                         Button(
                             onClick = {
-                                onPlaceWine(position, selectedWine!!, reason)
+                                val stock = Stock(
+                                    wineId = selectedWine!!.id,
+                                    position = position,
+                                    comment = reason,
+                                    date = System.currentTimeMillis()
+                                )
+                                onPlaceStock(stock)
                                 onDismiss()
                             },
                             modifier = Modifier.weight(1f)
@@ -225,6 +223,59 @@ fun OnBottlePositionClick(
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+
+
+@Composable
+fun CommentCard(
+    comment: String,
+    isEditing: Boolean,
+    onEditClick: () -> Unit,
+    onCommentChange: (String) -> Unit,
+    onSave: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
+        ),
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (isEditing) {
+                OutlinedTextField(
+                    value = comment,
+                    onValueChange = onCommentChange,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(12.dp),
+                )
+            } else {
+                Text(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(12.dp),
+                    text = comment,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+
+            IconButton(
+                onClick = if (isEditing) onSave else onEditClick,
+                modifier = Modifier.padding(end = 8.dp)
+            ) {
+                Icon(
+                    imageVector = if (isEditing) Icons.Default.Check else Icons.Default.Edit,
+                    contentDescription = if (isEditing) "Sauvegarder" else "Modifier",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }
