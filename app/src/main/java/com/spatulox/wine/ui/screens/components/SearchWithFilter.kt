@@ -120,6 +120,23 @@ fun SearchWithFilters(
         else -> emptyList()
     }
 
+    val wineState by wineViewModel.wines.collectAsStateWithLifecycle()
+    val countStockedWine by stockViewModel.countWineIdStocked.collectAsStateWithLifecycle()
+    val excludeWineIds = when(selectedTabIndex) {
+        0 -> {
+            (countStockedWine.entries
+                .filter { it.value == 0 }.map { it.key } +
+                    wineState.keys.filter { !countStockedWine.containsKey(it) }
+                    ).toList()
+        }
+        else -> emptyList()
+    }
+
+
+
+    System.out.println(countStockedWine)
+    System.out.println(excludeWineIds)
+
     FloatingActionButton(
         onClick = {
             onExpandedChange(!isExpanded)
@@ -165,6 +182,7 @@ fun SearchWithFilters(
                             WineDropdownList(
                                 wineViewModel = wineViewModel,
                                 selectedWine = selectedWine,
+                                excludeWineId = excludeWineIds,
                                 distinctWineList = true,
                                 onSelectWine = { wine ->
                                     selectedWine = wine
