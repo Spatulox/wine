@@ -21,9 +21,9 @@ object HistoryMapper {
         return HistoryEntity(
             id = history.id,
             wineId = history.wineId,
-            type = history.type.name,
+            type = history.type.name.trim(),
             date = history.date,
-            reason = history.reason
+            reason = history.reason?.trim()
         )
     }
 

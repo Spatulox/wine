@@ -21,7 +21,7 @@ object WineMapper {
     fun toEntity(wine: Wine): WineEntity{
         return WineEntity(
             id = wine.id,
-            name = wine.name,
+            name = wine.name.trim(),
             year = wine.year,
             format = wine.format.name,
             type = wine.type.name,

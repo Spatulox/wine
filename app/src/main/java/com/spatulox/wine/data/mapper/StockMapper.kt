@@ -20,7 +20,7 @@ object StockMapper {
         shelfId = stock.position.shelfId,
         row = stock.position.row,
         col = stock.position.col,
-        comment = stock.comment,
+        comment = stock.comment?.trim(),
         date = stock.date
     )
 }

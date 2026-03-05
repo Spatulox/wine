@@ -20,7 +20,7 @@ object ShelfMapper {
     fun toEntity(shelf: Shelf): ShelfEntity{
         return ShelfEntity(
             id = shelf.id,
-            name = shelf.name,
+            name = shelf.name.trim(),
             rows = shelf.rows,
             cols = shelf.cols,
             interleave = shelf.interleave.name,
