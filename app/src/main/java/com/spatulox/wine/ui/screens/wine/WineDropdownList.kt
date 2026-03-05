@@ -24,16 +24,18 @@ import com.spatulox.wine.viewModels.WineViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WineDropdownList(
+    modifier: Modifier = Modifier,
     wineViewModel: WineViewModel,
     selectedWine: Wine?,
     onSelectWine: (Wine) -> Unit,
-    modifier: Modifier = Modifier
+    distinctWineList: Boolean = false
 ) {
 
     var expanded by remember { mutableStateOf(false) }
     val wineState by wineViewModel.winesByYearDesc.collectAsStateWithLifecycle()
+    val distinctWineState by wineViewModel.distinctWinesNameByYearDesc.collectAsStateWithLifecycle()
 
-    val wines = wineState
+    val wines = if(distinctWineList) distinctWineState else wineState
 
     ExposedDropdownMenuBox(
         expanded = expanded,
@@ -74,10 +76,11 @@ fun WineDropdownList(
                 )
             } else {
                 wines.forEach { wine ->
+                    val text = "${wine.name} " + if(distinctWineList) "" else "(${wine.year}, ${wine.format.displayName})"
                     DropdownMenuItem(
                         text = {
                             Text(
-                                text = "${wine.name} (${wine.year}, ${wine.format.displayName})",
+                                text = text,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )

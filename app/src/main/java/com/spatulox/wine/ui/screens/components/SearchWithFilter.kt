@@ -106,9 +106,11 @@ fun SearchWithFilters(
     var isTypeInit by remember { mutableStateOf(true) }
 
     val stockYears by stockViewModel.stockYears.collectAsStateWithLifecycle()
+    val wineYears by wineViewModel.winesYears.collectAsStateWithLifecycle()
     val historyYears by historyViewModel.historyYears.collectAsStateWithLifecycle()
     val availableYears = when(selectedTabIndex) {
         0 -> stockYears
+        1 -> wineYears
         2 -> historyYears
         else -> emptyList()
     }
@@ -158,6 +160,7 @@ fun SearchWithFilters(
                             WineDropdownList(
                                 wineViewModel = wineViewModel,
                                 selectedWine = selectedWine,
+                                distinctWineList = true,
                                 onSelectWine = { wine ->
                                     selectedWine = wine
                                     val filter = Filter(content = wine.name, field = "name")

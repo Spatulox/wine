@@ -23,6 +23,14 @@ open class WineViewModel(
             .map { wines -> wines.associateBy { it.id } }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
+    val winesYears: StateFlow<List<Int>> =
+        wineRepository.getwineYearsStream()
+            .stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5000),
+                emptyList()
+            )
+
     val winesByYearMap: StateFlow<Map<Int, Wine>> =
         wineRepository.getWineStream()
             .map { wines ->
@@ -47,6 +55,13 @@ open class WineViewModel(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    val distinctWinesNameByYearDesc: StateFlow<List<Wine>> = wines
+        .map { winesMap ->
+            winesMap.values
+                .distinctBy { wine -> wine.name }
+                .sortedWith(compareByDescending<Wine> { it.year }.thenBy { it.name.lowercase() })
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val filteredWinesList: StateFlow<List<Wine>> = winesByYearDesc
         .combine(currentFilter) { winesList, filter ->

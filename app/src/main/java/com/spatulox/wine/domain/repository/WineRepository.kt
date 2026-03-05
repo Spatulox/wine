@@ -9,6 +9,7 @@ interface WineRepository {
     suspend fun getWineById(id: Int): Wine?
     suspend fun getWinesByYear(year: Int): List<Wine>
     fun getWineStream(): Flow<List<Wine>>
+    fun getwineYearsStream(): Flow<List<Int>>
     suspend fun searchWines(query: String): List<Wine>
     suspend fun insert(wine: Wine): Long
     suspend fun delete(wineId: Int)
