@@ -16,6 +16,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Liquor
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tune
@@ -53,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.spatulox.wine.domain.enum.WineFormat
+import com.spatulox.wine.domain.enum.WineRegion
 import com.spatulox.wine.domain.enum.WineType
 import com.spatulox.wine.domain.model.Wine
 import com.spatulox.wine.ui.screens.wine.WineDropdownList
@@ -77,7 +80,8 @@ data class FilterOption(
 val filterFields = listOf(
     FilterOption("name", "Nom", Icons.Filled.Person),
     FilterOption("year", "Année", Icons.Filled.DateRange),
-    FilterOption("format", "Format", Icons.Filled.Liquor),
+    FilterOption("region", "Region", Icons.Filled.LocationOn, WineRegion::class),
+    FilterOption("format", "Format", Icons.Filled.Liquor, WineFormat::class),
     FilterOption("type", "Type", Icons.Filled.WineBar, WineType::class),
 )
 
@@ -99,6 +103,7 @@ fun SearchWithFilters(
     var year by remember(selectedTabIndex) { mutableStateOf<Int?>(null) }
     var selectedWineType by remember { mutableStateOf<WineType?>(null) }
     var selectedWineFormat by remember { mutableStateOf<WineFormat?>(null) }
+    var selectedWineRegion by remember { mutableStateOf<WineRegion?>(null) }
 
     var isNameInit by remember { mutableStateOf(true) }
     var isDateInit by remember { mutableStateOf(true) }
@@ -248,6 +253,34 @@ fun SearchWithFilters(
                                 expanded = expanded,
                                 onExpandedChange = { expanded = it },
                                 placeholder = "Sélectionner format...",
+                                invisibleBorder = true
+                            )
+                        }
+
+                        "region" -> {
+                            if(isExpanded && isFormatInit){
+                                isFormatInit = false
+                                selectedWineRegion?.let { format ->
+                                    val filter = Filter(content = format.name, field = "region")
+                                    wineViewModel.updateFilter(filter)
+                                    stockViewModel.updateFilter(filter)
+                                    historyViewModel.updateFilter(filter)
+                                }
+                            }
+                            EnumDropdownField(
+                                selectedEnum = selectedWineRegion,
+                                enumClass = WineRegion::class,
+                                onSelectionChange = { displayName, enumValue ->
+                                    selectedWineRegion = enumValue as WineRegion
+                                    val filter = Filter(content = displayName, field = "region")
+                                    wineViewModel.updateFilter(filter)
+                                    stockViewModel.updateFilter(filter)
+                                    historyViewModel.updateFilter(filter)
+                                },
+                                modifier = Modifier.weight(1f),
+                                expanded = expanded,
+                                onExpandedChange = { expanded = it },
+                                placeholder = "Sélectionner region...",
                                 invisibleBorder = true
                             )
                         }

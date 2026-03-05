@@ -21,35 +21,21 @@ open class HistoryViewModel(
     val history: StateFlow<List<HistoryWithWine>> =
         historyRepository.getHistoryWithWineStream()
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
-
-    val filteredhistoryList: StateFlow<List<HistoryWithWine>> = history
-        .combine(currentFilter) { historyList, filter ->
-            filter?.let {
-                when (it.field) {
-                    "name" -> historyList
-                        .filter { history -> history.wine.name.equals(it.content, ignoreCase = true) }
-                    "year" -> historyList
-                        .filter { history ->
-                            val historyYear = LocalDateTime
-                                .ofInstant(Instant.ofEpochMilli(history.date), ZoneId.systemDefault())
-                                .year
-                                .toString()
-                            historyYear.equals(it.content)
-                        }
-                    "type" -> historyList
-                        .filter { history -> history.wine.type.displayName.equals(it.content, ignoreCase = true) }
-                    "format" -> historyList
-                        .filter { history -> history.wine.format.displayName.equals(it.content, ignoreCase = true) }
-                    else -> historyList
-                }
-            } ?: historyList
+    
+    val filteredHistoryList: StateFlow<List<HistoryWithWine>> = history
+        .combine(currentFilter) { list, filter ->
+            applyFilter(
+                items = list,
+                filter = filter,
+                getName = { it.wine.name },
+                getYear = {
+                    LocalDateTime.ofInstant(Instant.ofEpochMilli(it.date), ZoneId.systemDefault()).year.toString()
+                },
+                getType = { it.wine.type.displayName },
+                getFormat = { it.wine.format.displayName }
+            )
         }
-        .stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(5000),
-            emptyList()
-        )
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val historyYears: StateFlow<List<Int>> =
         historyRepository.getHistoryYearStream()

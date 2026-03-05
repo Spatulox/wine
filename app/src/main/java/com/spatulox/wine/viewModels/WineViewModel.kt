@@ -85,29 +85,16 @@ open class WineViewModel(
             emptyList()
         )
 
-
     val filteredWinesMap: StateFlow<Map<Int, Wine>> = winesByYearMap
-        .combine(currentFilter) { winesMap, filter ->
-            filter?.let {
-                when (it.field) {
-                    "name" -> winesMap.values
-                        .filter { wine -> wine.name.equals(it.content, ignoreCase = true) }
-                    "year" -> winesMap.values
-                        .filter { wine -> wine.year.toString().equals(it.content) }
-                    "type" -> winesMap.values
-                        .filter { wine -> wine.type.displayName.equals(it.content, ignoreCase = true) }
-                    "format" -> winesMap.values
-                        .filter { wine -> wine.format.displayName.equals(it.content, ignoreCase = true) }
-                    else -> winesMap.values
-                }.associateBy { it.id }
-            } ?: winesMap
+        .combine(currentFilter) { winesMap: Map<Int, Wine>, filter: Filter? ->
+            val filteredWines = applyFilter(winesMap.values.toList(), filter)
+            filteredWines.associateBy { it.id }
         }
         .stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(5000),
             emptyMap()
         )
-
 
     suspend fun addWine(wine: Wine): Boolean {
         return try {
