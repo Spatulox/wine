@@ -2,6 +2,7 @@ package com.spatulox.wine.data.mapper
 
 import com.spatulox.wine.data.db.entity.WineEntity
 import com.spatulox.wine.domain.enum.WineFormat
+import com.spatulox.wine.domain.enum.WineRegion
 import com.spatulox.wine.domain.enum.WineType
 import com.spatulox.wine.domain.model.Wine
 
@@ -14,7 +15,9 @@ object WineMapper {
             format = WineFormat.valueOf(entity.format),
             type = WineType.valueOf(entity.type),
             unitPrice = entity.unitPrice,
-            stars = entity.stars
+            stars = entity.stars,
+            qte = entity.qte,
+            region = entity.region?.let { WineRegion.valueOf(it) }
         )
     }
 
@@ -26,7 +29,9 @@ object WineMapper {
             format = wine.format.name,
             type = wine.type.name,
             unitPrice = wine.unitPrice,
-            stars = wine.stars
+            stars = wine.stars,
+            qte = wine.qte,
+            region = wine.region?.name
         )
     }
 }

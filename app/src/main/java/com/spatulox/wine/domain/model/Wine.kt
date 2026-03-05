@@ -1,6 +1,7 @@
 package com.spatulox.wine.domain.model
 
 import com.spatulox.wine.domain.enum.WineFormat
+import com.spatulox.wine.domain.enum.WineRegion
 import com.spatulox.wine.domain.enum.WineType
 
 data class Wine(
@@ -10,5 +11,7 @@ data class Wine(
     val format: WineFormat,
     val type: WineType,
     val unitPrice: Float?,
-    var stars: Int
+    var stars: Int,
+    val qte: Int,
+    val region: WineRegion?
 )

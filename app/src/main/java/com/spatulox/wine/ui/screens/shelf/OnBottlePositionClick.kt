@@ -90,7 +90,7 @@ fun OnBottlePositionClick(
                 }
 
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Column(
+                    /*Column(
                         verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         Text(
@@ -105,9 +105,10 @@ fun OnBottlePositionClick(
                             text = "Colonne: ${position.col}",
                             style = MaterialTheme.typography.bodyLarge
                         )
-                    }
+                    }*/
 
                     currentWine?.let { wine ->
+
                         Card(
                             colors = CardDefaults.cardColors(
                                 containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
@@ -136,15 +137,23 @@ fun OnBottlePositionClick(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
+                        }
 
-                            if(currentStock.comment != null) {
+                        if (currentStock.comment?.isNotBlank() == true) {
+                            Card(
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
+                                ),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
                                 Text(
                                     modifier = Modifier.padding(12.dp),
-                                    text = currentStock.comment
+                                    text = currentStock.comment,
+                                    style = MaterialTheme.typography.bodyMedium,
                                 )
                             }
-
                         }
+
                     } ?: Text(
                         text = "Vide",
                         style = MaterialTheme.typography.bodyMedium,

@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import com.spatulox.wine.domain.enum.BottlePosition
 import com.spatulox.wine.domain.enum.ShelfInterleave
 import com.spatulox.wine.domain.enum.WineFormat
+import com.spatulox.wine.domain.enum.WineRegion
 import com.spatulox.wine.domain.enum.WineType
 import kotlin.reflect.KClass
 
@@ -37,6 +38,7 @@ fun EnumDropdownField(
         is WineFormat -> enumEntry.displayName
         is BottlePosition -> enumEntry.displayName
         is ShelfInterleave -> enumEntry.displayName
+        is WineRegion -> enumEntry.displayName
         else -> enumEntry.toString()
     }
 
