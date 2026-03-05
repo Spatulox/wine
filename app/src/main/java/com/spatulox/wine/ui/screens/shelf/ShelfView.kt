@@ -50,7 +50,7 @@ fun ShelfView(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                // Nom étagère
+                // Nom compartiment
                 Text(
                     text = shelf.name,
                     style = MaterialTheme.typography.headlineSmall

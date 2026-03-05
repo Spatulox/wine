@@ -92,7 +92,7 @@ fun ShelfScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Add,
-                            contentDescription = "Ajouter étagère",
+                            contentDescription = "Ajouter compartiment",
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(32.dp)
                         )

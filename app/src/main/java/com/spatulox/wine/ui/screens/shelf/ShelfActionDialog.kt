@@ -82,7 +82,7 @@ fun ShelfActionDialog(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = shelf?.let { "Modifier ${shelf.name}" } ?: "Nouvelle étagère",
+                        text = shelf?.let { "Modifier ${shelf.name}" } ?: "Nouveau compartiment",
                         style = MaterialTheme.typography.headlineSmall
                     )
 
@@ -95,7 +95,7 @@ fun ShelfActionDialog(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Delete,
-                                contentDescription = "Supprimer étagère",
+                                contentDescription = "Supprimer compartiment",
                                 tint = MaterialTheme.colorScheme.error
                             )
                         }
