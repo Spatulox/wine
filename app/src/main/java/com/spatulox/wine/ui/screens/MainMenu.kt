@@ -129,7 +129,14 @@ fun MainMenu(
                             wineViewModel = wineViewModel,
                             stockViewModel = stockViewModel,
                             showAddDialog = showAddWineDialog,
-                            onAddDialogChange = { showAddWineDialog = it }
+                            onAddDialogChange = { showAddWineDialog = it },
+                            onChangeTabScreen = { filter ->
+                                selectedTabIndex = 0
+                                isFabExpanded = true
+                                stockViewModel.updateFilter(filter)
+                                wineViewModel.updateFilter(filter)
+                                historyViewModel.updateFilter(filter)
+                            }
                         )
                     }
                     2 -> {

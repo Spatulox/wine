@@ -44,6 +44,7 @@ fun WineScreen(
     stockViewModel: StockViewModel,
     showAddDialog: Boolean,
     onAddDialogChange: (Boolean) -> Unit,
+    onChangeTabScreen: (Filter) -> Unit
 ) {
     val wines by wineViewModel.filteredWinesList.collectAsStateWithLifecycle()
     val distincWineCounts by stockViewModel.stockDistinctWineCount.collectAsStateWithLifecycle()
@@ -52,6 +53,10 @@ fun WineScreen(
     var selectedWine by remember { mutableStateOf<Wine?>(null) }
 
     val coroutineScope = rememberCoroutineScope()
+
+    selectedWine?.let { wine ->
+        onChangeTabScreen(Filter(wine.id.toString(), "wineId"))
+    }
 
     selectedWineForEdit?.let { wine ->
         WineEditDialog(
