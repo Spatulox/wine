@@ -15,6 +15,7 @@ open class FilterViewModel: ViewModel() {
     fun <T> applyFilter(
         items: List<T>,
         filter: Filter?,
+        getId: (T) -> String = { (it as? Wine)?.id.toString() },
         getName: (T) -> String = { (it as? Wine)?.name ?: "" },
         getYear: (T) -> String = { (it as? Wine)?.year?.toString() ?: "" },
         getRegion: (T) -> String = { (it as? Wine)?.region?.displayName ?: "" },
@@ -22,6 +23,7 @@ open class FilterViewModel: ViewModel() {
         getFormat: (T) -> String = { (it as? Wine)?.format?.displayName ?: "" }
     ): List<T> = filter?.let { f ->
         when (f.field) {
+            "wineId" -> items.filter { getId(it).equals(f.content, ignoreCase = true) }
             "name" -> items.filter { getName(it).equals(f.content, ignoreCase = true) }
             "year" -> items.filter { getYear(it) == f.content } // Int
             "region" -> items.filter { getRegion(it).equals(f.content, ignoreCase = true) }
