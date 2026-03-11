@@ -58,6 +58,7 @@ import com.spatulox.wine.domain.enum.BottlePosition
 import com.spatulox.wine.domain.enum.ShelfInterleave
 import com.spatulox.wine.domain.model.Compartment
 import com.spatulox.wine.domain.model.Shelf
+import com.spatulox.wine.ui.screens.components.BottleGrid
 import com.spatulox.wine.ui.screens.components.EnumDropdownField
 import com.spatulox.wine.viewModels.CompartmentViewModel
 import com.spatulox.wine.viewModels.ShelfViewModel
@@ -240,7 +241,7 @@ fun CompartmentActionDialog(
 }
 
 @Composable
-fun CompartmentPreview(
+private fun CompartmentPreview(
     shelves: List<Shelf>,
     onMenuClick: (Shelf) -> Unit,
     onDeleteShelf: (Shelf) -> Unit,
@@ -284,59 +285,10 @@ fun CompartmentPreview(
                 Spacer(modifier = Modifier.width(8.dp))
 
                 // COLUMN 2 : BOTTLE
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight()
-                ) {
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        items(maxCols) { colIndex ->
-                            Column(
-                                verticalArrangement = Arrangement.spacedBy(8.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                shelves.forEach { shelf ->
-                                    if (colIndex < shelf.col) {
-                                        val offset = when (shelf.aligment) {
-                                            ShelfInterleave.STRAIGHT -> 0.dp
-                                            ShelfInterleave.STAGGERED_LEFT -> ((-22).dp)
-                                            ShelfInterleave.STAGGERED_RIGHT -> 22.dp
-                                        }
-                                        Box(
-                                            modifier = Modifier
-                                                .offset(x = offset)
-                                                .size(32.dp)
-                                                .background(
-                                                    MaterialTheme.colorScheme.primaryContainer,
-                                                    CircleShape
-                                                )
-                                                .border(
-                                                    2.dp,
-                                                    MaterialTheme.colorScheme.outlineVariant,
-                                                    CircleShape
-                                                )
-                                        )
-                                    }  else {
-                                        // INVISIBLES bottle to align
-                                        Box(
-                                            modifier = Modifier
-                                                .offset(x = 0.dp)
-                                                .size(32.dp)
-                                                .background(
-                                                    Color.Transparent,
-                                                    CircleShape
-                                                )
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                BottleGrid(
+                    shelves = shelves,
+                    modifier = Modifier.weight(1f).fillMaxHeight()
+                )
 
                 Spacer(modifier = Modifier.width(8.dp))
 
@@ -362,157 +314,3 @@ fun CompartmentPreview(
         }
     }
 }
-
-
-
-
-
-/*@Composable
-fun CompartmentActionDialog(
-    compartment: Compartment? = null,
-    onDismiss: () -> Unit,
-    onAction: (ShelfActionType, Shelf) -> Unit,
-    modifier: Modifier = Modifier
-) {
-
-    /*var interleaveExpanded by remember { mutableStateOf(false) }
-    var bottleExpanded by remember { mutableStateOf(false) }
-
-    var name by remember { mutableStateOf(compartment?.name ?:"") }
-    var cols by remember { mutableStateOf(shelf?.col?.toString() ?: "6") }
-    var selectedInterleave by remember { mutableStateOf<ShelfInterleave?>(compartment?.aligment) }
-    var selectedBottlePosition by remember { mutableStateOf<BottlePosition?>(compartment?.arrangement) }
-
-    val coroutineScope = rememberCoroutineScope()
-
-    Dialog (
-        onDismissRequest = onDismiss,
-    ) {
-        Card (
-            modifier = modifier
-                .fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-        ) {
-            Column(
-                modifier = Modifier.padding(24.dp)
-            ) {
-
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(bottom= 16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = shelf?.let { "Modifier ${shelf.name}" } ?: "Nouveau compartiment",
-                        style = MaterialTheme.typography.headlineSmall
-                    )
-
-                    shelf?.let { shelf ->
-                        IconButton(
-                            onClick = {
-                                onAction(ShelfActionType.DELETE, shelf)
-                                onDismiss()
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = "Supprimer compartiment",
-                                tint = MaterialTheme.colorScheme.error
-                            )
-                        }
-                    }
-                }
-
-
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                ) {
-                    OutlinedTextField(
-                        value = name,
-                        onValueChange = { name = it },
-                        label = { Text("Nom") },
-                        placeholder = { Text("A1, Cave 1, etc.") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    OutlinedTextField(
-                        value = cols,
-                        onValueChange = { cols = it.filter { c -> c.isDigit() } },
-                        label = { Text("Nombre de colonnes") },
-                        placeholder = { Text("6") },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    Text("Arrangement :")
-
-                    EnumDropdownField(
-                        selectedEnum = selectedInterleave,
-                        enumClass = ShelfInterleave::class,
-                        onSelectionChange = { _, enumEntry ->
-                            selectedInterleave = enumEntry as ShelfInterleave
-                        },
-                        expanded = interleaveExpanded,
-                        onExpandedChange = { interleaveExpanded = it },
-                        placeholder = "Interleave...",
-                        defaultValue = ShelfInterleave.STRAIGHT.displayName,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    EnumDropdownField(
-                        selectedEnum = selectedBottlePosition,
-                        enumClass = BottlePosition::class,
-                        onSelectionChange = { _, enumEntry ->
-                            selectedBottlePosition = enumEntry as BottlePosition
-                        },
-                        expanded = bottleExpanded,
-                        onExpandedChange = { bottleExpanded = it },
-                        placeholder = "Position...",
-                        defaultValue = BottlePosition.BASE.displayName,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                }
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-
-                    val buttonModifier = Modifier
-                    TextButton(
-                        onClick = onDismiss,
-                        modifier = buttonModifier
-                    ) {
-                        Text("Annuler")
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Button(
-                        modifier = buttonModifier,
-                        onClick = {
-                            val shelf = Shelf(
-                                id = shelf?.id ?: 0,
-                                compartmentId = shelf?.compartmentId ?: 0,
-                                name = name,
-                                col = cols.toIntOrNull() ?: 6,
-                                aligment = selectedInterleave ?: ShelfInterleave.STRAIGHT,
-                                arrangement = selectedBottlePosition ?: BottlePosition.BASE
-                            )
-                            onAction(ShelfActionType.ADD_UPDATE, shelf)
-                            onDismiss()
-                        },
-                        enabled = name.isNotBlank() &&
-                                cols.toIntOrNull() != null
-                    ) {
-                        Text(shelf?.let { "Modifier" } ?: "Ajouter")
-                    }
-                }
-            }
-        }
-    }*/
-}
-*/
