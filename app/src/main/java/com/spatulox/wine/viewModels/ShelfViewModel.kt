@@ -7,6 +7,7 @@ import com.spatulox.wine.data.repository.ShelfRepositoryImpl
 import com.spatulox.wine.domain.model.Shelf
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 class ShelfViewModel(private val shelfRepository: ShelfRepositoryImpl): ViewModel() {
@@ -18,6 +19,18 @@ class ShelfViewModel(private val shelfRepository: ShelfRepositoryImpl): ViewMode
             SharingStarted.WhileSubscribed(5000),
             emptyList()
         )
+
+    val shelvesByCompartmentId: StateFlow<Map<Int, List<Shelf>>> = shelfRepository
+        .getAllShelvesStream()
+        .map { shelves ->
+            shelves.groupBy { it.compartmentId }
+        }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            emptyMap()
+        )
+
 
     suspend fun insert(shelf: Shelf){
         shelfRepository.insert(shelf)

@@ -14,23 +14,19 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.spatulox.wine.domain.model.Compartment
 import com.spatulox.wine.domain.model.Position
 import com.spatulox.wine.domain.model.Shelf
 import com.spatulox.wine.domain.model.Stock
 import com.spatulox.wine.domain.model.Wine
-import kotlinx.coroutines.launch
 
 @Composable
-fun ShelfView(
-    shelf: Shelf,
+fun CompartmentView(
+    compartment: Compartment,
+    shelves: List<Shelf>?,
     stock: Map<Position, Stock>,
     wines: Map<Int, Wine>,
     onPositionClick: (Position) -> Unit,
@@ -52,7 +48,7 @@ fun ShelfView(
             ) {
                 // Nom compartiment
                 Text(
-                    text = shelf.name,
+                    text = compartment.name,
                     style = MaterialTheme.typography.headlineSmall
                 )
 
@@ -61,31 +57,32 @@ fun ShelfView(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Edit,
-                        contentDescription = "Modifier ${shelf.name}",
+                        contentDescription = "Modifier ${compartment.name}",
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
             }
 
+            shelves?.let {
+                repeat(shelves.size) { rowIndex ->
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        repeat(shelves.size) { colIndex ->
+                            val position = Position(
+                                compartment = shelves[rowIndex].compartmentId,
+                                shelf = shelves[rowIndex].id,
+                                col = colIndex + 1
+                            )
 
-            repeat(shelf.rows) { rowIndex ->
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    repeat(shelf.cols) { colIndex ->
-                        val position = Position(
-                            shelfId = shelf.id,
-                            row = rowIndex + 1,
-                            col = colIndex + 1
-                        )
-
-                        BottlePosition(
-                            position = position,
-                            stock = stock[position],
-                            wine = stock[position]?.wineId?.let { wines[it] },
-                            onClick = onPositionClick
-                        )
+                            BottlePosition(
+                                position = position,
+                                stock = stock[position],
+                                wine = stock[position]?.wineId?.let { wines[it] },
+                                onClick = onPositionClick
+                            )
+                        }
                     }
                 }
             }
