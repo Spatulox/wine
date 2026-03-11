@@ -26,10 +26,8 @@ import androidx.compose.ui.text.font.FontWeight
 import com.spatulox.wine.SnackbarManager
 import com.spatulox.wine.ui.screens.components.AddButton
 import com.spatulox.wine.ui.screens.components.SearchWithFilters
-import com.spatulox.wine.ui.screens.history.HistoryScreen
 import com.spatulox.wine.ui.screens.shelf.ShelfScreen
 import com.spatulox.wine.ui.screens.wine.WineScreen
-import com.spatulox.wine.viewModels.HistoryViewModel
 import com.spatulox.wine.viewModels.ShelfViewModel
 import com.spatulox.wine.viewModels.StockViewModel
 import com.spatulox.wine.viewModels.WineViewModel
@@ -38,12 +36,11 @@ import com.spatulox.wine.viewModels.WineViewModel
 fun MainMenu(
     wineViewModel: WineViewModel,
     stockViewModel: StockViewModel,
-    historyViewModel: HistoryViewModel,
     shelfViewModel: ShelfViewModel
 ) {
     var selectedTabIndex by remember { mutableStateOf(0) }
     var showAddWineDialog by remember { mutableStateOf(false) }
-    val tabs = listOf("Cave", "Wines", "History")
+    val tabs = listOf("Cave", "Wines", "Statistics")
 
     var isFabExpanded by remember { mutableStateOf(false) }
 
@@ -70,7 +67,6 @@ fun MainMenu(
                 SearchWithFilters(
                     wineViewModel = wineViewModel,
                     stockViewModel = stockViewModel,
-                    historyViewModel = historyViewModel,
                     isExpanded = isFabExpanded,
                     onExpandedChange = { isFabExpanded = it },
                     modifier = Modifier.align(Alignment.BottomEnd),
@@ -111,7 +107,6 @@ fun MainMenu(
                                 isFabExpanded = false
                                 wineViewModel.clearFilter()
                                 stockViewModel.clearFilter()
-                                historyViewModel.clearFilter()
                             })
                         }
                     }
@@ -135,12 +130,8 @@ fun MainMenu(
                                 isFabExpanded = true
                                 stockViewModel.updateFilter(filter)
                                 wineViewModel.updateFilter(filter)
-                                historyViewModel.updateFilter(filter)
                             }
                         )
-                    }
-                    2 -> {
-                        HistoryScreen(historyViewModel = historyViewModel)
                     }
                     else -> Text("Écran non implémenté")
                 }

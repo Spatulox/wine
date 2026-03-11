@@ -59,7 +59,6 @@ import com.spatulox.wine.domain.enum.WineRegion
 import com.spatulox.wine.domain.enum.WineType
 import com.spatulox.wine.domain.model.Wine
 import com.spatulox.wine.ui.screens.wine.WineDropdownList
-import com.spatulox.wine.viewModels.HistoryViewModel
 import com.spatulox.wine.viewModels.StockViewModel
 import com.spatulox.wine.viewModels.WineViewModel
 import kotlinx.coroutines.flow.StateFlow
@@ -90,7 +89,6 @@ val filterFields = listOf(
 fun SearchWithFilters(
     wineViewModel: WineViewModel,
     stockViewModel: StockViewModel,
-    historyViewModel: HistoryViewModel,
     selectedTabIndex: Int,
     modifier: Modifier = Modifier,
     isExpanded: Boolean,
@@ -112,11 +110,9 @@ fun SearchWithFilters(
 
     val stockYears by stockViewModel.stockYears.collectAsStateWithLifecycle()
     val wineYears by wineViewModel.winesYears.collectAsStateWithLifecycle()
-    val historyYears by historyViewModel.historyYears.collectAsStateWithLifecycle()
     val availableYears = when(selectedTabIndex) {
         0 -> stockYears
         1 -> wineYears
-        2 -> historyYears
         else -> emptyList()
     }
 
@@ -148,7 +144,6 @@ fun SearchWithFilters(
                 isFilterPopupVisible = false
                 wineViewModel.clearFilter()
                 stockViewModel.clearFilter()
-                historyViewModel.clearFilter()
             }
         },
         modifier = modifier
@@ -176,7 +171,6 @@ fun SearchWithFilters(
                                     val filter = Filter(content = wine.name, field = "name")
                                     wineViewModel.updateFilter(filter)
                                     stockViewModel.updateFilter(filter)
-                                    historyViewModel.updateFilter(filter)
                                 }
                             }
                             WineDropdownList(
@@ -189,7 +183,6 @@ fun SearchWithFilters(
                                     val filter = Filter(content = wine.name, field = "name")
                                     wineViewModel.updateFilter(filter)
                                     stockViewModel.updateFilter(filter)
-                                    historyViewModel.updateFilter(filter)
                                 },
                                 modifier = Modifier.weight(1f),
                             )
@@ -202,7 +195,6 @@ fun SearchWithFilters(
                                     val filter = Filter(content = year.toString(), field = "year")
                                     wineViewModel.updateFilter(filter)
                                     stockViewModel.updateFilter(filter)
-                                    historyViewModel.updateFilter(filter)
                                 }
                             }
                             DateSelection(
@@ -213,7 +205,6 @@ fun SearchWithFilters(
                                     val filter = Filter(content = lyear.toString(), field = "year")
                                     wineViewModel.updateFilter(filter)
                                     stockViewModel.updateFilter(filter)
-                                    historyViewModel.updateFilter(filter)
                                 },
                                 modifier = Modifier.weight(1f),
                             )
@@ -226,7 +217,6 @@ fun SearchWithFilters(
                                     val filter = Filter(content = type.name, field = "type")
                                     wineViewModel.updateFilter(filter)
                                     stockViewModel.updateFilter(filter)
-                                    historyViewModel.updateFilter(filter)
                                 }
                             }
                             EnumDropdownField(
@@ -237,7 +227,6 @@ fun SearchWithFilters(
                                     val filter = Filter(content = displayName, field = "type")
                                     wineViewModel.updateFilter(filter)
                                     stockViewModel.updateFilter(filter)
-                                    historyViewModel.updateFilter(filter)
                                 },
                                 modifier = Modifier.weight(1f),
                                 expanded = expanded,
@@ -254,7 +243,6 @@ fun SearchWithFilters(
                                     val filter = Filter(content = format.name, field = "format")
                                     wineViewModel.updateFilter(filter)
                                     stockViewModel.updateFilter(filter)
-                                    historyViewModel.updateFilter(filter)
                                 }
                             }
                             EnumDropdownField(
@@ -265,7 +253,6 @@ fun SearchWithFilters(
                                     val filter = Filter(content = displayName, field = "format")
                                     wineViewModel.updateFilter(filter)
                                     stockViewModel.updateFilter(filter)
-                                    historyViewModel.updateFilter(filter)
                                 },
                                 modifier = Modifier.weight(1f),
                                 expanded = expanded,
@@ -282,7 +269,6 @@ fun SearchWithFilters(
                                     val filter = Filter(content = format.name, field = "region")
                                     wineViewModel.updateFilter(filter)
                                     stockViewModel.updateFilter(filter)
-                                    historyViewModel.updateFilter(filter)
                                 }
                             }
                             EnumDropdownField(
@@ -293,7 +279,6 @@ fun SearchWithFilters(
                                     val filter = Filter(content = displayName, field = "region")
                                     wineViewModel.updateFilter(filter)
                                     stockViewModel.updateFilter(filter)
-                                    historyViewModel.updateFilter(filter)
                                 },
                                 modifier = Modifier.weight(1f),
                                 expanded = expanded,
@@ -371,7 +356,6 @@ fun SearchWithFilters(
                                     val filter = Filter(content = "", field = field)
                                     wineViewModel.updateFilter(filter)
                                     stockViewModel.updateFilter(filter)
-                                    historyViewModel.updateFilter(filter)
                                     isFilterPopupVisible = false
                                 },
                                 modifier = Modifier.padding(bottom = 8.dp)

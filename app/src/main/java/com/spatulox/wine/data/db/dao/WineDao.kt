@@ -6,7 +6,6 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
-import com.spatulox.wine.data.db.entity.HistoryEntity
 import com.spatulox.wine.data.db.entity.StockEntity
 import com.spatulox.wine.data.db.entity.WineEntity
 import kotlinx.coroutines.flow.Flow
