@@ -4,10 +4,8 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
-import androidx.room.Transaction
 import androidx.room.Update
 import com.spatulox.wine.data.db.entity.StockEntity
-import com.spatulox.wine.domain.model.Position
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -15,13 +13,13 @@ interface StockDao {
     @Query("SELECT * FROM stock ORDER BY date DESC")
     suspend fun getStock(): List<StockEntity>
 
-    @Query("SELECT * FROM stock WHERE shelfId= :shelfId AND `row`= :row AND col= :col")
-    suspend fun getStockByPos(shelfId: Int, row: Int, col: Int): StockEntity?
+    @Query("SELECT * FROM stock WHERE compartmentId= :compartmentId AND `shelfId`= :shelfId AND col= :col")
+    suspend fun getStockByPos(compartmentId: Int, shelfId: Int, col: Int): StockEntity?
 
     @Query("SELECT * FROM stock WHERE id= :id")
     suspend fun getStockById(id: Int): StockEntity?
 
-    @Query("SELECT * FROM stock ORDER BY shelfId, `row`, col")
+    @Query("SELECT * FROM stock ORDER BY compartmentId, shelfId, col")
     fun getStockStream(): Flow<List<StockEntity>>
 
     @Query("""

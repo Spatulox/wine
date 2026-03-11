@@ -18,7 +18,7 @@ interface ShelfDao {
     @Query("""
     SELECT * FROM stock 
     WHERE shelfId = :shelfId 
-    ORDER BY `row`, col
+    ORDER BY `shelfId`, col
 """)
     fun getStockByShelf(shelfId: Int): Flow<List<StockEntity>>
 

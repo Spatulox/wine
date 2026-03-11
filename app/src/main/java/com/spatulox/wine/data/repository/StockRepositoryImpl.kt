@@ -28,7 +28,7 @@ class StockRepositoryImpl(
     }
 
     override suspend fun getStockByPos(pos: Position): Stock? {
-        val entity = stockDao.getStockByPos(pos.shelfId, pos.row, pos.col)
+        val entity = stockDao.getStockByPos(pos.compartment, pos.shelf, pos.col)
         return entity?.let { StockMapper.toDomain(it) }
     }
 
@@ -64,7 +64,7 @@ class StockRepositoryImpl(
     }
 
     override suspend fun delete(pos: Position) {
-        val entity = stockDao.getStockByPos(pos.shelfId, pos.row, pos.col)
+        val entity = stockDao.getStockByPos(pos.compartment, pos.shelf, pos.col)
         if(entity != null){
             stockDao.delete(entity)
         }

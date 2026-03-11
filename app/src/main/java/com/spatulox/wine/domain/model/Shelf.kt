@@ -6,9 +6,9 @@ import com.spatulox.wine.domain.enum.ShelfInterleave
 data class Shelf(
     val id: Int = 0,
     val name: String,
-    val rows: Int,
-    val cols: Int,
-    val interleave: ShelfInterleave,
-    val bottlePositionning: BottlePosition
+    val compartmentId: Int,
+    val col: Int,
+    val aligment: ShelfInterleave,
+    val arrangement: BottlePosition
 ) {
 }

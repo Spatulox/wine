@@ -10,10 +10,10 @@ object ShelfMapper {
         return Shelf(
             id = entity.id,
             name = entity.name,
-            rows = entity.rows,
-            cols = entity.cols,
-            interleave = ShelfInterleave.valueOf(entity.interleave),
-            bottlePositionning = BottlePosition.valueOf(entity.bottlePositionning)
+            compartmentId = entity.compartmentId,
+            col = entity.col,
+            aligment = ShelfInterleave.valueOf(entity.aligment),
+            arrangement = BottlePosition.valueOf(entity.arrangement)
         )
     }
 
@@ -21,10 +21,10 @@ object ShelfMapper {
         return ShelfEntity(
             id = shelf.id,
             name = shelf.name.trim(),
-            rows = shelf.rows,
-            cols = shelf.cols,
-            interleave = shelf.interleave.name,
-            bottlePositionning = shelf.bottlePositionning.name
+            compartmentId = shelf.compartmentId,
+            col = shelf.col,
+            aligment = shelf.aligment.name,
+            arrangement = shelf.arrangement.name
         )
     }
 }

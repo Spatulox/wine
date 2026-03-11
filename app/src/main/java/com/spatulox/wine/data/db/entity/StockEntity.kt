@@ -20,17 +20,23 @@ import androidx.room.PrimaryKey
             parentColumns = ["id"],
             childColumns = ["shelfId"],
             onDelete = ForeignKey.RESTRICT
+        ),
+        ForeignKey(
+            entity = CompartmentEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["compartmentId"],
+            onDelete = ForeignKey.RESTRICT
         )
     ],
     indices = [
-        Index(value = ["shelfId", "row", "col"], unique = true)
+        Index(value = ["compartmentId", "shelfId", "col"], unique = true)
     ]
 )
 data class StockEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val wineId: Int,
+    val compartmentId: Int,
     val shelfId: Int,
-    val row: Int,
     val col: Int,
     val comment: String?,
     val date: Long,
