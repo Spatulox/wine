@@ -128,11 +128,6 @@ fun SearchWithFilters(
         else -> emptyList()
     }
 
-
-
-    System.out.println(countStockedWine)
-    System.out.println(excludeWineIds)
-
     FloatingActionButton(
         onClick = {
             onExpandedChange(!isExpanded)
