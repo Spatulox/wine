@@ -23,11 +23,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
+import androidx.navigation.NavController
 import com.spatulox.wine.SnackbarManager
 import com.spatulox.wine.ui.screens.components.AddButton
 import com.spatulox.wine.ui.screens.components.SearchWithFilters
-import com.spatulox.wine.ui.screens.shelf.ShelfScreen
+import com.spatulox.wine.ui.screens.shelf.CompartmentScreen
 import com.spatulox.wine.ui.screens.wine.WineScreen
+import com.spatulox.wine.viewModels.CompartmentViewModel
 import com.spatulox.wine.viewModels.ShelfViewModel
 import com.spatulox.wine.viewModels.StockViewModel
 import com.spatulox.wine.viewModels.WineViewModel
@@ -36,7 +38,9 @@ import com.spatulox.wine.viewModels.WineViewModel
 fun MainMenu(
     wineViewModel: WineViewModel,
     stockViewModel: StockViewModel,
-    shelfViewModel: ShelfViewModel
+    shelfViewModel: ShelfViewModel,
+    compartmentViewModel: CompartmentViewModel,
+    navController: NavController
 ) {
     var selectedTabIndex by remember { mutableStateOf(0) }
     var showAddWineDialog by remember { mutableStateOf(false) }
@@ -113,10 +117,12 @@ fun MainMenu(
             ) {
                 when (selectedTabIndex) {
                     0 -> {
-                        ShelfScreen(
+                        CompartmentScreen(
                             stockViewModel = stockViewModel,
                             wineViewModel = wineViewModel,
-                            shelfViewModel = shelfViewModel
+                            shelfViewModel = shelfViewModel,
+                            compartmentViewModel = compartmentViewModel,
+                            navController = navController
                         )
                     }
                     1 -> {

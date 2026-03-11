@@ -5,8 +5,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.spatulox.wine.ui.screens.MainMenu
-import com.spatulox.wine.ui.screens.shelf.ShelfScreen
-import com.spatulox.wine.ui.screens.wine.WineScreen
+import com.spatulox.wine.ui.screens.shelf.CompartmentActionDialog
+import com.spatulox.wine.viewModels.CompartmentViewModel
 import com.spatulox.wine.viewModels.ShelfViewModel
 import com.spatulox.wine.viewModels.StockViewModel
 import com.spatulox.wine.viewModels.WineViewModel
@@ -15,7 +15,8 @@ import com.spatulox.wine.viewModels.WineViewModel
 fun AppNavGraph(
     wineViewModel: WineViewModel,
     stockViewModel: StockViewModel,
-    shelfViewModel: ShelfViewModel
+    shelfViewModel: ShelfViewModel,
+    compartmentViewModel: CompartmentViewModel
 ) {
     val nav = rememberNavController()
 
@@ -28,8 +29,21 @@ fun AppNavGraph(
             MainMenu(
                 wineViewModel = wineViewModel,
                 stockViewModel = stockViewModel,
+                shelfViewModel = shelfViewModel,
+                compartmentViewModel = compartmentViewModel,
+                navController = nav,
+            )
+        }
+
+        composable (Destinations.COMPARTMENT_EDIT) {
+            CompartmentActionDialog(
+                navController = nav,
+                compartmentViewModel = compartmentViewModel,
                 shelfViewModel = shelfViewModel
             )
+            /*CompartmentActionDialog(
+                navController = nav,
+            )*/
         }
     }
 }

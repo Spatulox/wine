@@ -10,11 +10,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.spatulox.wine.data.db.DatabaseProvider
 import com.spatulox.wine.data.db.TransactionProvider
+import com.spatulox.wine.data.repository.CompartmentRepositoryImpl
 import com.spatulox.wine.data.repository.ShelfRepositoryImpl
 import com.spatulox.wine.data.repository.StockRepositoryImpl
 import com.spatulox.wine.data.repository.WineRepositoryImpl
 import com.spatulox.wine.navigation.AppNavGraph
 import com.spatulox.wine.ui.theme.WineTheme
+import com.spatulox.wine.viewModels.CompartmentViewModel
 import com.spatulox.wine.viewModels.ShelfViewModel
 import com.spatulox.wine.viewModels.StockViewModel
 import com.spatulox.wine.viewModels.WineViewModel
@@ -24,6 +26,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var wineViewModel: WineViewModel
     private lateinit var stockViewModel: StockViewModel
     private lateinit var shelfViewModel: ShelfViewModel
+    private lateinit var compartmentViewModel: CompartmentViewModel
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,18 +37,21 @@ class MainActivity : ComponentActivity() {
 
         val wineRepository = WineRepositoryImpl(db.wineDao())
         val stockRepository = StockRepositoryImpl(db.stockDao(), transactionProvider)
+        val compartmentRepository = CompartmentRepositoryImpl(db.compartmentDao())
         val shelfRepository = ShelfRepositoryImpl(db.shelfDao())
 
         wineViewModel = WineViewModel(wineRepository)
         stockViewModel = StockViewModel(stockRepository)
         shelfViewModel = ShelfViewModel(shelfRepository)
+        compartmentViewModel = CompartmentViewModel(compartmentRepository)
 
         enableEdgeToEdge()
         setContent {
             WineApp(
                 wineViewModel = wineViewModel,
                 stockViewModel = stockViewModel,
-                shelfViewModel = shelfViewModel
+                shelfViewModel = shelfViewModel,
+                compartmentViewModel = compartmentViewModel
             )
         }
     }
@@ -55,13 +61,15 @@ class MainActivity : ComponentActivity() {
 fun WineApp(
     wineViewModel: WineViewModel,
     stockViewModel: StockViewModel,
-    shelfViewModel: ShelfViewModel
+    shelfViewModel: ShelfViewModel,
+    compartmentViewModel: CompartmentViewModel
 ) {
     WineTheme {
         AppNavGraph(
             wineViewModel = wineViewModel,
             stockViewModel = stockViewModel,
-            shelfViewModel = shelfViewModel
+            shelfViewModel = shelfViewModel,
+            compartmentViewModel = compartmentViewModel
         )
     }
 }

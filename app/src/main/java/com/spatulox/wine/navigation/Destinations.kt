@@ -4,5 +4,5 @@ object Destinations {
     const val MAIN_MENU = "main_menu"
     const val SHELF = "shelf"
     const val WINE = "wine"
-    const val HISTORY = "history"
+    const val COMPARTMENT_EDIT = "compartment_edit"
 }
