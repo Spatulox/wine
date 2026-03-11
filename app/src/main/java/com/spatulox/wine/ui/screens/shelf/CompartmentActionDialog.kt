@@ -107,12 +107,15 @@ fun CompartmentActionDialog(
                 .verticalScroll(rememberScrollState())
         ) {
 
-            // Nom compartiment
+
             OutlinedTextField(
                 value = name, onValueChange = { name = it },
                 label = { Text("Nom") }, placeholder = { Text("A1, Cave 1...") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
             )
+
+            Spacer(modifier = Modifier.height(24.dp))
 
             if (shelves.isNotEmpty()) {
                 CompartmentPreview(
@@ -120,6 +123,7 @@ fun CompartmentActionDialog(
                     onDeleteShelf = { shelf -> shelves = shelves - shelf },
                     onMenuClick = {}
                 )
+                Spacer(modifier = Modifier.height(24.dp))
             }
 
             Button(
@@ -131,7 +135,7 @@ fun CompartmentActionDialog(
                 Text("Ajouter une étagère")
             }
 
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(24.dp))
 
             // Boutons
             Row(
@@ -242,6 +246,9 @@ fun CompartmentPreview(
     onDeleteShelf: (Shelf) -> Unit,
     modifier: Modifier = Modifier
 ) {
+
+    val maxCols = shelves.maxOfOrNull { it.col } ?: 6
+
     Card(
         modifier = modifier
             .fillMaxWidth(),
@@ -287,7 +294,7 @@ fun CompartmentPreview(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxSize()
                     ) {
-                        items((shelves.maxOfOrNull { it.col } ?: 6)) { colIndex ->
+                        items(maxCols) { colIndex ->
                             Column(
                                 verticalArrangement = Arrangement.spacedBy(8.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally
@@ -296,8 +303,8 @@ fun CompartmentPreview(
                                     if (colIndex < shelf.col) {
                                         val offset = when (shelf.aligment) {
                                             ShelfInterleave.STRAIGHT -> 0.dp
-                                            ShelfInterleave.STAGGERED_RIGHT -> 25.dp
-                                            ShelfInterleave.STAGGERED_LEFT -> (-25.dp)
+                                            ShelfInterleave.STAGGERED_LEFT -> ((-22).dp)
+                                            ShelfInterleave.STAGGERED_RIGHT -> 22.dp
                                         }
                                         Box(
                                             modifier = Modifier
@@ -310,6 +317,17 @@ fun CompartmentPreview(
                                                 .border(
                                                     2.dp,
                                                     MaterialTheme.colorScheme.outlineVariant,
+                                                    CircleShape
+                                                )
+                                        )
+                                    }  else {
+                                        // INVISIBLES bottle to align
+                                        Box(
+                                            modifier = Modifier
+                                                .offset(x = 0.dp)
+                                                .size(32.dp)
+                                                .background(
+                                                    Color.Transparent,
                                                     CircleShape
                                                 )
                                         )
