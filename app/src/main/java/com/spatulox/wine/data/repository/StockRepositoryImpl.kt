@@ -5,7 +5,6 @@ import com.spatulox.wine.data.db.dao.StockDao
 import com.spatulox.wine.domain.repository.StockRepository
 
 import com.spatulox.wine.data.mapper.StockMapper
-import com.spatulox.wine.domain.enum.HistoryType
 import com.spatulox.wine.domain.model.Position
 import com.spatulox.wine.domain.model.Stock
 import kotlinx.coroutines.flow.Flow
