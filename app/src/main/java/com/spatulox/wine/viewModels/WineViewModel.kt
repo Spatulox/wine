@@ -6,6 +6,7 @@ import androidx.compose.ui.text.toLowerCase
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.spatulox.wine.data.repository.WineRepositoryImpl
+import com.spatulox.wine.domain.model.HistoryWithWine
 import com.spatulox.wine.domain.model.Wine
 import com.spatulox.wine.ui.screens.components.Filter
 import kotlinx.coroutines.flow.Flow
@@ -14,6 +15,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
 
 open class WineViewModel(
     private val wineRepository: WineRepositoryImpl
@@ -63,27 +67,15 @@ open class WineViewModel(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+
     val filteredWinesList: StateFlow<List<Wine>> = winesByYearDesc
-        .combine(currentFilter) { winesList, filter ->
-            filter?.let {
-                when (it.field) {
-                    "name" -> winesList
-                        .filter { wine -> wine.name.equals(it.content, ignoreCase = true) }
-                    "year" -> winesList
-                        .filter { wine -> wine.year.toString().equals(it.content) }
-                    "type" -> winesList
-                        .filter { wine -> wine.type.displayName.equals(it.content, ignoreCase = true) }
-                    "format" -> winesList
-                        .filter { wine -> wine.format.displayName.equals(it.content, ignoreCase = true) }
-                    else -> winesList
-                }
-            } ?: winesList
+        .combine(currentFilter) { wine, filter ->
+            applyFilter(
+                items = wine,
+                filter = filter
+            )
         }
-        .stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(5000),
-            emptyList()
-        )
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val filteredWinesMap: StateFlow<Map<Int, Wine>> = winesByYearMap
         .combine(currentFilter) { winesMap: Map<Int, Wine>, filter: Filter? ->
