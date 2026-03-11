@@ -44,7 +44,7 @@ fun MainMenu(
 ) {
     var selectedTabIndex by remember { mutableStateOf(0) }
     var showAddWineDialog by remember { mutableStateOf(false) }
-    val tabs = listOf("Cave", "Wines", "Statistics")
+    val tabs = listOf("Cave", "Vins", "Statistiques")
 
     var isFabExpanded by remember { mutableStateOf(false) }
 
