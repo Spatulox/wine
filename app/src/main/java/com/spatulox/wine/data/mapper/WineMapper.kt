@@ -17,7 +17,8 @@ object WineMapper {
             unitPrice = entity.unitPrice,
             stars = entity.stars,
             qte = entity.qte,
-            region = entity.region?.let { WineRegion.valueOf(it) }
+            region = entity.region?.let { WineRegion.valueOf(it) },
+            icon = entity.icon
         )
     }
 
@@ -31,7 +32,8 @@ object WineMapper {
             unitPrice = wine.unitPrice,
             stars = wine.stars,
             qte = wine.qte,
-            region = wine.region?.name
+            region = wine.region?.name,
+            icon = wine.icon
         )
     }
 }

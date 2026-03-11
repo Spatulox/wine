@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.AlertDialog
@@ -42,6 +43,7 @@ import com.spatulox.wine.domain.enum.WineType
 import com.spatulox.wine.domain.model.Wine
 import com.spatulox.wine.ui.screens.components.DateSelection
 import com.spatulox.wine.ui.screens.components.EnumDropdownField
+import com.spatulox.wine.ui.screens.components.IconPickerButton
 import com.spatulox.wine.ui.screens.components.NumberField
 import com.spatulox.wine.ui.screens.shelf.ShelfActionType
 import kotlin.math.roundToInt
@@ -63,6 +65,7 @@ fun WineEditDialog(
     var editedRegion by remember(wine) { mutableStateOf(wine.region) }
     var editedQte by remember(wine) { mutableStateOf(wine.qte) }
     var editedStars by remember(wine) { mutableStateOf(wine.stars) }
+    var editedIconName by remember { mutableStateOf<String>(wine.icon) }
 
     var errorMessage by remember(editedQte, distincWineCounts[wine.id]) { mutableStateOf("") }
 
@@ -86,10 +89,17 @@ fun WineEditDialog(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "Modifier le vin",
-                        style = MaterialTheme.typography.titleLarge,
-                    )
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        IconPickerButton(
+                            currentIconName = editedIconName,
+                            onIconChange = { editedIconName = it }
+                        )
+                        Text(
+                            text = "Modifier le vin",
+                            style = MaterialTheme.typography.titleLarge,
+                        )
+                    }
                     IconButton(
                         onClick = onDelete,
                     ) {
@@ -221,7 +231,8 @@ fun WineEditDialog(
                                     format = editedFormat,
                                     region = editedRegion,
                                     qte = editedQte,
-                                    stars = editedStars
+                                    stars = editedStars,
+                                    icon = editedIconName
                                 )
                             )
                         },

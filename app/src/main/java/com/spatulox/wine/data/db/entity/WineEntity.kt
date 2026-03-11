@@ -19,4 +19,5 @@ data class WineEntity(
     val stars: Int,
     val qte: Int,
     val region: String?,
+    val icon: String
 )

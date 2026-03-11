@@ -8,14 +8,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.outlined.StarBorder
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,13 +22,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.spatulox.wine.domain.model.Wine
+import com.spatulox.wine.ui.screens.components.IconFromName
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WineItem(
     wine: Wine,
     modifier: Modifier = Modifier,
-    onClick: (Wine) -> Unit = {}
+    onClick: (Wine) -> Unit = {},
+    onUpdateClick: (Wine) -> Unit = {}
 ) {
     Card(
         modifier = modifier
@@ -46,13 +45,35 @@ fun WineItem(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = "${wine.qte} ${wine.name}",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
 
-                WineStar(wine = wine)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Icon(
+                        imageVector = IconFromName(wine.icon),
+                        contentDescription = wine.name
+                    )
+
+                    Text(
+                        text = "${wine.qte} ${wine.name}",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    WineStar(wine = wine)
+
+                    IconButton(
+                        onClick = { onUpdateClick(wine) }
+                    ) {
+                        Icon(Icons.Filled.Edit, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(8.dp))

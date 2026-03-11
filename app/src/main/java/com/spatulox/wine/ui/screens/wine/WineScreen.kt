@@ -48,20 +48,21 @@ fun WineScreen(
     val wines by wineViewModel.filteredWinesList.collectAsStateWithLifecycle()
     val distincWineCounts by stockViewModel.stockDistinctWineCount.collectAsStateWithLifecycle()
 
+    var selectedWineForEdit by remember { mutableStateOf<Wine?>(null) }
     var selectedWine by remember { mutableStateOf<Wine?>(null) }
 
     val coroutineScope = rememberCoroutineScope()
 
-    selectedWine?.let { wine ->
+    selectedWineForEdit?.let { wine ->
         WineEditDialog(
             wine = wine,
             distincWineCounts = distincWineCounts,
-            onDismiss = { selectedWine = null },
+            onDismiss = { selectedWineForEdit = null },
             onValidate = { updatedWine ->
                 coroutineScope.launch {
                     wineViewModel.updateWine(updatedWine)
                 }
-                selectedWine = null
+                selectedWineForEdit = null
             },
             onDelete = {
                 coroutineScope.launch {
@@ -69,7 +70,7 @@ fun WineScreen(
                         SnackbarManager.send("Wine exist in cave, cannot delete it !")
                     }
                 }
-                selectedWine = null
+                selectedWineForEdit = null
             }
         )
     }
@@ -149,7 +150,8 @@ fun WineScreen(
             ) { index, wine ->
                 WineItem(
                     wine = wine,
-                    onClick = { selectedWine = wine }
+                    onClick = { selectedWine = wine },
+                    onUpdateClick = { selectedWineForEdit = wine }
                 )
             }
         }

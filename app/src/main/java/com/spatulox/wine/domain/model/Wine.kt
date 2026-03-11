@@ -13,5 +13,6 @@ data class Wine(
     val unitPrice: Float?,
     var stars: Int,
     val qte: Int,
-    val region: WineRegion?
+    val region: WineRegion?,
+    val icon: String
 )
