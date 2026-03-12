@@ -409,53 +409,7 @@ private fun CompartmentPreview(
                 // 3 COLUMNS : Menu | Ronds (LazyRow) | Delete
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        /*.pointerInput(Unit) {
-                            detectDragGesturesAfterLongPress(
-                                onDragStart = { offset ->
-                                    if(draggedShelfIndex != null){
-                                        println(draggedShelfIndex)
-                                        draggedShelf = shelves[draggedShelfIndex!!]
-                                        onDeleteShelf(shelves[draggedShelfIndex!!])
-                                        dragStartX = offset.x
-                                        dragPosition = offset
-                                    }
-                                    //val shelfIndex =
-                                    //    (offset.y / 44f).toInt().coerceIn(0, shelves.size - 1)
-                                    //draggedShelfIndex = shelfIndex
-                                },
-                                onDrag = { change, _ ->
-                                    change.consume()
-                                    if (draggedShelfIndex != null) {
-                                        dragPosition = change.position
-                                        val deltaX = (change.position.x - dragStartX) / 60f
-                                        dragOffset = deltaX
-                                    }
-                                },
-                                onDragEnd = {
-                                    /*val dropY = dragPosition.y
-                                    val newIndex = (dropY / 44f).toInt().coerceIn(0, shelves.size)
-
-                                    // Réinsérer à newIndex
-                                    draggedShelf?.let { shelf ->
-                                        val newShelves = shelves.toMutableList().apply {
-                                            add(newIndex, shelf)
-                                        }
-                                        // Mettre à jour via callback (nécessite callback avec liste)
-                                        // Pour l'instant, on reset juste
-                                        draggedShelf = null
-                                    }
-                                    */
-                                    draggedShelfIndex = null
-                                    dragPosition = Offset.Zero
-                                },
-                                onDragCancel = {
-                                    draggedShelfIndex = null
-                                    dragOffset = 0f
-                                    dragPosition = Offset.Zero
-                                }
-                            )
-                        }*/,
+                        .fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
 
                     ) {
@@ -481,12 +435,21 @@ private fun CompartmentPreview(
                                             },
                                             onDragEnd = {
                                                 draggedShelf?.let { dragged ->
+                                                    // Utiliser dragPosition (mise à jour dans onDrag)
                                                     val dropIndex = (dragPosition.y / 44f).toInt()
                                                         .coerceIn(0, shelves.size)
-                                                    val newShelves = shelves.toMutableList().apply {
-                                                        add(dropIndex.coerceIn(0, size), dragged)
+
+                                                    // Réinsérer à dropIndex
+                                                    val newShelvesList = shelves.toMutableList().apply {
+                                                        add(dropIndex, dragged)
                                                     }
-                                                    onShelvesChanged(newShelves)
+
+                                                    // Mettre à jour TOUS les orders
+                                                    val shelvesWithUpdatedOrder = newShelvesList.mapIndexed { index, shelf ->
+                                                        shelf.copy(order = index)
+                                                    }
+
+                                                    onShelvesChanged(shelvesWithUpdatedOrder)
                                                 }
                                                 draggedShelf = null
                                                 dragPosition = Offset.Zero
