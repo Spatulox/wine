@@ -44,6 +44,7 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButtonDefaults.Icon
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -245,7 +246,7 @@ fun CompartmentActionDialog(
             if (shelves.isNotEmpty()) {
                 CompartmentPreview(
                     shelves = shelves,
-                    onDeleteShelf = { shelf -> shelves = shelves - shelf },
+                    onShelvesChanged = { newList -> shelves = newList },
                     onMenuClick = {}
                 )
                 Spacer(modifier = Modifier.height(24.dp))
@@ -384,7 +385,7 @@ fun CompartmentActionDialog(
 private fun CompartmentPreview(
     shelves: List<Shelf>,
     onMenuClick: (Shelf) -> Unit,
-    onDeleteShelf: (Shelf) -> Unit,
+    onShelvesChanged: (List<Shelf>) -> Unit,
     modifier: Modifier = Modifier
 ) {
 
@@ -409,16 +410,19 @@ private fun CompartmentPreview(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .pointerInput(Unit) {
+                        /*.pointerInput(Unit) {
                             detectDragGesturesAfterLongPress(
                                 onDragStart = { offset ->
-                                    val shelfIndex =
-                                        (offset.y / 44f).toInt().coerceIn(0, shelves.size - 1)
-                                    draggedShelfIndex = shelfIndex
-                                    draggedShelf = shelves[shelfIndex]
-                                    onDeleteShelf(shelves[shelfIndex])
-                                    dragStartX = offset.x
-                                    dragPosition = offset
+                                    if(draggedShelfIndex != null){
+                                        println(draggedShelfIndex)
+                                        draggedShelf = shelves[draggedShelfIndex!!]
+                                        onDeleteShelf(shelves[draggedShelfIndex!!])
+                                        dragStartX = offset.x
+                                        dragPosition = offset
+                                    }
+                                    //val shelfIndex =
+                                    //    (offset.y / 44f).toInt().coerceIn(0, shelves.size - 1)
+                                    //draggedShelfIndex = shelfIndex
                                 },
                                 onDrag = { change, _ ->
                                     change.consume()
@@ -441,9 +445,9 @@ private fun CompartmentPreview(
                                         // Pour l'instant, on reset juste
                                         draggedShelf = null
                                     }
-
+                                    */
                                     draggedShelfIndex = null
-                                    dragPosition = Offset.Zero*/
+                                    dragPosition = Offset.Zero
                                 },
                                 onDragCancel = {
                                     draggedShelfIndex = null
@@ -451,7 +455,7 @@ private fun CompartmentPreview(
                                     dragPosition = Offset.Zero
                                 }
                             )
-                        },
+                        }*/,
                     verticalAlignment = Alignment.CenterVertically,
 
                     ) {
@@ -460,19 +464,54 @@ private fun CompartmentPreview(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.width(48.dp)
                     ) {
-                        shelves.forEachIndexed { shelfIndex, shelf ->
-                            IconButton(
-                                onClick = { onMenuClick(shelf) },
-                                modifier = Modifier.size(36.dp)
+                        shelves.forEach { shelf ->
+                            Box(
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .pointerInput(shelf) {
+                                        detectDragGesturesAfterLongPress(
+                                            onDragStart = { offset ->
+                                                draggedShelf = shelf
+                                                onShelvesChanged(shelves - shelf)
+                                                dragPosition = offset
+                                            },
+                                            onDrag = { change, _ ->
+                                                change.consume()
+                                                dragPosition = change.position
+                                            },
+                                            onDragEnd = {
+                                                draggedShelf?.let { dragged ->
+                                                    val dropIndex = (dragPosition.y / 44f).toInt()
+                                                        .coerceIn(0, shelves.size)
+                                                    val newShelves = shelves.toMutableList().apply {
+                                                        add(dropIndex.coerceIn(0, size), dragged)
+                                                    }
+                                                    onShelvesChanged(newShelves)
+                                                }
+                                                draggedShelf = null
+                                                dragPosition = Offset.Zero
+                                            },
+                                            onDragCancel = {
+                                                draggedShelf?.let { shelf ->
+                                                    onShelvesChanged(shelves + shelf)
+                                                }
+                                                draggedShelf = null
+                                                dragPosition = Offset.Zero
+                                            }
+                                        )
+                                    }
+                                    .clickable { onMenuClick(shelf) }
                             ) {
                                 Icon(
                                     Icons.Default.Menu,
                                     contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.align(Alignment.Center)
                                 )
                             }
                         }
                     }
+
 
                     Spacer(modifier = Modifier.width(8.dp))
 
@@ -492,16 +531,16 @@ private fun CompartmentPreview(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.width(48.dp)
                     ) {
-                        repeat(shelves.size) { shelfIndex ->
+                        shelves.forEach { shelf ->
                             IconButton(
-                                onClick = { onDeleteShelf(shelves[shelfIndex]) },
+                                onClick = { onShelvesChanged(shelves - shelf) },
                                 modifier = Modifier.size(36.dp),
                                 colors = IconButtonDefaults.iconButtonColors(
                                     containerColor = Color.Transparent,
                                     contentColor = MaterialTheme.colorScheme.error
                                 )
                             ) {
-                                Icon(Icons.Default.Delete, contentDescription = null)
+                                Icon(Icons.Default.Delete, null)
                             }
                         }
                     }
