@@ -1,7 +1,11 @@
 package com.spatulox.wine.ui.screens.shelf
 
+import android.graphics.drawable.Icon
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -38,10 +43,14 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,15 +59,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.spatulox.wine.SnackbarManager
 import com.spatulox.wine.domain.enum.BottlePosition
 import com.spatulox.wine.domain.enum.ShelfInterleave
 import com.spatulox.wine.domain.model.Compartment
 import com.spatulox.wine.domain.model.Shelf
+import com.spatulox.wine.send
 import com.spatulox.wine.ui.screens.components.BottleGrid
 import com.spatulox.wine.ui.screens.components.EnumDropdownField
 import com.spatulox.wine.viewModels.CompartmentViewModel
@@ -66,18 +80,13 @@ import com.spatulox.wine.viewModels.ShelfViewModel
 import kotlinx.coroutines.launch
 
 
-enum class ShelfActionType {
-    ADD_UPDATE,
-    DELETE
-}
-
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CompartmentActionDialog(
     navController: NavController,
     compartmentViewModel: CompartmentViewModel,
-    shelfViewModel: ShelfViewModel
+    shelfViewModel: ShelfViewModel,
+    compartmentId: String? = null
 ) {
     var name by remember { mutableStateOf("") }
 
@@ -94,34 +103,102 @@ fun CompartmentActionDialog(
 
     val compartment by compartmentViewModel.compartments.collectAsStateWithLifecycle()
 
+    val snackbarHostState = remember { SnackbarHostState() }
     val coroutine = rememberCoroutineScope()
 
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    LaunchedEffect(compartmentId) {
+        compartmentId?.toIntOrNull()?.let { id ->
+            val compartment = compartmentViewModel.getCompartmentById(id)
+            compartment?.let {
+                name = it.name
+
+                val localshelves = shelfViewModel.getShelvesByCompartmentId(id)
+                localshelves?.let {
+                    shelves = localshelves
+                }
+
+            }
+
+        }
+    }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(
+            snackbarHostState,
+            modifier = Modifier.imePadding()
+        ) },
         topBar = {
             TopAppBar(
-                title = { Text("Ajouter Compartiment") },
+                title = { Text(
+                    if (compartmentId != null) "Modifier" else "Ajouter"
+                ) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Default.ArrowBack, "Retour")
                     }
+                },
+                actions = {
+                    if (compartmentId != null) {
+                        IconButton(
+                            onClick = {
+                                coroutine.launch {
+                                    val id = compartmentId.toInt()
+                                    val compartment = compartmentViewModel.getCompartmentById(id)
+                                    compartment?.let {
+                                        val res = compartmentViewModel.delete(compartment)
+                                        if (res != null) {
+                                            snackbarHostState.showSnackbar(res)
+                                            return@launch
+                                        }
+                                        navController.popBackStack()
+                                    }
+                                }
+                            },
+                            colors = IconButtonDefaults.iconButtonColors(
+                                containerColor = Color.Transparent,
+                                contentColor = MaterialTheme.colorScheme.error
+                            )
+                        ) {
+                            Icon(
+                                Icons.Default.Delete,
+                                contentDescription = "Supprimer le compartiment"
+                            )
+                        }
+                    }
                 }
             )
-        }
+        },
+        modifier = Modifier
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = {
+                    focusManager.clearFocus()
+                    keyboardController?.hide()
+                }
+            )
     ) { padding ->
         Column(
             modifier = Modifier
                 .padding(padding)
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
+                .imePadding()
         ) {
 
 
             OutlinedTextField(
-                value = name, onValueChange = { name = it },
-                label = { Text("Nom") }, placeholder = { Text("A1, Cave 1...") },
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Nom") },
+                placeholder = { Text("A1, Cave 1...") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
+
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -155,18 +232,29 @@ fun CompartmentActionDialog(
                 }
                 Button(
                     onClick = {
-                        val comp = Compartment(
+
+                        val compartment = Compartment(
+                            id = compartmentId?.toInt()?: 0,
                             name = name,
                             order = compartment.size
                         )
+
+                        compartmentId?.let {
+                            coroutine.launch {
+                                compartmentViewModel.update(compartment, shelves)
+                                navController.popBackStack()
+                            }
+                            return@Button
+                        }
+
                         coroutine.launch {
-                            compartmentViewModel.insert(comp, shelves)
+                            compartmentViewModel.insert(compartment, shelves)
                             navController.popBackStack()
                         }
                     },
                     enabled = name.isNotBlank() && shelves.isNotEmpty()
                 ) {
-                    Text("Créer compartiment")
+                    Text(if (compartmentId != null) "Mettre à jour" else "Créer compartiment")
                 }
             }
         }
@@ -231,7 +319,7 @@ fun CompartmentActionDialog(
                                 val colCount = newShelfCols.toIntOrNull() ?: 6
                                 val shelf = Shelf(
                                     id = 0,
-                                    compartmentId = 0,
+                                    compartmentId = compartmentId?.toInt() ?: 0,
                                     col = colCount,
                                     aligment = newShelfInterleave,
                                     arrangement = newShelfBottlePosition,

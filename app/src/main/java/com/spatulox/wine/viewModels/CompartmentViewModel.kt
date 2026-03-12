@@ -1,5 +1,6 @@
 package com.spatulox.wine.viewModels
 
+import android.database.sqlite.SQLiteConstraintException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.spatulox.wine.data.repository.CompartmentRepositoryImpl
@@ -8,6 +9,7 @@ import com.spatulox.wine.domain.model.Shelf
 import com.spatulox.wine.domain.repository.ShelfRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 class CompartmentViewModel(
@@ -22,7 +24,28 @@ class CompartmentViewModel(
             emptyList()
         )
 
-    suspend fun insert(comp: Compartment, shelves: List<Shelf>) {
-        compartmentRepository.insert(comp, shelves)
+    fun getCompartmentById(id: Int): Compartment? {
+        return compartments.value.find { it.id == id }
+    }
+
+    suspend fun insert(compartment: Compartment, shelves: List<Shelf>) {
+        compartmentRepository.insert(compartment, shelves)
+    }
+
+    suspend fun update(compartment: Compartment, shelves: List<Shelf>): Boolean {
+        return try {
+            compartmentRepository.update(compartment, shelves)
+            true
+        } catch (e: SQLiteConstraintException) {
+            false
+        }
+    }
+
+    suspend fun delete(compartment: Compartment): String? {
+        return try {
+            return compartmentRepository.delete(compartment)
+        } catch (e: SQLiteConstraintException) {
+            e.toString()
+        }
     }
 }

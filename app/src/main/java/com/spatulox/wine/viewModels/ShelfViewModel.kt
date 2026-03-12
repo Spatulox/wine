@@ -4,6 +4,7 @@ import android.database.sqlite.SQLiteConstraintException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.spatulox.wine.data.repository.ShelfRepositoryImpl
+import com.spatulox.wine.domain.model.Compartment
 import com.spatulox.wine.domain.model.Shelf
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -30,6 +31,10 @@ class ShelfViewModel(private val shelfRepository: ShelfRepositoryImpl): ViewMode
             SharingStarted.WhileSubscribed(5000),
             emptyMap()
         )
+
+    fun getShelvesByCompartmentId(id: Int): List<Shelf>? {
+        return shelvesByCompartmentId.value[id]
+    }
 
 
     suspend fun insert(shelf: Shelf){

@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Scaffold
@@ -58,7 +59,10 @@ fun MainMenu(
     }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { SnackbarHost(
+            snackbarHostState,
+            modifier = Modifier.imePadding()
+        ) },
         floatingActionButton = {
             Box(modifier = Modifier.fillMaxWidth()) {
                 if (selectedTabIndex == 1) {

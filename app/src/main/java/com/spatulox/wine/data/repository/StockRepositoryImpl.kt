@@ -32,6 +32,16 @@ class StockRepositoryImpl(
         return entity?.let { StockMapper.toDomain(it) }
     }
 
+    override suspend fun getStockByShelfId(id: Int): StockWithWine? {
+        val entity =  stockDao.getStockByShelfId(id)
+        return entity?.let { StockMapper.toDomain(it) }
+    }
+
+    override suspend fun getStockByCompartmentId(id: Int): StockWithWine? {
+        val entity =  stockDao.getStockByCompartmentId(id)
+        return entity?.let { StockMapper.toDomain(it) }
+    }
+
     override fun getStockStream(): Flow<List<StockWithWine>> {
         return stockDao.getStockStream().map { entities -> entities.map { StockMapper.toDomain(it) } }
     }

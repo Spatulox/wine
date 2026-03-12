@@ -50,13 +50,9 @@ fun CompartmentScreen(
     val compartment by compartmentViewModel.compartments.collectAsStateWithLifecycle()
     val shelvesByCompartment by shelfViewModel.shelvesByCompartmentId.collectAsStateWithLifecycle()
 
-    var coroutine = rememberCoroutineScope()
+    val coroutine = rememberCoroutineScope()
 
     var positionClicked by remember { mutableStateOf<Position?>(null) }
-    var editCompartmentClicked by remember { mutableStateOf<Compartment?>(null) }
-
-    var showAddDialog by remember { mutableStateOf(false) }
-    var showEditDialog by remember { mutableStateOf(false) }
 
     Box (
         modifier = modifier.fillMaxSize()
@@ -75,9 +71,8 @@ fun CompartmentScreen(
                     wines = winesPositionMap,
                     onPositionClick = { position -> positionClicked = position },
                     onEditClick = {
-                        //showEditDialog = true
-                        navController.navigate(Destinations.COMPARTMENT_EDIT)
-                        editCompartmentClicked = compartment[index]
+                        //navController.navigate(Destinations.COMPARTMENT_EDIT)
+                        navController.navigate("${Destinations.COMPARTMENT_EDIT}/${compartment[index].id}")
                     }
                 )
             }
@@ -93,7 +88,7 @@ fun CompartmentScreen(
                 ) {
                     IconButton(
                         onClick = {
-                            navController.navigate(Destinations.COMPARTMENT_EDIT)
+                            navController.navigate(Destinations.COMPARTMENT_ADD)
                         },
                         modifier = Modifier.size(72.dp)
                     ) {
@@ -108,40 +103,6 @@ fun CompartmentScreen(
             }
         }
     }
-
-    /*if(showAddDialog){
-        CompartmentActionDialog(
-            onAction = { type, shelf ->
-                coroutine.launch {
-                    shelfViewModel.insert(shelf)
-                }
-            },
-            onDismiss = { showAddDialog = false }
-        )
-    }
-
-    if(showEditDialog){
-
-
-        CompartmentActionDialog(
-            compartment = editCompartmentClicked,
-            onAction = { type, shelf ->
-                coroutine.launch {
-                    when(type) {
-                        ShelfActionType.ADD_UPDATE -> { shelfViewModel.update(shelf) }
-                        ShelfActionType.DELETE -> {
-                            if(!shelfViewModel.delete(shelf)){
-                                SnackbarManager.send("Some bottles are stored in this shelf, cannot delete it")
-                            }
-                        }
-                        else -> {}
-                    }
-                }
-            },
-            onDismiss = { showEditDialog = false }
-        )
-    }
-    */
 
     positionClicked?.let { position ->
         OnBottlePositionClick(

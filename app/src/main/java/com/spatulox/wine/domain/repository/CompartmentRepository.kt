@@ -6,6 +6,8 @@ import kotlinx.coroutines.flow.Flow
 
 interface CompartmentRepository {
     suspend fun insert(comp: Compartment, shelves: List<Shelf>): Long
+    suspend fun update(comp: Compartment, shelves: List<Shelf>): Int
+    suspend fun delete(comp: Compartment): String?
     fun getAllCompartmentsStream(): Flow<List<Compartment>>
 
 }

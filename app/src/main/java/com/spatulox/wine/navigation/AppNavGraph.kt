@@ -1,6 +1,7 @@
 package com.spatulox.wine.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -35,15 +36,24 @@ fun AppNavGraph(
             )
         }
 
-        composable (Destinations.COMPARTMENT_EDIT) {
+        composable (Destinations.COMPARTMENT_ADD) {
             CompartmentActionDialog(
                 navController = nav,
                 compartmentViewModel = compartmentViewModel,
                 shelfViewModel = shelfViewModel
             )
-            /*CompartmentActionDialog(
-                navController = nav,
-            )*/
         }
+
+        composable("${Destinations.COMPARTMENT_EDIT}/{compartmentId}") { backStackEntry ->
+            val compartmentId = backStackEntry.arguments?.getString("compartmentId")
+
+            CompartmentActionDialog(
+                navController = nav,
+                compartmentViewModel = compartmentViewModel,
+                shelfViewModel = shelfViewModel,
+                compartmentId = compartmentId
+            )
+        }
+
     }
 }
