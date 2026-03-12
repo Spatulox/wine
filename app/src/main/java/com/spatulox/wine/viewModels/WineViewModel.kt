@@ -1,22 +1,15 @@
 package com.spatulox.wine.viewModels
 
-import android.database.sqlite.SQLiteAbortException
 import android.database.sqlite.SQLiteConstraintException
-import androidx.compose.ui.text.toLowerCase
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.spatulox.wine.data.repository.WineRepositoryImpl
 import com.spatulox.wine.domain.model.Wine
 import com.spatulox.wine.ui.screens.components.Filter
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneId
 
 open class WineViewModel(
     private val wineRepository: WineRepositoryImpl

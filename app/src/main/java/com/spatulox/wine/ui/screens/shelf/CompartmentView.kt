@@ -68,6 +68,7 @@ fun CompartmentView(
                 BottleGrid(
                     shelves = shelves,
                     stock = stock,
+                    wines = wines,
                     onPositionClick = onPositionClick
                 )
             }

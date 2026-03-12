@@ -23,11 +23,13 @@ import com.spatulox.wine.domain.enum.ShelfInterleave
 import com.spatulox.wine.domain.model.Position
 import com.spatulox.wine.domain.model.Shelf
 import com.spatulox.wine.domain.model.StockWithWine
+import com.spatulox.wine.domain.model.Wine
 
 @Composable
 fun BottleGrid(
     shelves: List<Shelf>,
     stock: Map<Position, StockWithWine>? = null, // Only to fill the placement when needed
+    wines: Map<Int, Wine>? = null,
     modifier: Modifier = Modifier,
     bottleSpacing: Dp = 12.dp,
     verticalSpacing: Dp = 8.dp,
@@ -65,9 +67,22 @@ fun BottleGrid(
                                 col = colIndex
                             )
 
+                            val stockWithWine = stock?.get(pos)
+                            val wine = stockWithWine?.wine
+                            val color = if (wines!= null && wine != null) {
+                                // "Visible wines"
+                                if (wines.containsKey(wine.id)) {
+                                    wine.color ?: MaterialTheme.colorScheme.primary
+                                } else {
+                                    (wine.color?.copy(alpha = 0.4f) ?: MaterialTheme.colorScheme.primary)
+                                }
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            }
+
                             // Rond VISIBLE
                             BottlePositionPreview(
-                                color = stock?.get(pos)?.wine?.color ?: MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = color,
                                 arrangement = shelf.arrangement,
                                 offsetX = offset,
                                 bottleSize = bottleSize,
