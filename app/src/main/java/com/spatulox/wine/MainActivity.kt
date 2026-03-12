@@ -37,13 +37,13 @@ class MainActivity : ComponentActivity() {
 
         val wineRepository = WineRepositoryImpl(db.wineDao())
         val stockRepository = StockRepositoryImpl(db.stockDao(), transactionProvider)
-        val compartmentRepository = CompartmentRepositoryImpl(db.compartmentDao())
         val shelfRepository = ShelfRepositoryImpl(db.shelfDao())
+        val compartmentRepository = CompartmentRepositoryImpl(db.compartmentDao(), shelfRepository,  transactionProvider)
 
         wineViewModel = WineViewModel(wineRepository)
         stockViewModel = StockViewModel(stockRepository)
         shelfViewModel = ShelfViewModel(shelfRepository)
-        compartmentViewModel = CompartmentViewModel(compartmentRepository)
+        compartmentViewModel = CompartmentViewModel(compartmentRepository, shelfRepository)
 
         enableEdgeToEdge()
         setContent {

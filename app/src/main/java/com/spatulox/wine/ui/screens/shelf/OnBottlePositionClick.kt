@@ -42,6 +42,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.spatulox.wine.domain.model.Position
 import com.spatulox.wine.domain.model.Stock
+import com.spatulox.wine.domain.model.StockWithWine
 import com.spatulox.wine.domain.model.Wine
 import com.spatulox.wine.ui.screens.wine.WineDropdownList
 import com.spatulox.wine.ui.screens.wine.WineStar
@@ -55,8 +56,8 @@ fun OnBottlePositionClick(
     stockViewModel: StockViewModel,
     position: Position,
     onDismiss: () -> Unit = {},
-    onPlaceStock: (Stock) -> Unit = { _ -> },
-    onEditStock: (Stock) -> Unit = { _ -> },
+    onPlaceStock: (StockWithWine) -> Unit = { _ -> },
+    onEditStock: (StockWithWine) -> Unit = { _ -> },
     onWithdraw: (Position, String) -> Unit = { _, _ -> },
     onDeleteStock: (Position) -> Unit = { _ -> }
 ) {
@@ -68,7 +69,7 @@ fun OnBottlePositionClick(
     val countStockedWine by stockViewModel.countWineIdStocked.collectAsStateWithLifecycle()
     val wineState by wineViewModel.wines.collectAsStateWithLifecycle()
     val currentStock = stockState[position]
-    val currentWine = currentStock?.wineId?.let { wineState[it] }
+    val currentWine = currentStock?.wine?.id?.let { wineState[it] }
 
     val excludeWineIds = countStockedWine.entries
         .filter { (wineId, count) ->
@@ -138,25 +139,22 @@ fun OnBottlePositionClick(
                                 }
                             }
                         }
+                        var isEditing by remember { mutableStateOf(false) }
+                        var editedComment by remember { mutableStateOf(currentStock.comment ?: "") }
 
-                        //if (currentStock.comment?.isNotBlank() == true) {
-                            var isEditing by remember { mutableStateOf(false) }
-                            var editedComment by remember { mutableStateOf(currentStock.comment ?: "") }
-
-                            CommentCard(
-                                comment = editedComment,
-                                isEditing = isEditing,
-                                onEditClick = { isEditing = true },
-                                onCommentChange = { editedComment = it },
-                                onSave = {
-                                    val stock: Stock = currentStock.copy(
-                                        comment = editedComment
-                                    )
-                                    onEditStock(stock)
-                                    isEditing = false
-                                }
-                            )
-                        //}
+                        CommentCard(
+                            comment = editedComment,
+                            isEditing = isEditing,
+                            onEditClick = { isEditing = true },
+                            onCommentChange = { editedComment = it },
+                            onSave = {
+                                val stock: StockWithWine = currentStock.copy(
+                                    comment = editedComment
+                                )
+                                onEditStock(stock)
+                                isEditing = false
+                            }
+                        )
 
                     }
 
@@ -206,8 +204,8 @@ fun OnBottlePositionClick(
                     if (currentStock == null && selectedWine != null) {
                         Button(
                             onClick = {
-                                val stock = Stock(
-                                    wineId = selectedWine!!.id,
+                                val stock = StockWithWine(
+                                    wine = selectedWine!!,
                                     position = position,
                                     comment = reason,
                                     date = System.currentTimeMillis()

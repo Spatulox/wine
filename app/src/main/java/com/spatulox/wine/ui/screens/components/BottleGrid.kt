@@ -1,6 +1,8 @@
+
 package com.spatulox.wine.ui.screens.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,17 +20,21 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.spatulox.wine.domain.enum.BottlePosition
 import com.spatulox.wine.domain.enum.ShelfInterleave
+import com.spatulox.wine.domain.model.Position
 import com.spatulox.wine.domain.model.Shelf
+import com.spatulox.wine.domain.model.StockWithWine
 
 @Composable
 fun BottleGrid(
     shelves: List<Shelf>,
+    stock: Map<Position, StockWithWine>? = null, // Only to fill the placement when needed
     modifier: Modifier = Modifier,
     bottleSpacing: Dp = 12.dp,
     verticalSpacing: Dp = 8.dp,
     bottleSize: Dp = 32.dp,
     neckSize: Dp = 20.dp,
-    staggerOffset: Dp = 22.dp
+    staggerOffset: Dp = 22.dp,
+    onPositionClick: (Position) -> Unit,
 ) {
     val maxCols = shelves.maxOfOrNull { it.col } ?: 6
 
@@ -53,12 +59,22 @@ fun BottleGrid(
                                 ShelfInterleave.STAGGERED_RIGHT -> staggerOffset
                             }
 
+                            val pos = Position(
+                                compartment = shelf.compartmentId,
+                                shelf = shelf.id,
+                                col = colIndex
+                            )
+
                             // Rond VISIBLE
                             BottlePositionPreview(
+                                color = stock?.get(pos)?.wine?.color ?: MaterialTheme.colorScheme.onSurfaceVariant,
                                 arrangement = shelf.arrangement,
                                 offsetX = offset,
                                 bottleSize = bottleSize,
-                                neckSize = neckSize
+                                neckSize = neckSize,
+                                onClick = {
+                                    onPositionClick(pos)
+                                }
                             )
                         } else {
                             // Rond INVISIBLE pour aligner
@@ -75,15 +91,18 @@ fun BottleGrid(
 
 @Composable
 private fun BottlePositionPreview(
+    color: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     arrangement: BottlePosition,
     offsetX: Dp,
     bottleSize: Dp,
-    neckSize: Dp
+    neckSize: Dp,
+    onClick: () -> Unit
 ) {
     Box(
         modifier = Modifier
             .offset(x = offsetX)
             .size(bottleSize)
+            .clickable { onClick() }
     ) {
         Box(
             modifier = Modifier
@@ -95,13 +114,12 @@ private fun BottlePositionPreview(
                 )
                 .align(Alignment.Center)
                 .background(
-                    MaterialTheme.colorScheme.primary,
+                    color,
                     CircleShape
                 )
         )
     }
 }
-
 @Composable
 private fun InvisibleBottle(size: Dp) {
     Box(

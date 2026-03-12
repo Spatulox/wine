@@ -25,12 +25,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import androidx.navigation.NavOptions
-import com.spatulox.wine.SnackbarManager
 import com.spatulox.wine.domain.model.Compartment
 import com.spatulox.wine.domain.model.Position
 import com.spatulox.wine.navigation.Destinations
-import com.spatulox.wine.send
 import com.spatulox.wine.viewModels.CompartmentViewModel
 import com.spatulox.wine.viewModels.ShelfViewModel
 import com.spatulox.wine.viewModels.StockViewModel
@@ -97,7 +94,7 @@ fun CompartmentScreen(
                     IconButton(
                         onClick = {
                             navController.navigate(Destinations.COMPARTMENT_EDIT)
-                        },// showAddDialog = true },
+                        },
                         modifier = Modifier.size(72.dp)
                     ) {
                         Icon(

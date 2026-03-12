@@ -53,6 +53,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.spatulox.wine.domain.enum.BottlePosition
 import com.spatulox.wine.domain.enum.ShelfInterleave
@@ -62,6 +63,7 @@ import com.spatulox.wine.ui.screens.components.BottleGrid
 import com.spatulox.wine.ui.screens.components.EnumDropdownField
 import com.spatulox.wine.viewModels.CompartmentViewModel
 import com.spatulox.wine.viewModels.ShelfViewModel
+import kotlinx.coroutines.launch
 
 
 enum class ShelfActionType {
@@ -86,8 +88,12 @@ fun CompartmentActionDialog(
     var newShelfCols by remember { mutableStateOf("6") }
     var newShelfInterleaveExpanded by remember { mutableStateOf(false) }
     var newShelfBottleExpanded by remember { mutableStateOf(false) }
-    var newShelfInterleave by remember { mutableStateOf<ShelfInterleave?>(ShelfInterleave.STRAIGHT) }
-    var newShelfBottlePosition by remember { mutableStateOf<BottlePosition?>(BottlePosition.BASE) }
+    var newShelfInterleave by remember { mutableStateOf<ShelfInterleave>(ShelfInterleave.STRAIGHT) }
+    var newShelfBottlePosition by remember { mutableStateOf<BottlePosition>(BottlePosition.BASE) }
+
+    val compartment by compartmentViewModel.compartments.collectAsStateWithLifecycle()
+
+    val coroutine = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
@@ -148,8 +154,14 @@ fun CompartmentActionDialog(
                 }
                 Button(
                     onClick = {
-                        // Logique ajout compartiment + étagères
-                        navController.popBackStack()
+                        val comp = Compartment(
+                            name = name,
+                            order = compartment.size
+                        )
+                        coroutine.launch {
+                            compartmentViewModel.insert(comp, shelves)
+                            navController.popBackStack()
+                        }
                     },
                     enabled = name.isNotBlank() && shelves.isNotEmpty()
                 ) {
@@ -220,16 +232,14 @@ fun CompartmentActionDialog(
                                     id = 0,
                                     compartmentId = 0,
                                     col = colCount,
-                                    aligment = newShelfInterleave ?: ShelfInterleave.STRAIGHT,
-                                    arrangement = newShelfBottlePosition ?: BottlePosition.BASE,
+                                    aligment = newShelfInterleave,
+                                    arrangement = newShelfBottlePosition,
                                     name = "",
                                 )
                                 shelves += shelf
                                 showAddShelfDialog = false
                             },
-                            enabled = newShelfCols.toIntOrNull() != null &&
-                                    newShelfInterleave != null &&
-                                    newShelfBottlePosition != null
+                            enabled = newShelfCols.toIntOrNull() != null
                         ) {
                             Text("Ajouter étagère")
                         }
@@ -287,7 +297,8 @@ private fun CompartmentPreview(
                 // COLUMN 2 : BOTTLE
                 BottleGrid(
                     shelves = shelves,
-                    modifier = Modifier.weight(1f).fillMaxHeight()
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                    onPositionClick = {}
                 )
 
                 Spacer(modifier = Modifier.width(8.dp))

@@ -6,21 +6,25 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
 import com.spatulox.wine.data.db.entity.StockEntity
+import com.spatulox.wine.data.db.entity.StockWithWineEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface StockDao {
     @Query("SELECT * FROM stock ORDER BY date DESC")
-    suspend fun getStock(): List<StockEntity>
+    suspend fun getStock(): List<StockWithWineEntity>
+
+    @Query("SELECT * FROM stock ORDER BY date DESC")
+    suspend fun getStockWithWine(): List<StockWithWineEntity>
 
     @Query("SELECT * FROM stock WHERE compartmentId= :compartmentId AND `shelfId`= :shelfId AND col= :col")
-    suspend fun getStockByPos(compartmentId: Int, shelfId: Int, col: Int): StockEntity?
+    suspend fun getStockByPos(compartmentId: Int, shelfId: Int, col: Int): StockWithWineEntity?
 
     @Query("SELECT * FROM stock WHERE id= :id")
-    suspend fun getStockById(id: Int): StockEntity?
+    suspend fun getStockById(id: Int): StockWithWineEntity?
 
     @Query("SELECT * FROM stock ORDER BY compartmentId, shelfId, col")
-    fun getStockStream(): Flow<List<StockEntity>>
+    fun getStockStream(): Flow<List<StockWithWineEntity>>
 
     @Query("""
         SELECT DISTINCT w.year 

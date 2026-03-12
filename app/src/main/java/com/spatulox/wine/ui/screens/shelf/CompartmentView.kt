@@ -20,14 +20,15 @@ import androidx.compose.ui.unit.dp
 import com.spatulox.wine.domain.model.Compartment
 import com.spatulox.wine.domain.model.Position
 import com.spatulox.wine.domain.model.Shelf
-import com.spatulox.wine.domain.model.Stock
+import com.spatulox.wine.domain.model.StockWithWine
 import com.spatulox.wine.domain.model.Wine
+import com.spatulox.wine.ui.screens.components.BottleGrid
 
 @Composable
 fun CompartmentView(
     compartment: Compartment,
     shelves: List<Shelf>?,
-    stock: Map<Position, Stock>,
+    stock: Map<Position, StockWithWine>,
     wines: Map<Int, Wine>,
     onPositionClick: (Position) -> Unit,
     onEditClick: () -> Unit,
@@ -64,27 +65,11 @@ fun CompartmentView(
             }
 
             shelves?.let {
-                repeat(shelves.size) { rowIndex ->
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        repeat(shelves.size) { colIndex ->
-                            val position = Position(
-                                compartment = shelves[rowIndex].compartmentId,
-                                shelf = shelves[rowIndex].id,
-                                col = colIndex + 1
-                            )
-
-                            BottlePosition(
-                                position = position,
-                                stock = stock[position],
-                                wine = stock[position]?.wineId?.let { wines[it] },
-                                onClick = onPositionClick
-                            )
-                        }
-                    }
-                }
+                BottleGrid(
+                    shelves = shelves,
+                    stock = stock,
+                    onPositionClick = onPositionClick
+                )
             }
         }
     }
