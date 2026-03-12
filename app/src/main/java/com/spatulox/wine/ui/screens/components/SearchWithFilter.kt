@@ -19,6 +19,8 @@ import androidx.compose.material.icons.filled.Liquor
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material.icons.filled.PersonSearch
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.WineBar
@@ -78,6 +80,7 @@ data class FilterOption(
 
 val filterFields = listOf(
     FilterOption("name", "Nom", Icons.Filled.Person),
+    FilterOption("wineId", "Nom distinct", Icons.Filled.PersonSearch),
     FilterOption("year", "Année", Icons.Filled.DateRange),
     FilterOption("region", "Region", Icons.Filled.LocationOn, WineRegion::class),
     FilterOption("format", "Format", Icons.Filled.Liquor, WineFormat::class),
@@ -280,6 +283,29 @@ fun SearchWithFilters(
                                 onExpandedChange = { expanded = it },
                                 placeholder = "Sélectionner region...",
                                 invisibleBorder = true
+                            )
+                        }
+
+                        "wineId" -> {
+                            if(isExpanded && isNameInit){
+                                isNameInit = false
+                                selectedWine?.let { wine ->
+                                    val filter = Filter(content = wine.id.toString(), field = "wineId")
+                                    wineViewModel.updateFilter(filter)
+                                    stockViewModel.updateFilter(filter)
+                                }
+                            }
+                            WineDropdownList(
+                                wineViewModel = wineViewModel,
+                                selectedWine = selectedWine,
+                                excludeWineId = excludeWineIds,
+                                onSelectWine = { wine ->
+                                    selectedWine = wine
+                                    val filter = Filter(content = wine.id.toString(), field = "wineId")
+                                    wineViewModel.updateFilter(filter)
+                                    stockViewModel.updateFilter(filter)
+                                },
+                                modifier = Modifier.weight(1f),
                             )
                         }
                     }
