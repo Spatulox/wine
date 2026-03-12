@@ -91,7 +91,7 @@ fun CompartmentActionDialog(
     var name by remember { mutableStateOf("") }
 
 
-    // État étagères
+    // État lignes
     var shelves by remember { mutableStateOf(listOf<Shelf>()) }
     val order by remember(shelves) { derivedStateOf { shelves.size } }
     var showAddShelfDialog by remember { mutableStateOf(false) }
@@ -122,6 +122,16 @@ fun CompartmentActionDialog(
 
             }
 
+        }
+    }
+
+    val duplicateError by remember(name, shelves.size) {
+        derivedStateOf {
+            if (shelves.isEmpty()) {
+                "Vous ne pouvez pas avoir de compartiment vide, veuillez ajouter une ligne de rangement"
+            } else {
+                ""
+            }
         }
     }
 
@@ -189,6 +199,22 @@ fun CompartmentActionDialog(
                 .imePadding()
         ) {
 
+            if (duplicateError.isNotBlank()) {
+                Card(
+                    colors = CardDefaults.elevatedCardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                        contentColor = MaterialTheme.colorScheme.onErrorContainer
+                    ),
+                    shape = MaterialTheme.shapes.small,
+                    modifier = Modifier.padding(bottom = 16.dp).fillMaxWidth()
+                ) {
+                    Text(
+                        text = duplicateError,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
+            }
 
             OutlinedTextField(
                 value = name,
@@ -217,7 +243,7 @@ fun CompartmentActionDialog(
             ) {
                 Icon(Icons.Default.Add, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
-                Text("Ajouter une étagère")
+                Text("Ajouter une ligne")
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -260,7 +286,7 @@ fun CompartmentActionDialog(
         }
     }
 
-    // DIALOG Ajout étagère
+    // DIALOG Ajout ligne
     if (showAddShelfDialog) {
         Dialog(onDismissRequest = { showAddShelfDialog = false }) {
             Card(
@@ -272,7 +298,7 @@ fun CompartmentActionDialog(
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text("Nouvelle étagère", style = MaterialTheme.typography.titleMedium)
+                    Text("Nouvelle ligne", style = MaterialTheme.typography.titleMedium)
 
                     OutlinedTextField(
                         value = newShelfCols,
@@ -331,7 +357,7 @@ fun CompartmentActionDialog(
                             },
                             enabled = newShelfCols.toIntOrNull() != null
                         ) {
-                            Text("Ajouter étagère")
+                            Text("Ajouter ligne")
                         }
                     }
                 }
