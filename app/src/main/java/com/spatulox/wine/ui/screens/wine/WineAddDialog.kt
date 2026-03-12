@@ -95,6 +95,7 @@ fun WineAddDialog(
     ) {
         val focusManager = LocalFocusManager.current
         val keyboardController = LocalSoftwareKeyboardController.current
+        wineColor = MaterialTheme.colorScheme.primary
         Card(
             modifier = Modifier
             .fillMaxWidth()
@@ -269,7 +270,6 @@ fun WineAddDialog(
                             Button(
                                 onClick = {
                                     if (name.isNotBlank()) {
-                                        println(wineColor)
                                         onValidate(
                                             Wine(
                                                 name = name,

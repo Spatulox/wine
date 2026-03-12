@@ -60,12 +60,10 @@ fun WineItem(
                         modifier = Modifier
                             .size(24.dp)
                             .background(
-                                wine.color ?: MaterialTheme.colorScheme.onSurfaceVariant,
+                                wine.color ?: MaterialTheme.colorScheme.primary,
                                 CircleShape
                             )
                     )
-
-                    println(wine.color)
 
                     Text(
                         text = "${wine.qte} ${wine.name}",
