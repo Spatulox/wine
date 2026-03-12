@@ -4,6 +4,7 @@ import android.graphics.drawable.Icon
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -58,11 +59,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -78,6 +81,7 @@ import com.spatulox.wine.ui.screens.components.EnumDropdownField
 import com.spatulox.wine.viewModels.CompartmentViewModel
 import com.spatulox.wine.viewModels.ShelfViewModel
 import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -136,15 +140,21 @@ fun CompartmentActionDialog(
     }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(
-            snackbarHostState,
-            modifier = Modifier.imePadding()
-        ) },
+        snackbarHost = {
+            SnackbarHost(
+                snackbarHostState,
+                modifier = Modifier
+                    .imePadding()
+                    .fillMaxHeight()
+            )
+        },
         topBar = {
             TopAppBar(
-                title = { Text(
-                    if (compartmentId != null) "Modifier" else "Ajouter"
-                ) },
+                title = {
+                    Text(
+                        if (compartmentId != null) "Modifier" else "Ajouter"
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Default.ArrowBack, "Retour")
@@ -182,6 +192,7 @@ fun CompartmentActionDialog(
             )
         },
         modifier = Modifier
+            .fillMaxHeight()
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
@@ -195,6 +206,7 @@ fun CompartmentActionDialog(
             modifier = Modifier
                 .padding(padding)
                 .padding(16.dp)
+                .fillMaxHeight()
                 .verticalScroll(rememberScrollState())
                 .imePadding()
         ) {
@@ -206,7 +218,9 @@ fun CompartmentActionDialog(
                         contentColor = MaterialTheme.colorScheme.onErrorContainer
                     ),
                     shape = MaterialTheme.shapes.small,
-                    modifier = Modifier.padding(bottom = 16.dp).fillMaxWidth()
+                    modifier = Modifier
+                        .padding(bottom = 16.dp)
+                        .fillMaxWidth()
                 ) {
                     Text(
                         text = duplicateError,
@@ -260,7 +274,7 @@ fun CompartmentActionDialog(
                     onClick = {
 
                         val compartment = Compartment(
-                            id = compartmentId?.toInt()?: 0,
+                            id = compartmentId?.toInt() ?: 0,
                             name = name,
                             order = compartment.size
                         )
@@ -374,70 +388,182 @@ private fun CompartmentPreview(
     modifier: Modifier = Modifier
 ) {
 
-    val maxCols = shelves.maxOfOrNull { it.col } ?: 6
+    var draggedShelfIndex by remember { mutableStateOf<Int?>(null) }
+    var dragOffset by remember { mutableStateOf(0f) }
+    var dragStartX by remember { mutableStateOf(0f) }
+    var dragPosition by remember { mutableStateOf(Offset.Zero) }
 
-    Card(
-        modifier = modifier
-            .fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
+    val maxCols = shelves.maxOfOrNull { it.col } ?: 6
+    val coroutineScope = rememberCoroutineScope()
+
+    var draggedShelf by remember { mutableStateOf<Shelf?>(null) }
+
+    Box(modifier = modifier.fillMaxWidth().fillMaxHeight()) {
+        Card(
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
         ) {
-            // 3 COLUMNS : Menu | Ronds (LazyRow) | Delete
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+            Column(
+                modifier = Modifier.padding(16.dp)
             ) {
-                // COLUMN 1 : MENU PER SHELVES (fixe)
+                // 3 COLUMNS : Menu | Ronds (LazyRow) | Delete
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .pointerInput(Unit) {
+                            detectDragGesturesAfterLongPress(
+                                onDragStart = { offset ->
+                                    val shelfIndex =
+                                        (offset.y / 44f).toInt().coerceIn(0, shelves.size - 1)
+                                    draggedShelfIndex = shelfIndex
+                                    draggedShelf = shelves[shelfIndex]
+                                    onDeleteShelf(shelves[shelfIndex])
+                                    dragStartX = offset.x
+                                    dragPosition = offset
+                                },
+                                onDrag = { change, _ ->
+                                    change.consume()
+                                    if (draggedShelfIndex != null) {
+                                        dragPosition = change.position
+                                        val deltaX = (change.position.x - dragStartX) / 60f
+                                        dragOffset = deltaX
+                                    }
+                                },
+                                onDragEnd = {
+                                    // La shelf est déjà supprimée via callback ou ViewModel
+                                    draggedShelfIndex = null
+                                    dragOffset = 0f
+                                    dragPosition = Offset.Zero
+                                },
+                                onDragCancel = {
+                                    draggedShelfIndex = null
+                                    dragOffset = 0f
+                                    dragPosition = Offset.Zero
+                                }
+                            )
+                        },
+                    verticalAlignment = Alignment.CenterVertically,
+
+                    ) {
+                    // COLUMN 1 : MENU PER SHELVES (fixe)
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.width(48.dp)
+                    ) {
+                        shelves.forEachIndexed { shelfIndex, shelf ->
+                            IconButton(
+                                onClick = { onMenuClick(shelf) },
+                                modifier = Modifier.size(36.dp)
+                            ) {
+                                Icon(
+                                    Icons.Default.Menu,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    // COLUMN 2 : BOTTLE
+                    BottleGrid(
+                        shelves = shelves,
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight(),
+                        onPositionClick = {},
+                    )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    // COLUMN 3 : DELETE PER SHELVES (fixe)
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.width(48.dp)
+                    ) {
+                        repeat(shelves.size) { shelfIndex ->
+                            IconButton(
+                                onClick = { onDeleteShelf(shelves[shelfIndex]) },
+                                modifier = Modifier.size(36.dp),
+                                colors = IconButtonDefaults.iconButtonColors(
+                                    containerColor = Color.Transparent,
+                                    contentColor = MaterialTheme.colorScheme.error
+                                )
+                            ) {
+                                Icon(Icons.Default.Delete, contentDescription = null)
+                            }
+                        }
+                    }
+                }
+            }
+
+        }
+
+        if (draggedShelf != null && dragPosition != Offset.Zero) {
+            Card(
+                modifier = Modifier
+                    .offset {
+                        IntOffset(
+                            dragPosition.x.roundToInt() - 30,
+                            dragPosition.y.roundToInt() - 20
+                        )
+                    }
+                    .background(
+                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.95f),
+                        RoundedCornerShape(12.dp)
+                    )
+                    .border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp)),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            ) {
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.width(48.dp)
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
                 ) {
-                    repeat(shelves.size) { shelfIndex ->
-                        IconButton(
-                            onClick = { onMenuClick(shelves[shelfIndex]) },
-                            modifier = Modifier.size(36.dp)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.width(48.dp)
                         ) {
                             Icon(
                                 Icons.Default.Menu,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(36.dp),
                             )
                         }
-                    }
-                }
 
-                Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
 
-                // COLUMN 2 : BOTTLE
-                BottleGrid(
-                    shelves = shelves,
-                    modifier = Modifier.weight(1f).fillMaxHeight(),
-                    onPositionClick = {}
-                )
+                        BottleGrid(
+                            shelves = listOf(draggedShelf!!),
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight(),
+                            onPositionClick = {}
+                        )
 
-                Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
 
-                // COLUMN 3 : DELETE PER SHELVES (fixe)
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.width(48.dp)
-                ) {
-                    repeat(shelves.size) { shelfIndex ->
-                        IconButton(
-                            onClick = { onDeleteShelf(shelves[shelfIndex]) },
-                            modifier = Modifier.size(36.dp),
-                            colors = IconButtonDefaults.iconButtonColors(
-                                containerColor = Color.Transparent,
-                                contentColor = MaterialTheme.colorScheme.error
-                            )
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.width(48.dp)
                         ) {
-                            Icon(Icons.Default.Delete, contentDescription = null)
+                            Icon(
+                                Icons.Default.Delete,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(36.dp),
+                            )
                         }
                     }
+
                 }
             }
         }
     }
 }
+
