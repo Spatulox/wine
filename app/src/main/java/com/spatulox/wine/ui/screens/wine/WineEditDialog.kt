@@ -34,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -41,6 +42,7 @@ import com.spatulox.wine.domain.enum.WineFormat
 import com.spatulox.wine.domain.enum.WineRegion
 import com.spatulox.wine.domain.enum.WineType
 import com.spatulox.wine.domain.model.Wine
+import com.spatulox.wine.ui.screens.components.ButtonColorPicker
 import com.spatulox.wine.ui.screens.components.DateSelection
 import com.spatulox.wine.ui.screens.components.EnumDropdownField
 import com.spatulox.wine.ui.screens.components.IconPickerButton
@@ -65,7 +67,7 @@ fun WineEditDialog(
     var editedRegion by remember(wine) { mutableStateOf(wine.region) }
     var editedQte by remember(wine) { mutableStateOf(wine.qte) }
     var editedStars by remember(wine) { mutableStateOf(wine.stars) }
-    var editedIconName by remember { mutableStateOf<String>(wine.icon) }
+    var editedWineColor by remember { mutableStateOf<Color?>(wine.color) }
 
     var errorMessage by remember(editedQte, distincWineCounts[wine.id]) { mutableStateOf("") }
 
@@ -91,9 +93,9 @@ fun WineEditDialog(
                 ) {
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconPickerButton(
-                            currentIconName = editedIconName,
-                            onIconChange = { editedIconName = it }
+                        ButtonColorPicker(
+                            currentColor = editedWineColor,
+                            onColorChange = { editedWineColor = it }
                         )
                         Text(
                             text = "Modifier le vin",
@@ -232,7 +234,7 @@ fun WineEditDialog(
                                     region = editedRegion,
                                     qte = editedQte,
                                     stars = editedStars,
-                                    icon = editedIconName
+                                    color = editedWineColor
                                 )
                             )
                         },

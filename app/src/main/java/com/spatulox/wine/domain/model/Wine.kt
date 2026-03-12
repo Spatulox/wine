@@ -1,5 +1,6 @@
 package com.spatulox.wine.domain.model
 
+import androidx.compose.ui.graphics.Color
 import com.spatulox.wine.domain.enum.WineFormat
 import com.spatulox.wine.domain.enum.WineRegion
 import com.spatulox.wine.domain.enum.WineType
@@ -14,5 +15,5 @@ data class Wine(
     var stars: Int,
     val qte: Int,
     val region: WineRegion?,
-    val icon: String
+    val color: Color? = null
 )
