@@ -71,6 +71,8 @@ fun OnBottlePositionClick(
     val currentStock = stockState[position]
     val currentWine = currentStock?.wine?.id?.let { wineState[it] }
 
+    var isEditing by remember { mutableStateOf(false) }
+
     val excludeWineIds = countStockedWine.entries
         .filter { (wineId, count) ->
             val wine = wineState[wineId]
@@ -139,7 +141,6 @@ fun OnBottlePositionClick(
                                 }
                             }
                         }
-                        var isEditing by remember { mutableStateOf(false) }
                         var editedComment by remember { mutableStateOf(currentStock.comment ?: "") }
 
                         CommentCard(
@@ -224,7 +225,8 @@ fun OnBottlePositionClick(
                                 onWithdraw(position, reason)
                                 onDismiss()
                             },
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
+                            enabled = !isEditing
                         ) {
                             Icon(Icons.Filled.Remove, null)
                             Text("Retirer")
