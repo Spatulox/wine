@@ -7,6 +7,7 @@ data class Shelf(
     val id: Int = 0,
     val name: String,
     val compartmentId: Int,
+    val order: Int,
     val col: Int,
     val aligment: ShelfInterleave,
     val arrangement: BottlePosition

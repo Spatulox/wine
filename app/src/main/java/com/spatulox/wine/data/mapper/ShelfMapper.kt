@@ -11,6 +11,7 @@ object ShelfMapper {
             id = entity.id,
             name = entity.name,
             compartmentId = entity.compartmentId,
+            order = entity.order,
             col = entity.col,
             aligment = ShelfInterleave.valueOf(entity.aligment),
             arrangement = BottlePosition.valueOf(entity.arrangement)
@@ -22,6 +23,7 @@ object ShelfMapper {
             id = shelf.id,
             name = shelf.name.trim(),
             compartmentId = shelf.compartmentId,
+            order = shelf.order,
             col = shelf.col,
             aligment = shelf.aligment.name,
             arrangement = shelf.arrangement.name

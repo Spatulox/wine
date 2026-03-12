@@ -84,6 +84,7 @@ fun CompartmentActionDialog(
 
     // État étagères
     var shelves by remember { mutableStateOf(listOf<Shelf>()) }
+    val order by remember(shelves) { derivedStateOf { shelves.size } }
     var showAddShelfDialog by remember { mutableStateOf(false) }
     var newShelfCols by remember { mutableStateOf("6") }
     var newShelfInterleaveExpanded by remember { mutableStateOf(false) }
@@ -235,6 +236,7 @@ fun CompartmentActionDialog(
                                     aligment = newShelfInterleave,
                                     arrangement = newShelfBottlePosition,
                                     name = "",
+                                    order = order
                                 )
                                 shelves += shelf
                                 showAddShelfDialog = false

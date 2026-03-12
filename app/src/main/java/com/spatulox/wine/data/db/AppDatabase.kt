@@ -13,7 +13,7 @@ import com.spatulox.wine.data.db.entity.WineEntity
 
 @Database(
     entities = [WineEntity::class, StockEntity::class, ShelfEntity::class, CompartmentEntity::class],
-    version = 23
+    version = 24
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun wineDao(): WineDao
