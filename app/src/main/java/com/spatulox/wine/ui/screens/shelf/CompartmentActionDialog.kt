@@ -429,10 +429,21 @@ private fun CompartmentPreview(
                                     }
                                 },
                                 onDragEnd = {
-                                    // La shelf est déjà supprimée via callback ou ViewModel
+                                    /*val dropY = dragPosition.y
+                                    val newIndex = (dropY / 44f).toInt().coerceIn(0, shelves.size)
+
+                                    // Réinsérer à newIndex
+                                    draggedShelf?.let { shelf ->
+                                        val newShelves = shelves.toMutableList().apply {
+                                            add(newIndex, shelf)
+                                        }
+                                        // Mettre à jour via callback (nécessite callback avec liste)
+                                        // Pour l'instant, on reset juste
+                                        draggedShelf = null
+                                    }
+
                                     draggedShelfIndex = null
-                                    dragOffset = 0f
-                                    dragPosition = Offset.Zero
+                                    dragPosition = Offset.Zero*/
                                 },
                                 onDragCancel = {
                                     draggedShelfIndex = null
