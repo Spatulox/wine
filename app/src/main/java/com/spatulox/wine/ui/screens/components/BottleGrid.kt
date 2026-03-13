@@ -1,29 +1,50 @@
 
 package com.spatulox.wine.ui.screens.components
 
+import android.widget.HorizontalScrollView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.xr.compose.testing.toDp
 import com.spatulox.wine.domain.enum.BottlePosition
 import com.spatulox.wine.domain.enum.ShelfInterleave
 import com.spatulox.wine.domain.model.Position
 import com.spatulox.wine.domain.model.Shelf
 import com.spatulox.wine.domain.model.StockWithWine
 import com.spatulox.wine.domain.model.Wine
+import org.intellij.lang.annotations.JdkConstants
 
 @Composable
 fun BottleGrid(
@@ -33,20 +54,30 @@ fun BottleGrid(
     modifier: Modifier = Modifier,
     bottleSpacing: Dp = 12.dp,
     verticalSpacing: Dp = 8.dp,
-    bottleSize: Dp = 32.dp,
+    bottleSize: Dp = 40.dp,
     neckSize: Dp = 20.dp,
     staggerOffset: Dp = 22.dp,
     onPositionClick: (Position) -> Unit,
 ) {
     val maxCols = shelves.maxOfOrNull { it.col } ?: 6
+    val listState = rememberLazyListState()
+    var containerWidthPx by remember { mutableStateOf(0f) }
 
     Box(
-        modifier = modifier
+        modifier = modifier.fillMaxWidth()
+            .onGloballyPositioned { coordinates ->
+                containerWidthPx = coordinates.size.width.toFloat()
+            }
     ) {
+
         LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(bottleSpacing),
+            state = listState,
+            horizontalArrangement = Arrangement.spacedBy(
+                space = bottleSpacing,
+                alignment = Alignment.CenterHorizontally
+            ),
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
         ) {
             items(maxCols) { colIndex ->
                 Column(
@@ -99,6 +130,35 @@ fun BottleGrid(
                         }
                     }
                 }
+            }
+        }
+
+
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .height(8.dp)
+                .padding(horizontal = 16.dp)
+        ) {
+            if (containerWidthPx > 0) {
+                val layoutInfo = listState.layoutInfo
+                val visibleItemCount = layoutInfo.visibleItemsInfo.size.coerceAtLeast(1)
+                val itemWidthPx = containerWidthPx / visibleItemCount
+                val currentScrollPosition = listState.firstVisibleItemIndex * itemWidthPx + listState.firstVisibleItemScrollOffset
+                val totalContentWidth = (maxCols * itemWidthPx).coerceAtLeast(1f)
+                val scrollFraction = currentScrollPosition / (totalContentWidth - containerWidthPx)
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(scrollFraction.coerceIn(0.1f, 1f))
+                        .align(Alignment.CenterStart)
+                        .background(
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                            RoundedCornerShape(2.dp)
+                        )
+                )
             }
         }
     }
