@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -26,7 +28,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavController
 import com.spatulox.wine.SnackbarManager
-import com.spatulox.wine.ui.screens.components.AddButton
+import com.spatulox.wine.ui.screens.components.CustomFloatingButton
 import com.spatulox.wine.ui.screens.components.SearchWithFilters
 import com.spatulox.wine.ui.screens.shelf.CompartmentScreen
 import com.spatulox.wine.ui.screens.wine.WineScreen
@@ -66,9 +68,11 @@ fun MainMenu(
         floatingActionButton = {
             Box(modifier = Modifier.fillMaxWidth()) {
                 if (selectedTabIndex == 1) {
-                    AddButton (
+                    CustomFloatingButton(
                         onClick = { showAddWineDialog = true },
-                        modifier = Modifier.align(Alignment.BottomStart)
+                        modifier = Modifier.align(Alignment.BottomStart),
+                        imageVector = Icons.Filled.Add,
+                        description = "Add"
                     )
                 }
 
