@@ -40,7 +40,7 @@ class CompartmentRepositoryImpl(val compartmentDao: CompartmentDao, val shelfRep
             val existingShelves = shelfRepository.getShelvesByCompartmentId(comp.id)
             existingShelves.forEach { existingShelf ->
                 // Avoid order update constrainst
-                //shelfRepository.update(existingShelf.copy(order = 1000 + existingShelf.order))
+                shelfRepository.update(existingShelf.copy(order = 1000 + existingShelf.order))
 
                 // Delete all shelf
                 if (!shelves.any { it.id == existingShelf.id }) {

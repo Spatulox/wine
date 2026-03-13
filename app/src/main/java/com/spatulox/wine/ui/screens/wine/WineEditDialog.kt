@@ -208,7 +208,7 @@ fun WineEditDialog(
                                 val currentStockCount = distincWineCounts[wine.id] ?: 0
                                 if (qte <= currentStockCount) {
                                     errorMessage =
-                                        "Impossible de mettre moins que le stock actuel ($currentStockCount) minimum"
+                                        "Impossible de mettre moins que le stock actuel rangé dans la cave ($currentStockCount)"
                                 } else {
                                     errorMessage = ""
                                 }

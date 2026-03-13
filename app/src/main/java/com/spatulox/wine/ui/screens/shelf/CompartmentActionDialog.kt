@@ -250,7 +250,6 @@ fun CompartmentActionDialog(
                 CompartmentPreview(
                     shelves = shelves,
                     onShelvesChanged = { newList -> shelves = newList },
-                    onMenuClick = {}
                 )
                 Spacer(modifier = Modifier.height(24.dp))
             }
@@ -387,7 +386,6 @@ fun CompartmentActionDialog(
 @Composable
 private fun CompartmentPreview(
     shelves: List<Shelf>,
-    onMenuClick: (Shelf) -> Unit,
     onShelvesChanged: (List<Shelf>) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -405,9 +403,7 @@ private fun CompartmentPreview(
         val tmp = mutable[index - 1]
         mutable[index - 1] = mutable[index]
         mutable[index] = tmp
-        println(shelves)
         onShelvesChanged(mutable.mapIndexed { i, shelf -> shelf.copy(order = i) })
-        println(shelves)
     }
 
     fun moveDown(index: Int) {

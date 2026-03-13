@@ -38,7 +38,7 @@ interface ShelfDao {
     @Query("DELETE FROM shelf WHERE id= :id")
     suspend fun delete(id: Int)
 
-    @Query("SELECT * FROM shelf ORDER BY id ASC")
+    @Query("SELECT * FROM shelf ORDER BY `order` ASC")
     fun getShelfStream(): Flow<List<ShelfEntity>>
 
     @Query("SELECT * FROM shelf WHERE compartmentId = :compartmentId")
