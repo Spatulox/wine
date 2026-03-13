@@ -153,7 +153,6 @@ fun CompartmentActionDialog(
                 snackbarHostState,
                 modifier = Modifier
                     .imePadding()
-                    //.fillMaxHeight()
             )
         },
         topBar = {

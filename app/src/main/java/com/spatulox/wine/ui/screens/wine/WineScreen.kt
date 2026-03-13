@@ -32,7 +32,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.spatulox.wine.SnackbarManager
 import com.spatulox.wine.domain.model.Wine
 import com.spatulox.wine.send
-import com.spatulox.wine.ui.screens.components.AddButton
 import com.spatulox.wine.ui.screens.components.Filter
 import com.spatulox.wine.viewModels.StockViewModel
 import com.spatulox.wine.viewModels.WineViewModel

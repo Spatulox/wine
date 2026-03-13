@@ -29,9 +29,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.spatulox.wine.SnackbarManager
 import com.spatulox.wine.domain.model.Compartment
 import com.spatulox.wine.domain.model.Position
 import com.spatulox.wine.navigation.Destinations
+import com.spatulox.wine.send
+import com.spatulox.wine.ui.screens.wine.WineAddDialog
 import com.spatulox.wine.viewModels.CompartmentViewModel
 import com.spatulox.wine.viewModels.ShelfViewModel
 import com.spatulox.wine.viewModels.StockViewModel
@@ -43,6 +46,7 @@ fun CompartmentScreen(
     stockViewModel: StockViewModel,
     wineViewModel: WineViewModel,
     shelfViewModel: ShelfViewModel,
+    isEditing: Boolean,
     compartmentViewModel: CompartmentViewModel,
     modifier: Modifier = Modifier,
     onPositionClick: (position: Position) -> Unit = { _ -> },

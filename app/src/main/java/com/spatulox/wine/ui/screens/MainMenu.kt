@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -47,6 +49,7 @@ fun MainMenu(
 ) {
     var selectedTabIndex by remember { mutableStateOf(0) }
     var showAddWineDialog by remember { mutableStateOf(false) }
+    var isEditingCompartmentOrder by remember { mutableStateOf(false) }
     val tabs = listOf("Cave", "Vins", "Statistiques")
 
     var isFabExpanded by remember { mutableStateOf(false) }
@@ -67,6 +70,25 @@ fun MainMenu(
         ) },
         floatingActionButton = {
             Box(modifier = Modifier.fillMaxWidth()) {
+
+                if (selectedTabIndex == 0) {
+                    if(isEditingCompartmentOrder){
+                        CustomFloatingButton(
+                            onClick = { isEditingCompartmentOrder = false },
+                            modifier = Modifier.align(Alignment.BottomStart),
+                            imageVector = Icons.Filled.Cancel,
+                            description = "Cancel"
+                        )
+                    } else {
+                        CustomFloatingButton(
+                            onClick = { isEditingCompartmentOrder = true },
+                            modifier = Modifier.align(Alignment.BottomStart),
+                            imageVector = Icons.Filled.Edit,
+                            description = "Edit"
+                        )
+                    }
+                }
+
                 if (selectedTabIndex == 1) {
                     CustomFloatingButton(
                         onClick = { showAddWineDialog = true },
@@ -129,6 +151,7 @@ fun MainMenu(
                             stockViewModel = stockViewModel,
                             wineViewModel = wineViewModel,
                             shelfViewModel = shelfViewModel,
+                            isEditing = isEditingCompartmentOrder,
                             compartmentViewModel = compartmentViewModel,
                             navController = navController
                         )
