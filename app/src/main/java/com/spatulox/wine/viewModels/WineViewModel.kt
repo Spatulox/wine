@@ -3,6 +3,7 @@ package com.spatulox.wine.viewModels
 import android.database.sqlite.SQLiteConstraintException
 import androidx.lifecycle.viewModelScope
 import com.spatulox.wine.data.repository.WineRepositoryImpl
+import com.spatulox.wine.domain.model.Position
 import com.spatulox.wine.domain.model.Wine
 import com.spatulox.wine.ui.screens.components.Filter
 import kotlinx.coroutines.flow.SharingStarted
@@ -80,6 +81,9 @@ open class WineViewModel(
             emptyMap()
         )
 
+    suspend fun getWineByPos(pos: Position): Wine?{
+        return wineRepository.getWineByPos(pos)
+    }
     suspend fun addWine(wine: Wine): Boolean {
         return try {
             wineRepository.insert(wine)
@@ -87,6 +91,10 @@ open class WineViewModel(
         } catch (e: SQLiteConstraintException) {
             false
         }
+    }
+
+    suspend fun withdrawWine(wine: Wine){
+        wineRepository.withdrawWine(wine)
     }
 
     suspend fun updateWine(wine: Wine){

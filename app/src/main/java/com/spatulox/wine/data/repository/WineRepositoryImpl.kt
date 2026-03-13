@@ -1,8 +1,10 @@
 package com.spatulox.wine.data.repository
 
+import android.database.sqlite.SQLiteConstraintException
 import com.spatulox.wine.data.db.dao.WineDao
 import com.spatulox.wine.data.mapper.StockMapper
 import com.spatulox.wine.data.mapper.WineMapper
+import com.spatulox.wine.domain.model.Position
 import com.spatulox.wine.domain.model.Stock
 import com.spatulox.wine.domain.model.Wine
 import com.spatulox.wine.domain.repository.WineRepository
@@ -17,6 +19,11 @@ class WineRepositoryImpl(
 
     override suspend fun getWine(): List<Wine> {
         return wineDao.getWine().map { WineMapper.toDomain(it) }
+    }
+
+    override suspend fun getWineByPos(pos: Position): Wine? {
+        val entity =  wineDao.getWineByPos(pos.compartment, pos.shelf, pos.col)
+        return entity?.let { WineMapper.toDomain(it) }
     }
 
     override suspend fun getWineById(id: Int): Wine? {
@@ -43,6 +50,10 @@ class WineRepositoryImpl(
     override suspend fun insert(wine: Wine): Long {
         val entity = WineMapper.toEntity(wine)
         return wineDao.insert(entity)
+    }
+
+    override suspend fun withdrawWine(wine: Wine) {
+        return wineDao.withdrawWine(wine.id)
     }
 
     override suspend fun delete(wineId: Int) {

@@ -171,7 +171,13 @@ fun CompartmentScreen(
                 coroutine.launch { stockViewModel.update(stock) }
             },
             onWithdraw = {position, comment ->
-                coroutine.launch { stockViewModel.withdraw(position, comment) }
+                coroutine.launch {
+                    val wine = wineViewModel.getWineByPos(position)
+                    if(wine != null){
+                        stockViewModel.withdraw(position, comment)
+                        wineViewModel.withdrawWine(wine)
+                    }
+                }
             },
             onDeleteStock = {position ->
                 coroutine.launch { stockViewModel.delete(position) }
