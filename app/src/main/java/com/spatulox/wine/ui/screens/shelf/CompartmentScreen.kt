@@ -2,8 +2,10 @@ package com.spatulox.wine.ui.screens.shelf
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -14,6 +16,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -23,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.spatulox.wine.domain.model.Compartment
@@ -54,9 +58,60 @@ fun CompartmentScreen(
 
     var positionClicked by remember { mutableStateOf<Position?>(null) }
 
-    Box (
-        modifier = modifier.fillMaxSize()
-    ) {
+    val unrackedWines = remember(winesPositionMap, stockState) {
+        winesPositionMap.values
+            .filter { it.qte > 0 }  // Vins présents
+            .associate { wine ->
+                val wineId = wine.id
+                val totalBottles = wine.qte  // Total à placer
+                val stockedBottles = stockState.values.count { it.wine.id == wineId }  // Déjà rangés
+                wineId to (totalBottles - stockedBottles).coerceAtLeast(0)
+            }
+            .filterValues { it > 0 }  // Seulement celles à ranger
+    }
+
+    val unrackedWinesCount = unrackedWines.values.sum()
+
+    val errorMessage by remember(unrackedWines) {
+        mutableStateOf(
+            if (unrackedWinesCount > 0) {
+                buildString {
+                    append("$unrackedWinesCount bouteille(s) à ranger :")
+                    unrackedWines.entries
+                        .sortedByDescending { it.value }
+                        .forEach { (wineId, count) ->
+                            val wine = winesPositionMap[wineId]!!
+                            append("\n• ${wine.name} ${wine.year} (${wine.format.displayName}) : $count")
+                        }
+                }
+            } else {
+                ""
+            }
+        )
+    }
+
+
+
+    Column(modifier = modifier.fillMaxSize()) {
+        if (errorMessage.isNotBlank()) {
+            Card(
+                colors = CardDefaults.elevatedCardColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer
+                ),
+                shape = MaterialTheme.shapes.small,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 16.dp, top = 16.dp)
+            ) {
+                Text(
+                    text = errorMessage,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(12.dp)
+                )
+            }
+        }
+
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(16.dp),
