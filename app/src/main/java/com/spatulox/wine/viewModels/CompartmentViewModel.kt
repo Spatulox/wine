@@ -32,6 +32,15 @@ class CompartmentViewModel(
         compartmentRepository.insert(compartment, shelves)
     }
 
+    suspend fun updateOrder(compartments: List<Compartment>): Boolean {
+        return try {
+            compartmentRepository.updateOrder(compartments)
+            true
+        } catch (e: SQLiteConstraintException) {
+            false
+        }
+    }
+
     suspend fun update(compartment: Compartment, shelves: List<Shelf>): Boolean {
         return try {
             compartmentRepository.update(compartment, shelves)

@@ -99,12 +99,17 @@ fun CompartmentActionDialog(
     stockViewModel: StockViewModel,
     compartmentId: String? = null
 ) {
+
+    val compartment by compartmentViewModel.compartments.collectAsStateWithLifecycle()
+    val stock by stockViewModel.stockByShelfId.collectAsStateWithLifecycle()
+
     var name by remember { mutableStateOf("") }
 
 
     // État lignes
     var shelves by remember { mutableStateOf(listOf<Shelf>()) }
-    val order by remember(shelves) { derivedStateOf { shelves.size } }
+    val shelfOrder by remember(shelves) { derivedStateOf { shelves.lastOrNull()?.order?.let { it + 1 } ?: 0 } }
+    val compOrder by remember(compartment) { derivedStateOf { compartment.lastOrNull()?.order?.let { it + 1 } ?: 0 } }
     var showAddShelfDialog by remember { mutableStateOf(false) }
     var newShelfCols by remember { mutableStateOf("6") }
     var newShelfInterleaveExpanded by remember { mutableStateOf(false) }
@@ -112,8 +117,6 @@ fun CompartmentActionDialog(
     var newShelfInterleave by remember { mutableStateOf<ShelfInterleave>(ShelfInterleave.STRAIGHT) }
     var newShelfBottlePosition by remember { mutableStateOf<BottlePosition>(BottlePosition.BASE) }
 
-    val compartment by compartmentViewModel.compartments.collectAsStateWithLifecycle()
-    val stock by stockViewModel.stockByShelfId.collectAsStateWithLifecycle()
 
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutine = rememberCoroutineScope()
@@ -292,7 +295,7 @@ fun CompartmentActionDialog(
                         val compartment = Compartment(
                             id = compartmentId?.toInt() ?: 0,
                             name = name,
-                            order = compartment.size
+                            order = compOrder
                         )
 
                         compartmentId?.let {
@@ -380,7 +383,7 @@ fun CompartmentActionDialog(
                                     aligment = newShelfInterleave,
                                     arrangement = newShelfBottlePosition,
                                     name = "",
-                                    order = order
+                                    order = shelfOrder
                                 )
                                 shelves += shelf
                                 showAddShelfDialog = false

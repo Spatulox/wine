@@ -152,6 +152,7 @@ fun MainMenu(
                             wineViewModel = wineViewModel,
                             shelfViewModel = shelfViewModel,
                             isEditing = isEditingCompartmentOrder,
+                            onEditingChange = { isEditingCompartmentOrder = it } ,
                             compartmentViewModel = compartmentViewModel,
                             navController = navController
                         )

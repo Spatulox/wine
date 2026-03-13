@@ -9,6 +9,7 @@ import com.spatulox.wine.domain.model.Shelf
 import com.spatulox.wine.domain.repository.CompartmentRepository
 import com.spatulox.wine.domain.repository.ShelfRepository
 import com.spatulox.wine.domain.repository.StockRepository
+import com.spatulox.wine.ui.screens.shelf.CompartmentScreen
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlin.collections.map
@@ -17,6 +18,10 @@ class CompartmentRepositoryImpl(val compartmentDao: CompartmentDao, val shelfRep
 
     override fun getAllCompartmentsStream(): Flow<List<Compartment>> {
         return compartmentDao.getCompartmentStream().map { entities -> entities.map { CompartmentMapper.toDomain(it) } }
+    }
+
+    override suspend fun getAllCompartments(): List<Compartment> {
+        return compartmentDao.getAllCompartments().map { CompartmentMapper.toDomain(it) }
     }
 
     override suspend fun insert(comp: Compartment, shelves: List<Shelf>): Long {
@@ -32,6 +37,31 @@ class CompartmentRepositoryImpl(val compartmentDao: CompartmentDao, val shelfRep
         }
     }
 
+    override suspend fun updateOrder(comps: List<Compartment>): Boolean {
+        return transactionProvider.run {
+            val existingComps = getAllCompartments()
+            existingComps.forEach { existingComp ->
+                // Avoid order update constrainst
+                compartmentDao.update(CompartmentMapper.toEntity(existingComp.copy(order = comps.size + existingComp.order)))
+
+                // Delete all comp which do not exist in the new comp list
+                if (!comps.any { it.id == existingComp.id }) {
+                    val stock = stockRepository.getStockByCompartmentId(existingComp.id) // If there is stock in the compartment
+                    if(stock != null){
+                        return@run false
+                    }
+                    compartmentDao.delete(existingComp.id)
+                }
+            }
+
+            comps.forEach { comp ->
+                compartmentDao.update(CompartmentMapper.toEntity(comp))
+            }
+
+            return@run true
+        }
+    }
+
     override suspend fun update(comp: Compartment, shelves: List<Shelf>): Int {
 
         return transactionProvider.run {
@@ -40,11 +70,11 @@ class CompartmentRepositoryImpl(val compartmentDao: CompartmentDao, val shelfRep
             val existingShelves = shelfRepository.getShelvesByCompartmentId(comp.id)
             existingShelves.forEach { existingShelf ->
                 // Avoid order update constrainst
-                shelfRepository.update(existingShelf.copy(order = 1000 + existingShelf.order))
+                shelfRepository.update(existingShelf.copy(order = shelves.size + existingShelf.order))
 
-                // Delete all shelf
+                // Delete all shelf which do not exist in the new shelves list
                 if (!shelves.any { it.id == existingShelf.id }) {
-                    val stock = stockRepository.getStockByShelfId(existingShelf.id)
+                    val stock = stockRepository.getStockByShelfId(existingShelf.id) // If there is stock in the shelf
                     if(stock != null){
                         return@run -1
                     }

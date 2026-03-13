@@ -30,6 +30,7 @@ fun CompartmentView(
     shelves: List<Shelf>?,
     stock: Map<Position, StockWithWine>,
     wines: Map<Int, Wine>,
+    isParentEditing: Boolean,
     onPositionClick: (Position) -> Unit,
     onEditClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -53,14 +54,16 @@ fun CompartmentView(
                     style = MaterialTheme.typography.headlineSmall
                 )
 
-                IconButton(
-                    onClick = onEditClick
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = "Modifier ${compartment.name}",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
+                if(!isParentEditing){
+                    IconButton(
+                        onClick = onEditClick
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Modifier ${compartment.name}",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
             }
 

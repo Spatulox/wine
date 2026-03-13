@@ -1,16 +1,21 @@
 package com.spatulox.wine.ui.screens.shelf
 
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -18,6 +23,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -25,16 +31,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.spatulox.wine.SnackbarManager
-import com.spatulox.wine.domain.model.Compartment
 import com.spatulox.wine.domain.model.Position
 import com.spatulox.wine.navigation.Destinations
-import com.spatulox.wine.send
-import com.spatulox.wine.ui.screens.wine.WineAddDialog
 import com.spatulox.wine.viewModels.CompartmentViewModel
 import com.spatulox.wine.viewModels.ShelfViewModel
 import com.spatulox.wine.viewModels.StockViewModel
@@ -47,9 +49,9 @@ fun CompartmentScreen(
     wineViewModel: WineViewModel,
     shelfViewModel: ShelfViewModel,
     isEditing: Boolean,
+    onEditingChange: (Boolean) -> Unit,
     compartmentViewModel: CompartmentViewModel,
     modifier: Modifier = Modifier,
-    onPositionClick: (position: Position) -> Unit = { _ -> },
     navController: NavController,
 ) {
     val stockState by stockViewModel.stockState.collectAsStateWithLifecycle()
@@ -95,9 +97,42 @@ fun CompartmentScreen(
     }
 
 
+    fun moveUp(index: Int) {
+        if (index <= 0) return
+        val mutable = compartment.toMutableList()
+        val tmp = mutable[index - 1]
+        mutable[index - 1] = mutable[index]
+        mutable[index] = tmp
+        coroutine.launch {
+            compartmentViewModel.updateOrder(mutable.mapIndexed { i, comp -> comp.copy(order = i) })
+        }
+    }
 
-    Column(modifier = modifier.fillMaxSize()) {
-        if (errorMessage.isNotBlank()) {
+    fun moveDown(index: Int) {
+        if (index >= compartment.lastIndex) return
+        val mutable = compartment.toMutableList()
+        val tmp = mutable[index + 1]
+        mutable[index + 1] = mutable[index]
+        mutable[index] = tmp
+        coroutine.launch {
+            compartmentViewModel.updateOrder(mutable.mapIndexed { i, comp -> comp.copy(order = i) })
+        }
+    }
+
+
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .pointerInput(isEditing) {
+            if (isEditing) {
+                detectTapGestures(onTap = {
+                    onEditingChange(false)
+                })
+            }
+        }
+    ) {
+        if (errorMessage.isNotBlank() && !isEditing) {
             Card(
                 colors = CardDefaults.elevatedCardColors(
                     containerColor = MaterialTheme.colorScheme.errorContainer,
@@ -123,40 +158,78 @@ fun CompartmentScreen(
             contentPadding = PaddingValues(16.dp)
         ) {
             items(compartment.size) { index ->
-                CompartmentView(
-                    compartment = compartment[index],
-                    shelves = shelvesByCompartment[compartment[index].id],
-                    stock = stockState,
-                    wines = winesPositionMap,
-                    onPositionClick = { position -> positionClicked = position },
-                    onEditClick = {
-                        //navController.navigate(Destinations.COMPARTMENT_EDIT)
-                        navController.navigate("${Destinations.COMPARTMENT_EDIT}/${compartment[index].id}")
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+
+                    if(isEditing){
+                        Column() {
+                            if(index > 0) {
+                                IconButton(
+                                    onClick = { moveUp(index) },
+                                    modifier = Modifier.size(40.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Filled.KeyboardArrowUp,
+                                        contentDescription = "Monter",
+                                    )
+                                }
+                            }
+
+                            Spacer(Modifier.height(10.dp))
+
+                            if (index < compartment.lastIndex) {
+                                IconButton(
+                                    onClick = { moveDown(index) },
+                                    modifier = Modifier.size(40.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Filled.KeyboardArrowDown,
+                                        contentDescription = "Descendre",
+                                    )
+                                }
+                            }
+                        }
                     }
-                )
+
+                    CompartmentView(
+                        compartment = compartment[index],
+                        shelves = shelvesByCompartment[compartment[index].id],
+                        stock = stockState,
+                        wines = winesPositionMap,
+                        isParentEditing = isEditing,
+                        onPositionClick = { position -> positionClicked = position },
+                        onEditClick = {
+                            navController.navigate("${Destinations.COMPARTMENT_EDIT}/${compartment[index].id}")
+                        }
+                    )
+                }
             }
 
             item {
-                Card(
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
-                    ),
-                    modifier = Modifier
-                        .padding(16.dp)
-                ) {
-                    IconButton(
-                        onClick = {
-                            navController.navigate(Destinations.COMPARTMENT_ADD)
-                        },
-                        modifier = Modifier.size(72.dp)
+                if(!isEditing){
+                    Card(
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant
+                        ),
+                        modifier = Modifier
+                            .padding(16.dp)
                     ) {
-                        Icon(
-                            imageVector = Icons.Filled.Add,
-                            contentDescription = "Ajouter compartiment",
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(32.dp)
-                        )
+                        IconButton(
+                            onClick = {
+                                navController.navigate(Destinations.COMPARTMENT_ADD)
+                            },
+                            modifier = Modifier.size(72.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Add,
+                                contentDescription = "Ajouter compartiment",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -164,6 +237,7 @@ fun CompartmentScreen(
     }
 
     positionClicked?.let { position ->
+        if(isEditing) return@let
         OnBottlePositionClick(
             wineViewModel = wineViewModel,
             stockViewModel = stockViewModel,

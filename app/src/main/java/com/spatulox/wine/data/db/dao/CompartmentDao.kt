@@ -12,6 +12,15 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface CompartmentDao {
 
+    @Query("SELECT * FROM compartment WHERE id= :id")
+    suspend fun getById(id: Int): CompartmentEntity?
+
+    @Query("SELECT * FROM compartment ORDER BY `order`")
+    suspend fun getAllCompartments(): List<CompartmentEntity>
+
+    @Query("SELECT * FROM compartment ORDER BY `order` ASC")
+    fun getCompartmentStream(): Flow<List<CompartmentEntity>>
+
     @Insert
     suspend fun insert(comp: CompartmentEntity): Long
 
@@ -21,7 +30,7 @@ interface CompartmentDao {
     @Delete
     suspend fun delete(comp: CompartmentEntity)
 
-    @Query("SELECT * FROM compartment ORDER BY `order` ASC")
-    fun getCompartmentStream(): Flow<List<CompartmentEntity>>
+    @Query("DELETE FROM compartment WHERE id= :id")
+    suspend fun delete(id: Int)
 
 }
