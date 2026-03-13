@@ -22,6 +22,18 @@ open class StockViewModel(
                 initialValue = emptyMap()
             )
 
+    val stockByShelfId: StateFlow<Map<Int, List<StockWithWine>>> =
+        stockRepository.getStockStream()
+            .map { stocks ->
+                stocks.groupBy { it.position.shelf }
+            }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = emptyMap()
+            )
+
+
     val countWineIdStocked: StateFlow<Map<Int, Int>> =
         stockRepository.getStockStream()
             .map { stocks ->

@@ -40,7 +40,8 @@ fun AppNavGraph(
             CompartmentActionDialog(
                 navController = nav,
                 compartmentViewModel = compartmentViewModel,
-                shelfViewModel = shelfViewModel
+                shelfViewModel = shelfViewModel,
+                stockViewModel = stockViewModel
             )
         }
 
@@ -50,8 +51,9 @@ fun AppNavGraph(
             CompartmentActionDialog(
                 navController = nav,
                 compartmentViewModel = compartmentViewModel,
+                compartmentId = compartmentId,
                 shelfViewModel = shelfViewModel,
-                compartmentId = compartmentId
+                stockViewModel = stockViewModel
             )
         }
 

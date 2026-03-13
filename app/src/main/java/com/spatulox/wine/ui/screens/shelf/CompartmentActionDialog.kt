@@ -78,12 +78,14 @@ import com.spatulox.wine.SnackbarManager
 import com.spatulox.wine.domain.enum.BottlePosition
 import com.spatulox.wine.domain.enum.ShelfInterleave
 import com.spatulox.wine.domain.model.Compartment
+import com.spatulox.wine.domain.model.Position
 import com.spatulox.wine.domain.model.Shelf
 import com.spatulox.wine.send
 import com.spatulox.wine.ui.screens.components.BottleGrid
 import com.spatulox.wine.ui.screens.components.EnumDropdownField
 import com.spatulox.wine.viewModels.CompartmentViewModel
 import com.spatulox.wine.viewModels.ShelfViewModel
+import com.spatulox.wine.viewModels.StockViewModel
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -94,6 +96,7 @@ fun CompartmentActionDialog(
     navController: NavController,
     compartmentViewModel: CompartmentViewModel,
     shelfViewModel: ShelfViewModel,
+    stockViewModel: StockViewModel,
     compartmentId: String? = null
 ) {
     var name by remember { mutableStateOf("") }
@@ -110,6 +113,7 @@ fun CompartmentActionDialog(
     var newShelfBottlePosition by remember { mutableStateOf<BottlePosition>(BottlePosition.BASE) }
 
     val compartment by compartmentViewModel.compartments.collectAsStateWithLifecycle()
+    val stock by stockViewModel.stockByShelfId.collectAsStateWithLifecycle()
 
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutine = rememberCoroutineScope()
@@ -149,7 +153,7 @@ fun CompartmentActionDialog(
                 snackbarHostState,
                 modifier = Modifier
                     .imePadding()
-                    .fillMaxHeight()
+                    //.fillMaxHeight()
             )
         },
         topBar = {
@@ -250,6 +254,16 @@ fun CompartmentActionDialog(
                 CompartmentPreview(
                     shelves = shelves,
                     onShelvesChanged = { newList -> shelves = newList },
+                    onShelvesDelete = { shelf ->
+                        println(stock)
+                        stock[shelf.id]?.size?.let {
+                            coroutine.launch {
+                                snackbarHostState.showSnackbar("You can't delete this shelf since there is wine stocked inside...")
+                            }
+                            return@CompartmentPreview
+                        }
+                        shelves = shelves - shelf
+                    }
                 )
                 Spacer(modifier = Modifier.height(24.dp))
             }
@@ -387,6 +401,7 @@ fun CompartmentActionDialog(
 private fun CompartmentPreview(
     shelves: List<Shelf>,
     onShelvesChanged: (List<Shelf>) -> Unit,
+    onShelvesDelete: (Shelf) -> Unit,
     modifier: Modifier = Modifier
 ) {
 
@@ -496,7 +511,7 @@ private fun CompartmentPreview(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                             ) {
                                 IconButton(
-                                    onClick = { onShelvesChanged(shelves - shelf) },
+                                    onClick = { onShelvesDelete(shelf) },
                                     modifier = Modifier.size(buttonSizeDelete),
                                     colors = IconButtonDefaults.iconButtonColors(
                                         containerColor = Color.Transparent,
