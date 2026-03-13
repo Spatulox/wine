@@ -29,7 +29,8 @@ import androidx.room.PrimaryKey
         )
     ],
     indices = [
-        Index(value = ["compartmentId", "shelfId", "col"], unique = true)
+        Index(value = ["compartmentId", "shelfId", "col"], unique = true),
+        Index(value = ["wineId"])
     ]
 )
 data class StockEntity(
