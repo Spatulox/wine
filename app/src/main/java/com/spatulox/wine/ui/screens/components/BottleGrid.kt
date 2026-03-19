@@ -32,6 +32,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -69,6 +70,8 @@ fun BottleGrid(
     bottleSize: Dp = 40.dp,
     neckSize: Dp = 20.dp,
     staggerOffset: Dp = 22.dp,
+    rectBounds: SnapshotStateMap<Rect, Position>? = null,
+    positionBounds: SnapshotStateMap<Position, Rect>? = null,
     isDraggingEnabled: Boolean = false,
     draggedPosition: Position? = null,
     hoveredPosition: Position? = null,
@@ -82,8 +85,8 @@ fun BottleGrid(
     val listState = rememberLazyListState()
 
     // HIT DETECTION MAP : Position -> Rect (bounds à l'écran)
-    val rectBounds = remember { mutableStateMapOf<Rect, Position>() }
-    val positionBounds = remember { mutableStateMapOf<Position, Rect>() }
+    //val rectBounds = remember { mutableStateMapOf<Rect, Position>() }
+    //val positionBounds = remember { mutableStateMapOf<Position, Rect>() }
     var currentDragFingerPos by remember { mutableStateOf<Offset?>(null) }
 
     val density = LocalDensity.current
@@ -93,18 +96,15 @@ fun BottleGrid(
     fun findTargetPosition(fingerPos: Offset): Position? {
         val tolerancePx = with(density) { (bottleSize / 2 + bottleSpacing / 2).toPx() }
 
-        return rectBounds.entries
-            .mapNotNull { (bounds, pos) ->
+        return rectBounds?.entries
+            ?.mapNotNull { (bounds, pos) ->
                 val distance = hypot(
                     fingerPos.x - bounds.center.x,
                     fingerPos.y - bounds.center.y
                 )
                 if (distance <= tolerancePx) pos to distance else null
             }
-            .minByOrNull { it.second }?.first
-    }
-    fun findTargetRect(targetPos: Position): Rect? {
-        return positionBounds[targetPos]
+            ?.minByOrNull { it.second }?.first
     }
 
 
@@ -159,8 +159,8 @@ fun BottleGrid(
                                 isHovered = hoveredPosition == pos && isDraggingEnabled,
                                 fingerPosition = currentDragFingerPos,
                                 positionBounds = { bounds ->
-                                    rectBounds[bounds] = pos
-                                    positionBounds[pos] = bounds
+                                    rectBounds?.let { rectBounds[bounds] = pos }
+                                    positionBounds?.let { positionBounds[pos] = bounds }
                                 },
                                 modifier = Modifier
                                     .dragGesture(
@@ -168,6 +168,9 @@ fun BottleGrid(
                                         isEnabled = isDraggingEnabled,
                                         onDragStart = onPositionDragStart,
                                         onDragHover = { initPosition, offset -> // Pos + relative offset
+                                            if(positionBounds == null) {
+                                                return@dragGesture
+                                            }
                                             val initBounds = positionBounds[initPosition] ?: return@dragGesture
 
                                             // Create the absolute offset

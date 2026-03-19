@@ -25,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -32,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -68,6 +70,8 @@ fun CompartmentScreen(
     var draggedPosition by remember { mutableStateOf<Position?>(null) }
     var hoveredPosition by remember { mutableStateOf<Position?>(null) }
     var endOfDrag by remember { mutableStateOf<Boolean>(false) }
+    val rectBounds = remember { mutableStateMapOf<Rect, Position>() }
+    val positionBounds = remember { mutableStateMapOf<Position, Rect>() }
 
     LaunchedEffect(isEditing) {
         if (!isEditing) {
@@ -211,6 +215,8 @@ fun CompartmentScreen(
                         stock = stockState,
                         wines = winesPositionMap,
                         isParentEditing = isEditing,
+                        rectBounds = rectBounds,
+                        positionBounds = positionBounds,
                         draggedPosition = draggedPosition,
                         hoveredPosition = hoveredPosition,
                         onPositionDragStart = { position, _ ->
@@ -221,7 +227,7 @@ fun CompartmentScreen(
                                 hoveredPosition = null
                             }
                         },
-                        onPositionDragHover = { hoverPos->
+                        onPositionDragHover = { hoverPos ->
                             hoveredPosition = hoverPos
                         },
                         onDragEnd = { _ ->

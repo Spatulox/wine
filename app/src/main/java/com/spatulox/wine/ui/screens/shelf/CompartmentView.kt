@@ -1,5 +1,6 @@
 package com.spatulox.wine.ui.screens.shelf
 
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,9 +15,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.spatulox.wine.domain.model.Compartment
@@ -34,6 +36,8 @@ fun CompartmentView(
     stock: Map<Position, StockWithWine>,
     wines: Map<Int, Wine>,
     isParentEditing: Boolean,
+    rectBounds: SnapshotStateMap<Rect, Position>,
+    positionBounds: SnapshotStateMap<Position, Rect>,
     draggedPosition: Position? = null,
     hoveredPosition: Position? = null,
     onPositionDragStart: (Position, DragState) -> Unit = {_, _ ->},
@@ -83,6 +87,8 @@ fun CompartmentView(
                     shelves = shelves,
                     stock = stock,
                     wines = wines,
+                    rectBounds = rectBounds,
+                    positionBounds = positionBounds,
                     isDraggingEnabled = isParentEditing,
                     draggedPosition = draggedPosition,
                     hoveredPosition = hoveredPosition,
