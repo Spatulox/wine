@@ -7,8 +7,10 @@ import com.spatulox.wine.data.repository.CompartmentRepositoryImpl
 import com.spatulox.wine.domain.model.Compartment
 import com.spatulox.wine.domain.model.Shelf
 import com.spatulox.wine.domain.repository.ShelfRepository
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
@@ -16,6 +18,14 @@ class CompartmentViewModel(
     private val compartmentRepository: CompartmentRepositoryImpl,
     private val shelfRepository: ShelfRepository
 ) : ViewModel() {
+
+    private val _isEditingOrder = MutableStateFlow(false)
+    val isEditingOrder: StateFlow<Boolean> = _isEditingOrder.asStateFlow()
+
+    fun setEditingOrder(editing: Boolean) {
+        _isEditingOrder.value = editing
+    }
+
     val compartments: StateFlow<List<Compartment>> = compartmentRepository
         .getAllCompartmentsStream()
         .stateIn(
@@ -23,7 +33,6 @@ class CompartmentViewModel(
             SharingStarted.WhileSubscribed(5000),
             emptyList()
         )
-
     fun getCompartmentById(id: Int): Compartment? {
         return compartments.value.find { it.id == id }
     }

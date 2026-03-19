@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.spatulox.wine.SnackbarManager
 import com.spatulox.wine.ui.screens.components.CustomFloatingButton
@@ -49,7 +50,7 @@ fun MainMenu(
 ) {
     var selectedTabIndex by remember { mutableStateOf(0) }
     var showAddWineDialog by remember { mutableStateOf(false) }
-    var isEditingCompartmentOrder by remember { mutableStateOf(false) }
+    val isEditingCompartment by compartmentViewModel.isEditingOrder.collectAsStateWithLifecycle()
     val tabs = listOf("Cave", "Vins", "Statistiques")
 
     var isFabExpanded by remember { mutableStateOf(false) }
@@ -72,16 +73,16 @@ fun MainMenu(
             Box(modifier = Modifier.fillMaxWidth()) {
 
                 if (selectedTabIndex == 0) {
-                    if(isEditingCompartmentOrder){
+                    if(isEditingCompartment){
                         CustomFloatingButton(
-                            onClick = { isEditingCompartmentOrder = false },
+                            onClick = { compartmentViewModel.setEditingOrder(false) },
                             modifier = Modifier.align(Alignment.BottomStart),
                             imageVector = Icons.Filled.Cancel,
                             description = "Cancel"
                         )
                     } else {
                         CustomFloatingButton(
-                            onClick = { isEditingCompartmentOrder = true },
+                            onClick = { compartmentViewModel.setEditingOrder(true) },
                             modifier = Modifier.align(Alignment.BottomStart),
                             imageVector = Icons.Filled.Edit,
                             description = "Edit"
@@ -151,8 +152,8 @@ fun MainMenu(
                             stockViewModel = stockViewModel,
                             wineViewModel = wineViewModel,
                             shelfViewModel = shelfViewModel,
-                            isEditing = isEditingCompartmentOrder,
-                            onEditingChange = { isEditingCompartmentOrder = it } ,
+                            isEditing = isEditingCompartment,
+                            onEditingChange = { compartmentViewModel.setEditingOrder(it) } ,
                             compartmentViewModel = compartmentViewModel,
                             navController = navController
                         )
