@@ -145,8 +145,6 @@ fun CompartmentScreen(
         }
     }
 
-
-
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -158,6 +156,7 @@ fun CompartmentScreen(
             }
         }
     ) {
+
         if (errorMessage.isNotBlank() && !isEditing) {
             Card(
                 colors = CardDefaults.elevatedCardColors(
@@ -233,7 +232,6 @@ fun CompartmentScreen(
                         onPositionDragStart = { position, _ ->
                             endOfDrag = false
                             if (stockState[position] != null) {
-                                println("DRAG START: $position")
                                 draggedPosition = position
                                 hoveredPosition = null
                             }
@@ -242,7 +240,6 @@ fun CompartmentScreen(
                             hoveredPosition = hoverPos
                         },
                         onDragEnd = { _ ->
-                            println("DRAG END: from $draggedPosition to $hoveredPosition")
                             endOfDrag = true
                         },
                         onDragCancel = {
@@ -292,9 +289,7 @@ fun CompartmentScreen(
 
 
     if(isEditing && draggedPosition != null && currentDragFingerPos != null) {
-        // Utilise direct la position absolue déjà calculée dans onDragHover
-        println(currentDragFingerPos)
-        Box(
+        /*Box(
             modifier = Modifier
                 .offset {
                     IntOffset(
@@ -308,7 +303,7 @@ fun CompartmentScreen(
                     CircleShape
                 )
                 .border(2.dp, MaterialTheme.colorScheme.primaryContainer, CircleShape)
-        )
+        )*/
     }
 
 

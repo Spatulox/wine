@@ -257,7 +257,6 @@ fun CompartmentActionDialog(
                     shelves = shelves,
                     onShelvesChanged = { newList -> shelves = newList },
                     onShelvesDelete = { shelf ->
-                        println(stock)
                         stock[shelf.id]?.size?.let {
                             coroutine.launch {
                                 snackbarHostState.showSnackbar("You can't delete this shelf since there is wine stocked inside...")
