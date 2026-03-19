@@ -1,7 +1,10 @@
 package com.spatulox.wine.ui.screens.shelf
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -9,9 +12,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -35,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -47,6 +53,7 @@ import com.spatulox.wine.viewModels.ShelfViewModel
 import com.spatulox.wine.viewModels.StockViewModel
 import com.spatulox.wine.viewModels.WineViewModel
 import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
 @Composable
 fun CompartmentScreen(
@@ -71,6 +78,7 @@ fun CompartmentScreen(
 
     var draggedPosition by remember { mutableStateOf<Position?>(null) }
     var hoveredPosition by remember { mutableStateOf<Position?>(null) }
+    var currentDragFingerPos by remember { mutableStateOf<Offset?>(null) }
     var endOfDrag by remember { mutableStateOf<Boolean>(false) }
     val rectBounds = remember { mutableStateMapOf<Rect, Position>() }
     val positionBounds = remember { mutableStateMapOf<Position, Rect>() }
@@ -221,6 +229,7 @@ fun CompartmentScreen(
                         positionBounds = positionBounds,
                         draggedPosition = draggedPosition,
                         hoveredPosition = hoveredPosition,
+                        onFingerPositionUpdate = { newPos -> currentDragFingerPos = newPos },
                         onPositionDragStart = { position, _ ->
                             endOfDrag = false
                             if (stockState[position] != null) {
@@ -240,7 +249,11 @@ fun CompartmentScreen(
                             draggedPosition = null
                             hoveredPosition = null
                         },
-                        onPositionClick = { position -> positionClicked = position },
+                        onPositionClick = { position ->
+                            if(!isEditing){
+                                positionClicked = position
+                            }
+                        },
                         onEditClick = {
                             navController.navigate("${Destinations.COMPARTMENT_EDIT}/${compartment[index].id}")
                         }
@@ -275,6 +288,27 @@ fun CompartmentScreen(
                 }
             }
         }
+    }
+
+
+    if(isEditing && draggedPosition != null && currentDragFingerPos != null) {
+        // Utilise direct la position absolue déjà calculée dans onDragHover
+        println(currentDragFingerPos)
+        Box(
+            modifier = Modifier
+                .offset {
+                    IntOffset(
+                        currentDragFingerPos!!.x.roundToInt(),
+                        currentDragFingerPos!!.y.roundToInt()
+                    )
+                }
+                .size(16.dp)
+                .background(
+                    MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
+                    CircleShape
+                )
+                .border(2.dp, MaterialTheme.colorScheme.primaryContainer, CircleShape)
+        )
     }
 
 

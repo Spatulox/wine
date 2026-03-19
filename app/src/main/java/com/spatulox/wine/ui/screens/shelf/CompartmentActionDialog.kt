@@ -498,7 +498,8 @@ private fun CompartmentPreview(
                         verticalSpacing = spacingVertical,
                         onPositionClick = {},
                         onDragCancel = {},
-                        onDragEnd = {}
+                        onDragEnd = {},
+                        onFingerPositionUpdate = {_ ->}
                     )
 
                     Spacer(modifier = Modifier.width(spacingHorizontal))

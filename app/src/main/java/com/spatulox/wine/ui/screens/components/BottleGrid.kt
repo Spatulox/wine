@@ -75,6 +75,7 @@ fun BottleGrid(
     isDraggingEnabled: Boolean = false,
     draggedPosition: Position? = null,
     hoveredPosition: Position? = null,
+    onFingerPositionUpdate: (Offset) -> Unit? = {},
     onPositionDragStart: (Position, DragState) -> Unit = { _, _ -> },
     onPositionDragHover: (Position?) -> Unit = {},
     onDragEnd: (Position) -> Unit,
@@ -87,7 +88,7 @@ fun BottleGrid(
     // HIT DETECTION MAP : Position -> Rect (bounds à l'écran)
     //val rectBounds = remember { mutableStateMapOf<Rect, Position>() }
     //val positionBounds = remember { mutableStateMapOf<Position, Rect>() }
-    var currentDragFingerPos by remember { mutableStateOf<Offset?>(null) }
+    //var currentDragFingerPos by remember { mutableStateOf<Offset?>(null) }
 
     val density = LocalDensity.current
 
@@ -155,8 +156,6 @@ fun BottleGrid(
                                 bottleSize = bottleSize,
                                 neckSize = neckSize,
                                 isDragging = draggedPosition == pos && isDraggingEnabled,
-                                isHovered = hoveredPosition == pos && isDraggingEnabled,
-                                fingerPosition = currentDragFingerPos,
                                 positionBounds = { bounds ->
                                     rectBounds?.let { rectBounds[bounds] = pos }
                                     positionBounds?.let { positionBounds[pos] = bounds }
@@ -178,7 +177,7 @@ fun BottleGrid(
                                                 y = initBounds.topLeft.y + offset.y
                                             )
 
-                                            currentDragFingerPos = fingerPosAbsolu
+                                            onFingerPositionUpdate(fingerPosAbsolu)
                                             val targetPos = findTargetPosition(fingerPosAbsolu) // Find the target with a error margin
 
                                             /*println(rectBounds)
@@ -215,8 +214,6 @@ private fun BottlePositionPreview(
     bottleSize: Dp,
     neckSize: Dp,
     isDragging: Boolean = false,
-    isHovered: Boolean = false,
-    fingerPosition: Offset? = null,
     positionBounds: (Rect) -> Unit = {}, // ← NOUVEAU : callback pour les bounds
     modifier: Modifier = Modifier,
     onClick: () -> Unit
@@ -233,24 +230,10 @@ private fun BottlePositionPreview(
                     offset = coords.positionInRoot(),
                     size = coords.size.toSize()
                 )
-                localBounds = newBounds
                 positionBounds(newBounds)
             }
             .clickable { onClick() }
     ) {
-        val fingerOverMe = fingerPosition?.let { finger ->
-            localBounds?.contains(finger) == true
-        } ?: false
-
-        if (fingerOverMe || isHovered) {
-            Box(
-                modifier = Modifier
-                    .size(bottleSize + 8.dp)
-                    .align(Alignment.Center)
-                    .border(4.dp, MaterialTheme.colorScheme.primary, CircleShape)
-            )
-        }
-
         Box(
             modifier = Modifier
                 .size(

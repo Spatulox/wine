@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -40,6 +41,7 @@ fun CompartmentView(
     positionBounds: SnapshotStateMap<Position, Rect>,
     draggedPosition: Position? = null,
     hoveredPosition: Position? = null,
+    onFingerPositionUpdate: (Offset) -> Unit,
     onPositionDragStart: (Position, DragState) -> Unit = {_, _ ->},
     onDragEnd: (Position) -> Unit,
     onDragCancel: () -> Unit,
@@ -92,6 +94,7 @@ fun CompartmentView(
                     isDraggingEnabled = isParentEditing,
                     draggedPosition = draggedPosition,
                     hoveredPosition = hoveredPosition,
+                    onFingerPositionUpdate = onFingerPositionUpdate,
                     onPositionClick = onPositionClick,
                     onPositionDragStart = onPositionDragStart,
                     onPositionDragHover = onPositionDragHover,
