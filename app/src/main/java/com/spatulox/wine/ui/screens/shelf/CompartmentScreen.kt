@@ -287,6 +287,25 @@ fun CompartmentScreen(
         }
     }
 
+    if(draggedPosition != null && currentDragFingerPos != null){
+        Card(
+            colors = CardDefaults.elevatedCardColors(
+                containerColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                contentColor = MaterialTheme.colorScheme.onSecondary
+            ),
+            shape = MaterialTheme.shapes.small,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 16.dp, top = 16.dp)
+        ) {
+            Text(
+                text = "Moving",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(12.dp)
+            )
+        }
+    }
+
 
     if(isEditing && draggedPosition != null && currentDragFingerPos != null) {
         /*Box(
