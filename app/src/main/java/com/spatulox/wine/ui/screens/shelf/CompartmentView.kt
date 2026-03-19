@@ -57,7 +57,7 @@ fun CompartmentView(
                     modifier = Modifier.weight(1f)
                 )
 
-                if(!isParentEditing){
+                if(isParentEditing){
                     IconButton(
                         onClick = onEditClick
                     ) {
