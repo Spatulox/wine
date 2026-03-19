@@ -90,7 +90,6 @@ fun BottleGrid(
     var currentDragFingerPos by remember { mutableStateOf<Offset?>(null) }
 
     val density = LocalDensity.current
-    val tolerancePx = with(density) { (bottleSize / 2 + bottleSpacing / 2).toPx() }
 
     // HIT DETECTION avec tolérance bottleSize/2
     fun findTargetPosition(fingerPos: Offset): Position? {
