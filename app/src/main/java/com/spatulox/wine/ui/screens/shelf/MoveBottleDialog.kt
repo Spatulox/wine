@@ -15,7 +15,8 @@ fun MoveBottleDialog(
     onMove: (Position, Position) -> Unit,
     onCancel: () -> Unit
 ) {
-    AlertDialog(
+    onMove(from, to)
+    /*AlertDialog(
         onDismissRequest = onCancel,
         title = { Text("Déplacer ?") },
         text = {
@@ -27,5 +28,5 @@ fun MoveBottleDialog(
         dismissButton = {
             TextButton(onClick = onCancel) { Text("Annuler") }
         }
-    )
+    )*/
 }
