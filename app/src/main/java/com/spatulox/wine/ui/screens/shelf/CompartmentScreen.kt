@@ -287,7 +287,7 @@ fun CompartmentScreen(
         }
     }
 
-    if(draggedPosition != null && currentDragFingerPos != null){
+    if(isEditing && draggedPosition != null && currentDragFingerPos != null){
         Card(
             colors = CardDefaults.elevatedCardColors(
                 containerColor = MaterialTheme.colorScheme.onSurfaceVariant,
