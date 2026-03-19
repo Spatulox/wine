@@ -31,6 +31,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -63,6 +64,17 @@ fun CompartmentScreen(
     val coroutine = rememberCoroutineScope()
 
     var positionClicked by remember { mutableStateOf<Position?>(null) }
+
+    var draggedPosition by remember { mutableStateOf<Position?>(null) }
+    var hoveredPosition by remember { mutableStateOf<Position?>(null) }
+    var endOfDrag by remember { mutableStateOf<Boolean>(false) }
+
+    LaunchedEffect(isEditing) {
+        if (!isEditing) {
+            draggedPosition = null
+            hoveredPosition = null
+        }
+    }
 
     val unrackedWines = remember(winesPositionMap, stockState) {
         winesPositionMap.values
@@ -199,6 +211,27 @@ fun CompartmentScreen(
                         stock = stockState,
                         wines = winesPositionMap,
                         isParentEditing = isEditing,
+                        draggedPosition = draggedPosition,
+                        hoveredPosition = hoveredPosition,
+                        onPositionDragStart = { position, _ ->
+                            endOfDrag = false
+                            if (stockState[position] != null) {
+                                println("DRAG START: $position")
+                                draggedPosition = position
+                                hoveredPosition = null
+                            }
+                        },
+                        onPositionDragHover = { hoverPos->
+                            hoveredPosition = hoverPos
+                        },
+                        onDragEnd = { _ ->
+                            println("DRAG END: from $draggedPosition to $hoveredPosition")
+                            endOfDrag = true
+                        },
+                        onDragCancel = {
+                            draggedPosition = null
+                            hoveredPosition = null
+                        },
                         onPositionClick = { position -> positionClicked = position },
                         onEditClick = {
                             navController.navigate("${Destinations.COMPARTMENT_EDIT}/${compartment[index].id}")
@@ -237,14 +270,30 @@ fun CompartmentScreen(
     }
 
 
-    
-
-
-    LaunchedEffect(positionClicked, isEditing) {
-        // Reset automatique si en mode édition
-        if (isEditing && positionClicked != null) {
-            positionClicked = null
-        }
+    if (isEditing && endOfDrag && draggedPosition != null && hoveredPosition != null) {
+        MoveBottleDialog(
+            from = draggedPosition!!,
+            to = hoveredPosition!!,
+            stockState = stockState,
+            onMove = { from, to ->
+                coroutine.launch {
+                    val stock = stockState[from]
+                    stock?.let {
+                        //stockViewModel.delete(from)
+                        println(to)
+                        println(stockState[to])
+                        //stockViewModel.insert(it.copy(position = to))
+                    }
+                }
+                // Reset état
+                draggedPosition = null
+                hoveredPosition = null
+            },
+            onCancel = {
+                draggedPosition = null
+                hoveredPosition = null
+            }
+        )
     }
 
     if (!isEditing && positionClicked != null) {

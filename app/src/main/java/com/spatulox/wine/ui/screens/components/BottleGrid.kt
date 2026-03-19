@@ -3,7 +3,9 @@ package com.spatulox.wine.ui.screens.components
 
 import android.widget.HorizontalScrollView
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,17 +28,27 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.toSize
 import androidx.xr.compose.testing.toDp
 import com.spatulox.wine.domain.enum.BottlePosition
 import com.spatulox.wine.domain.enum.ShelfInterleave
@@ -44,12 +56,12 @@ import com.spatulox.wine.domain.model.Position
 import com.spatulox.wine.domain.model.Shelf
 import com.spatulox.wine.domain.model.StockWithWine
 import com.spatulox.wine.domain.model.Wine
-import org.intellij.lang.annotations.JdkConstants
+import kotlin.math.hypot
 
 @Composable
 fun BottleGrid(
     shelves: List<Shelf>,
-    stock: Map<Position, StockWithWine>? = null, // Only to fill the placement when needed
+    stock: Map<Position, StockWithWine>? = null,
     wines: Map<Int, Wine>? = null,
     modifier: Modifier = Modifier,
     bottleSpacing: Dp = 12.dp,
@@ -57,27 +69,54 @@ fun BottleGrid(
     bottleSize: Dp = 40.dp,
     neckSize: Dp = 20.dp,
     staggerOffset: Dp = 22.dp,
+    isDraggingEnabled: Boolean = false,
+    draggedPosition: Position? = null,
+    hoveredPosition: Position? = null,
+    onPositionDragStart: (Position, DragState) -> Unit = { _, _ -> },
+    onPositionDragHover: (Position) -> Unit = {},
+    onDragEnd: (Position) -> Unit,
+    onDragCancel: () -> Unit,
     onPositionClick: (Position) -> Unit,
 ) {
     val maxCols = shelves.maxOfOrNull { it.col } ?: 6
     val listState = rememberLazyListState()
-    var containerWidthPx by remember { mutableStateOf(0f) }
+
+    // HIT DETECTION MAP : Position -> Rect (bounds à l'écran)
+    val rectBounds = remember { mutableStateMapOf<Rect, Position>() }
+    val positionBounds = remember { mutableStateMapOf<Position, Rect>() }
+    var currentDragFingerPos by remember { mutableStateOf<Offset?>(null) }
+
+    val density = LocalDensity.current
+    val tolerancePx = with(density) { (bottleSize / 2 + bottleSpacing / 2).toPx() }
+
+    // HIT DETECTION avec tolérance bottleSize/2
+    fun findTargetPosition(fingerPos: Offset): Position? {
+        val tolerancePx = with(density) { (bottleSize / 2 + bottleSpacing / 2).toPx() }
+
+        return rectBounds.entries
+            .mapNotNull { (bounds, pos) ->
+                val distance = hypot(
+                    fingerPos.x - bounds.center.x,
+                    fingerPos.y - bounds.center.y
+                )
+                if (distance <= tolerancePx) pos to distance else null
+            }
+            .minByOrNull { it.second }?.first
+    }
+    fun findTargetRect(targetPos: Position): Rect? {
+        return positionBounds[targetPos]
+    }
+
 
     Box(
-        modifier = modifier.fillMaxWidth()
-            .onGloballyPositioned { coordinates ->
-                containerWidthPx = coordinates.size.width.toFloat()
-            }
+        modifier = modifier
+            .fillMaxWidth()
     ) {
-
         LazyRow(
             state = listState,
-            horizontalArrangement = Arrangement.spacedBy(
-                space = bottleSpacing,
-                alignment = Alignment.CenterHorizontally
-            ),
+            horizontalArrangement = Arrangement.spacedBy(bottleSpacing, Alignment.CenterHorizontally),
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize()
         ) {
             items(maxCols) { colIndex ->
                 Column(
@@ -100,8 +139,7 @@ fun BottleGrid(
 
                             val stockWithWine = stock?.get(pos)
                             val wine = stockWithWine?.wine
-                            val color = if (wines!= null && wine != null) {
-                                // "Visible wines"
+                            val color = if (wines != null && wine != null) {
                                 if (wines.containsKey(wine.id)) {
                                     wine.color ?: MaterialTheme.colorScheme.primary
                                 } else {
@@ -111,54 +149,53 @@ fun BottleGrid(
                                 MaterialTheme.colorScheme.onSurfaceVariant
                             }
 
-                            // Rond VISIBLE
                             BottlePositionPreview(
                                 color = color,
                                 arrangement = shelf.arrangement,
                                 offsetX = offset,
                                 bottleSize = bottleSize,
                                 neckSize = neckSize,
-                                onClick = {
-                                    onPositionClick(pos)
-                                }
+                                isDragging = draggedPosition == pos && isDraggingEnabled,
+                                isHovered = hoveredPosition == pos && isDraggingEnabled,
+                                fingerPosition = currentDragFingerPos,
+                                positionBounds = { bounds ->
+                                    rectBounds[bounds] = pos
+                                    positionBounds[pos] = bounds
+                                },
+                                modifier = Modifier
+                                    .dragGesture(
+                                        pos = pos,
+                                        isEnabled = isDraggingEnabled,
+                                        onDragStart = onPositionDragStart,
+                                        onDragHover = { initPosition, offset -> // Pos + relative offset
+                                            val initBounds = positionBounds[initPosition] ?: return@dragGesture
+
+                                            // Create the absolute offset
+                                            val fingerPosAbsolu = Offset(
+                                                x = initBounds.topLeft.x + offset.x,
+                                                y = initBounds.topLeft.y + offset.y
+                                            )
+
+                                            currentDragFingerPos = fingerPosAbsolu
+                                            val targetPos = findTargetPosition(fingerPosAbsolu) // Find the target with a error margin
+
+                                            /*println(rectBounds)
+                                            println("initPosition: $initPosition / offset: $offset / doigt=$fingerPosAbsolu")
+                                            println("${Position(1,1, 0)} ${positionBounds[Position(1,1, 0)]}")
+                                            println("${Position(1,1, 1)} ${positionBounds[Position(1,1, 1)]}")
+                                            println("${targetPos}  ${positionBounds[targetPos]}")*/
+                                            targetPos?.let { onPositionDragHover(targetPos) }
+                                        },
+                                        onDragCancel = onDragCancel,
+                                        onDragEnd = onDragEnd
+                                    ),
+                                onClick = { onPositionClick(pos) }
                             )
                         } else {
-                            // Rond INVISIBLE pour aligner
-                            InvisibleBottle(
-                                size = bottleSize
-                            )
+                            InvisibleBottle(bottleSize)
                         }
                     }
                 }
-            }
-        }
-
-
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .height(8.dp)
-                .padding(horizontal = 16.dp)
-        ) {
-            if (containerWidthPx > 0) {
-                val layoutInfo = listState.layoutInfo
-                val visibleItemCount = layoutInfo.visibleItemsInfo.size.coerceAtLeast(1)
-                val itemWidthPx = containerWidthPx / visibleItemCount
-                val currentScrollPosition = listState.firstVisibleItemIndex * itemWidthPx + listState.firstVisibleItemScrollOffset
-                val totalContentWidth = (maxCols * itemWidthPx).coerceAtLeast(1f)
-                val scrollFraction = currentScrollPosition / (totalContentWidth - containerWidthPx)
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .fillMaxWidth(scrollFraction.coerceIn(0.1f, 1f))
-                        .align(Alignment.CenterStart)
-                        .background(
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-                            RoundedCornerShape(2.dp)
-                        )
-                )
             }
         }
     }
@@ -171,14 +208,43 @@ private fun BottlePositionPreview(
     offsetX: Dp,
     bottleSize: Dp,
     neckSize: Dp,
+    isDragging: Boolean = false,
+    isHovered: Boolean = false,
+    fingerPosition: Offset? = null,
+    positionBounds: (Rect) -> Unit = {}, // ← NOUVEAU : callback pour les bounds
+    modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
+    var localBounds by remember { mutableStateOf<Rect?>(null) }
+
+
     Box(
-        modifier = Modifier
+        modifier = modifier
             .offset(x = offsetX)
             .size(bottleSize)
+            .onGloballyPositioned { coords ->
+                val newBounds = Rect(
+                    offset = coords.positionInRoot(),
+                    size = coords.size.toSize()
+                )
+                localBounds = newBounds
+                positionBounds(newBounds)
+            }
             .clickable { onClick() }
     ) {
+        val fingerOverMe = fingerPosition?.let { finger ->
+            localBounds?.contains(finger) == true
+        } ?: false
+
+        if (fingerOverMe || isHovered) {
+            Box(
+                modifier = Modifier
+                    .size(bottleSize + 8.dp)
+                    .align(Alignment.Center)
+                    .border(4.dp, MaterialTheme.colorScheme.primary, CircleShape)
+            )
+        }
+
         Box(
             modifier = Modifier
                 .size(
@@ -188,13 +254,13 @@ private fun BottlePositionPreview(
                     }
                 )
                 .align(Alignment.Center)
-                .background(
-                    color,
-                    CircleShape
-                )
+                .scale(if (isDragging) 1.1f else 1f)
+                .alpha(if (isDragging) 0.7f else 1f)
+                .background(color, CircleShape)
         )
     }
 }
+
 @Composable
 private fun InvisibleBottle(size: Dp) {
     Box(

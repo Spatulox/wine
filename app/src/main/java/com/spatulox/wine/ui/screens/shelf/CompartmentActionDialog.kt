@@ -497,6 +497,8 @@ private fun CompartmentPreview(
                         bottleSize = rowHeight,
                         verticalSpacing = spacingVertical,
                         onPositionClick = {},
+                        onDragCancel = {},
+                        onDragEnd = {}
                     )
 
                     Spacer(modifier = Modifier.width(spacingHorizontal))

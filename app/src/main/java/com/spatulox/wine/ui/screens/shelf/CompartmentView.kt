@@ -16,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.spatulox.wine.domain.model.Compartment
@@ -24,6 +25,7 @@ import com.spatulox.wine.domain.model.Shelf
 import com.spatulox.wine.domain.model.StockWithWine
 import com.spatulox.wine.domain.model.Wine
 import com.spatulox.wine.ui.screens.components.BottleGrid
+import com.spatulox.wine.ui.screens.components.DragState
 
 @Composable
 fun CompartmentView(
@@ -32,6 +34,12 @@ fun CompartmentView(
     stock: Map<Position, StockWithWine>,
     wines: Map<Int, Wine>,
     isParentEditing: Boolean,
+    draggedPosition: Position? = null,
+    hoveredPosition: Position? = null,
+    onPositionDragStart: (Position, DragState) -> Unit = {_, _ ->},
+    onDragEnd: (Position) -> Unit,
+    onDragCancel: () -> Unit,
+    onPositionDragHover: (Position) -> Unit = {},
     onPositionClick: (Position) -> Unit,
     onEditClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -75,7 +83,14 @@ fun CompartmentView(
                     shelves = shelves,
                     stock = stock,
                     wines = wines,
-                    onPositionClick = onPositionClick
+                    isDraggingEnabled = isParentEditing,
+                    draggedPosition = draggedPosition,
+                    hoveredPosition = hoveredPosition,
+                    onPositionClick = onPositionClick,
+                    onPositionDragStart = onPositionDragStart,
+                    onPositionDragHover = onPositionDragHover,
+                    onDragCancel = onDragCancel,
+                    onDragEnd = onDragEnd,
                 )
             }
         }
