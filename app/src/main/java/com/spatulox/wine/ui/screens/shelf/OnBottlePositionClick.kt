@@ -3,8 +3,11 @@ package com.spatulox.wine.ui.screens.shelf
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -24,6 +27,7 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -97,30 +101,38 @@ fun OnBottlePositionClick(
                 modifier = Modifier.padding(24.dp)
             ) {
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(14.dp)
+                    horizontalArrangement = Arrangement.spacedBy(14.dp),
+                    modifier = Modifier.padding(bottom = 8.dp)
                 ) {
                     Text(
                         text = currentWine?.name ?: "Ajouter",
                         style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.padding(bottom = 16.dp)
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
                     )
+
                     currentWine?.let { wine -> WineStar(wine = wine) }
 
-                    if (currentStock != null) {
-                        Button(
-                            onClick = {
-                                onDeleteStock(position)
-                                onDismiss()
-                            },
-                            modifier = Modifier.padding(bottom = 16.dp),
-                            enabled = !isEditing
-                        ) {
-                            Icon(Icons.Filled.CompareArrows, null)
-                        }
-                    }
                 }
 
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+
+                    if (currentStock != null) {
+                        Row(
+                            horizontalArrangement = Arrangement.End
+                        ) {
+                            OutlinedButton(
+                                onClick = {
+                                    onDeleteStock(position)
+                                    onDismiss()
+                                },
+                                enabled = !isEditing
+                            ) {
+                                Icon(Icons.Filled.CompareArrows, null)
+                            }
+                        }
+                    }
 
                     currentWine?.let { wine ->
 

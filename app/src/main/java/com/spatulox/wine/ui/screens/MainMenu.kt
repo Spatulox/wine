@@ -51,7 +51,7 @@ fun MainMenu(
     var selectedTabIndex by remember { mutableStateOf(0) }
     var showAddWineDialog by remember { mutableStateOf(false) }
     val isEditingCompartment by compartmentViewModel.isEditingOrder.collectAsStateWithLifecycle()
-    val tabs = listOf("Cave", "Vins", "Statistiques")
+    val tabs = listOf("Cave", "Vins")//, "Statistiques")
 
     var isFabExpanded by remember { mutableStateOf(false) }
 
