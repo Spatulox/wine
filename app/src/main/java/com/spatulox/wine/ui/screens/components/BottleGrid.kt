@@ -80,14 +80,9 @@ fun BottleGrid(
     val maxCols = shelves.maxOfOrNull { it.col } ?: 6
     val listState = rememberLazyListState()
 
-    // HIT DETECTION MAP : Position -> Rect (bounds à l'écran)
-    //val rectBounds = remember { mutableStateMapOf<Rect, Position>() }
-    //val positionBounds = remember { mutableStateMapOf<Position, Rect>() }
-    //var currentDragFingerPos by remember { mutableStateOf<Offset?>(null) }
-
     val density = LocalDensity.current
 
-    // HIT DETECTION avec tolérance bottleSize/2
+    // HIT DETECTION with tolerance bottleSize/2
     fun findTargetPosition(fingerPos: Offset): Position? {
         val tolerancePx = with(density) { (bottleSize / 2 + bottleSpacing / 2).toPx() }
 
@@ -134,15 +129,34 @@ fun BottleGrid(
 
                             val stockWithWine = stock?.get(pos)
                             val wine = stockWithWine?.wine
-                            val color = if (wines != null && wine != null) {
-                                if (wines.containsKey(wine.id)) {
-                                    wine.color ?: MaterialTheme.colorScheme.primary
-                                } else {
-                                    (wine.color?.copy(alpha = 0.4f) ?: MaterialTheme.colorScheme.primary)
+                            // Couleur selon état
+                            val color = when {
+                                // 1. Stock & wine
+                                stockWithWine != null && wine != null && wines?.containsKey(wine.id) == true -> {
+                                    wines[wine.id]?.color ?: MaterialTheme.colorScheme.primary
                                 }
-                            } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant
+                                // 2. No stock neither wines
+                                wines == null || wines.isEmpty() -> {
+                                    val colors = listOf(
+                                        Color(0xFFFF6B6B), // Coral
+                                        Color(0xFF4ECDC4), // Turquoise
+                                        Color(0xFF45B7D1), // Sky blue
+                                        Color(0xFF96CEB4), // Mint
+                                        Color(0xFFFFEEAD), // Pale yellow
+                                        Color(0xFFD4A5A5), // Light pink
+                                        Color(0xFF9B59B6), // Amethyst
+                                        Color(0xFF3498DB), // Blue
+                                        Color(0xFFE74C3C), // Red
+                                        Color(0xFF2ECC71)  // Emerald
+                                    )
+
+                                    colors[(pos.col + pos.shelf * 3 + pos.compartment) % colors.size]
+                                }
+
+                                // 3. Default
+                                else -> MaterialTheme.colorScheme.onSurfaceVariant
                             }
+
 
                             BottlePositionPreview(
                                 color = color,
