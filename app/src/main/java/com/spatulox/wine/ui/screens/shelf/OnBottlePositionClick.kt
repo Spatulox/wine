@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CompareArrows
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Remove
@@ -96,7 +97,7 @@ fun OnBottlePositionClick(
                 modifier = Modifier.padding(24.dp)
             ) {
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
                     Text(
                         text = currentWine?.name ?: "Ajouter",
@@ -104,6 +105,19 @@ fun OnBottlePositionClick(
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
                     currentWine?.let { wine -> WineStar(wine = wine) }
+
+                    if (currentStock != null) {
+                        Button(
+                            onClick = {
+                                onDeleteStock(position)
+                                onDismiss()
+                            },
+                            modifier = Modifier.padding(bottom = 16.dp),
+                            enabled = !isEditing
+                        ) {
+                            Icon(Icons.Filled.CompareArrows, null)
+                        }
+                    }
                 }
 
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
