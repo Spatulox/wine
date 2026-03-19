@@ -39,7 +39,7 @@ fun CompartmentView(
     onPositionDragStart: (Position, DragState) -> Unit = {_, _ ->},
     onDragEnd: (Position) -> Unit,
     onDragCancel: () -> Unit,
-    onPositionDragHover: (Position) -> Unit = {},
+    onPositionDragHover: (Position?) -> Unit = {},
     onPositionClick: (Position) -> Unit,
     onEditClick: () -> Unit,
     modifier: Modifier = Modifier

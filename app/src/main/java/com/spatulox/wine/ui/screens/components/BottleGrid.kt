@@ -73,7 +73,7 @@ fun BottleGrid(
     draggedPosition: Position? = null,
     hoveredPosition: Position? = null,
     onPositionDragStart: (Position, DragState) -> Unit = { _, _ -> },
-    onPositionDragHover: (Position) -> Unit = {},
+    onPositionDragHover: (Position?) -> Unit = {},
     onDragEnd: (Position) -> Unit,
     onDragCancel: () -> Unit,
     onPositionClick: (Position) -> Unit,
@@ -184,7 +184,11 @@ fun BottleGrid(
                                             println("${Position(1,1, 0)} ${positionBounds[Position(1,1, 0)]}")
                                             println("${Position(1,1, 1)} ${positionBounds[Position(1,1, 1)]}")
                                             println("${targetPos}  ${positionBounds[targetPos]}")*/
-                                            targetPos?.let { onPositionDragHover(targetPos) }
+                                            if(targetPos != null) {
+                                                onPositionDragHover(targetPos)
+                                            } else {
+                                                onPositionDragHover(null)
+                                            }
                                         },
                                         onDragCancel = onDragCancel,
                                         onDragEnd = onDragEnd
