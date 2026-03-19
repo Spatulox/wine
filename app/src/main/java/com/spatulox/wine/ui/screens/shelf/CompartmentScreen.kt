@@ -236,31 +236,41 @@ fun CompartmentScreen(
         }
     }
 
-    positionClicked?.let { position ->
-        if(isEditing) return@let
-        OnBottlePositionClick(
-            wineViewModel = wineViewModel,
-            stockViewModel = stockViewModel,
-            position = position,
-            onPlaceStock = {stock ->
-                coroutine.launch { stockViewModel.insert(stock) }
-            },
-            onEditStock = {stock ->
-                coroutine.launch { stockViewModel.update(stock) }
-            },
-            onWithdraw = {position, comment ->
-                coroutine.launch {
-                    val wine = wineViewModel.getWineByPos(position)
-                    if(wine != null){
-                        stockViewModel.withdraw(position, comment)
-                        wineViewModel.withdrawWine(wine)
+
+    
+
+
+    LaunchedEffect(positionClicked, isEditing) {
+        // Reset automatique si en mode édition
+        if (isEditing && positionClicked != null) {
+            positionClicked = null
+        }
+    }
+
+    if (!isEditing && positionClicked != null) {
+            OnBottlePositionClick(
+                wineViewModel = wineViewModel,
+                stockViewModel = stockViewModel,
+                position = positionClicked!!,
+                onPlaceStock = {stock ->
+                    coroutine.launch { stockViewModel.insert(stock) }
+                },
+                onEditStock = {stock ->
+                    coroutine.launch { stockViewModel.update(stock) }
+                },
+                onWithdraw = {position, comment ->
+                    coroutine.launch {
+                        val wine = wineViewModel.getWineByPos(position)
+                        if(wine != null){
+                            stockViewModel.withdraw(position, comment)
+                            wineViewModel.withdrawWine(wine)
+                        }
                     }
-                }
-            },
-            onDeleteStock = {position ->
-                coroutine.launch { stockViewModel.delete(position) }
-            },
-            onDismiss = { positionClicked = null }
-        )
+                },
+                onDeleteStock = {position ->
+                    coroutine.launch { stockViewModel.delete(position) }
+                },
+                onDismiss = { positionClicked = null }
+            )
     }
 }
