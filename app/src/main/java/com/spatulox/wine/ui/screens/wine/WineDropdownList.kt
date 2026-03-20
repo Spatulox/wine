@@ -24,16 +24,23 @@ import com.spatulox.wine.viewModels.WineViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WineDropdownList(
+    modifier: Modifier = Modifier,
     wineViewModel: WineViewModel,
+    excludeWineId: List<Int>? = null,
     selectedWine: Wine?,
     onSelectWine: (Wine) -> Unit,
-    modifier: Modifier = Modifier
+    distinctWineList: Boolean = false
 ) {
 
     var expanded by remember { mutableStateOf(false) }
     val wineState by wineViewModel.winesByYearDesc.collectAsStateWithLifecycle()
+    val distinctWineState by wineViewModel.distinctWinesNameByYearDesc.collectAsStateWithLifecycle()
 
-    val wines = wineState
+    val wines = if(distinctWineList) distinctWineState else wineState
+
+    val availableWines = wines.filter { wine ->
+        excludeWineId?.contains(wine.id) != true
+    }
 
     ExposedDropdownMenuBox(
         expanded = expanded,
@@ -41,7 +48,7 @@ fun WineDropdownList(
         modifier = modifier
     ) {
         OutlinedTextField(
-            value = selectedWine?.let { selectedWine.name } ?: "Sélectionner un vin...",
+            value = selectedWine?.let {  "${selectedWine.name} " + if(distinctWineList) "" else "(${selectedWine.year}, ${selectedWine.format.displayName})" } ?: "Sélectionner un vin...",
             onValueChange = {},
             readOnly = true,
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
@@ -61,7 +68,7 @@ fun WineDropdownList(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            if (wineState.isEmpty()) {
+            if (availableWines.isEmpty()) {
                 DropdownMenuItem(
                     text = {
                         Text(
@@ -73,11 +80,12 @@ fun WineDropdownList(
                     onClick = { }
                 )
             } else {
-                wines.forEach { wine ->
+                availableWines.forEach { wine ->
+                    val text = "${wine.name} " + if(distinctWineList) "" else "(${wine.year}, ${wine.format.displayName})"
                     DropdownMenuItem(
                         text = {
                             Text(
-                                text = "${wine.name} (${wine.year}, ${wine.format.displayName})",
+                                text = text,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )

@@ -1,14 +1,14 @@
 package com.spatulox.wine.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.spatulox.wine.ui.screens.history.HistoryScreen
 import com.spatulox.wine.ui.screens.MainMenu
-import com.spatulox.wine.ui.screens.shelf.ShelfScreen
-import com.spatulox.wine.ui.screens.wine.WineScreen
-import com.spatulox.wine.viewModels.HistoryViewModel
+import com.spatulox.wine.ui.screens.shelf.CompartmentActionDialog
+import com.spatulox.wine.viewModels.CompartmentViewModel
+import com.spatulox.wine.viewModels.ShelfViewModel
 import com.spatulox.wine.viewModels.StockViewModel
 import com.spatulox.wine.viewModels.WineViewModel
 
@@ -16,7 +16,8 @@ import com.spatulox.wine.viewModels.WineViewModel
 fun AppNavGraph(
     wineViewModel: WineViewModel,
     stockViewModel: StockViewModel,
-    historyViewModel: HistoryViewModel
+    shelfViewModel: ShelfViewModel,
+    compartmentViewModel: CompartmentViewModel
 ) {
     val nav = rememberNavController()
 
@@ -29,8 +30,32 @@ fun AppNavGraph(
             MainMenu(
                 wineViewModel = wineViewModel,
                 stockViewModel = stockViewModel,
-                historyViewModel = historyViewModel
+                shelfViewModel = shelfViewModel,
+                compartmentViewModel = compartmentViewModel,
+                navController = nav,
             )
         }
+
+        composable (Destinations.COMPARTMENT_ADD) {
+            CompartmentActionDialog(
+                navController = nav,
+                compartmentViewModel = compartmentViewModel,
+                shelfViewModel = shelfViewModel,
+                stockViewModel = stockViewModel
+            )
+        }
+
+        composable("${Destinations.COMPARTMENT_EDIT}/{compartmentId}") { backStackEntry ->
+            val compartmentId = backStackEntry.arguments?.getString("compartmentId")
+
+            CompartmentActionDialog(
+                navController = nav,
+                compartmentViewModel = compartmentViewModel,
+                compartmentId = compartmentId,
+                shelfViewModel = shelfViewModel,
+                stockViewModel = stockViewModel
+            )
+        }
+
     }
 }

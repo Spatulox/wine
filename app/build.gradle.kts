@@ -55,6 +55,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.compose.animation)
     implementation(libs.androidx.material.icons.extended)
+    implementation(libs.androidx.compose.testing)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -70,5 +71,8 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
+
+
+    implementation("io.mhssn:colorpicker:1.0.0")
 
 }

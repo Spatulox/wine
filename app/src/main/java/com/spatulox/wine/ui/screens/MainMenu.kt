@@ -5,7 +5,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -24,27 +29,29 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
 import com.spatulox.wine.SnackbarManager
-import com.spatulox.wine.ui.screens.components.AddButton
-import com.spatulox.wine.ui.screens.components.Filter
+import com.spatulox.wine.ui.screens.components.CustomFloatingButton
 import com.spatulox.wine.ui.screens.components.SearchWithFilters
-import com.spatulox.wine.ui.screens.history.HistoryScreen
-import com.spatulox.wine.ui.screens.shelf.ShelfScreen
+import com.spatulox.wine.ui.screens.shelf.CompartmentScreen
 import com.spatulox.wine.ui.screens.wine.WineScreen
-import com.spatulox.wine.viewModels.HistoryViewModel
+import com.spatulox.wine.viewModels.CompartmentViewModel
+import com.spatulox.wine.viewModels.ShelfViewModel
 import com.spatulox.wine.viewModels.StockViewModel
 import com.spatulox.wine.viewModels.WineViewModel
-import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 fun MainMenu(
     wineViewModel: WineViewModel,
     stockViewModel: StockViewModel,
-    historyViewModel: HistoryViewModel
+    shelfViewModel: ShelfViewModel,
+    compartmentViewModel: CompartmentViewModel,
+    navController: NavController
 ) {
     var selectedTabIndex by remember { mutableStateOf(0) }
     var showAddWineDialog by remember { mutableStateOf(false) }
-    val tabs = listOf("Cave", "Wines", "History")
+    val isEditingCompartment by compartmentViewModel.isEditingOrder.collectAsStateWithLifecycle()
+    val tabs = listOf("Cave", "Vins")//, "Statistiques")
 
     var isFabExpanded by remember { mutableStateOf(false) }
 
@@ -58,20 +65,43 @@ fun MainMenu(
     }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { SnackbarHost(
+            snackbarHostState,
+            modifier = Modifier.imePadding()
+        ) },
         floatingActionButton = {
             Box(modifier = Modifier.fillMaxWidth()) {
+
+                if (selectedTabIndex == 0) {
+                    if(isEditingCompartment){
+                        CustomFloatingButton(
+                            onClick = { compartmentViewModel.setEditingOrder(false) },
+                            modifier = Modifier.align(Alignment.BottomStart),
+                            imageVector = Icons.Filled.Cancel,
+                            description = "Cancel"
+                        )
+                    } else {
+                        CustomFloatingButton(
+                            onClick = { compartmentViewModel.setEditingOrder(true) },
+                            modifier = Modifier.align(Alignment.BottomStart),
+                            imageVector = Icons.Filled.Edit,
+                            description = "Edit"
+                        )
+                    }
+                }
+
                 if (selectedTabIndex == 1) {
-                    AddButton (
+                    CustomFloatingButton(
                         onClick = { showAddWineDialog = true },
-                        modifier = Modifier.align(Alignment.BottomStart)
+                        modifier = Modifier.align(Alignment.BottomStart),
+                        imageVector = Icons.Filled.Add,
+                        description = "Add"
                     )
                 }
 
                 SearchWithFilters(
                     wineViewModel = wineViewModel,
                     stockViewModel = stockViewModel,
-                    historyViewModel = historyViewModel,
                     isExpanded = isFabExpanded,
                     onExpandedChange = { isFabExpanded = it },
                     modifier = Modifier.align(Alignment.BottomEnd),
@@ -112,27 +142,35 @@ fun MainMenu(
                                 isFabExpanded = false
                                 wineViewModel.clearFilter()
                                 stockViewModel.clearFilter()
-                                historyViewModel.clearFilter()
                             })
                         }
                     }
             ) {
                 when (selectedTabIndex) {
                     0 -> {
-                        ShelfScreen(
+                        CompartmentScreen(
                             stockViewModel = stockViewModel,
-                            wineViewModel = wineViewModel
+                            wineViewModel = wineViewModel,
+                            shelfViewModel = shelfViewModel,
+                            isEditing = isEditingCompartment,
+                            onEditingChange = { compartmentViewModel.setEditingOrder(it) } ,
+                            compartmentViewModel = compartmentViewModel,
+                            navController = navController
                         )
                     }
                     1 -> {
                         WineScreen(
                             wineViewModel = wineViewModel,
+                            stockViewModel = stockViewModel,
                             showAddDialog = showAddWineDialog,
-                            onAddDialogChange = { showAddWineDialog = it }
+                            onAddDialogChange = { showAddWineDialog = it },
+                            onChangeTabScreen = { filter ->
+                                selectedTabIndex = 0
+                                isFabExpanded = true
+                                stockViewModel.updateFilter(filter)
+                                wineViewModel.updateFilter(filter)
+                            }
                         )
-                    }
-                    2 -> {
-                        HistoryScreen(historyViewModel = historyViewModel)
                     }
                     else -> Text("Écran non implémenté")
                 }

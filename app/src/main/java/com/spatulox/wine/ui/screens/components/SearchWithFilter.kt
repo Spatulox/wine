@@ -16,7 +16,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Liquor
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material.icons.filled.PersonSearch
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.WineBar
@@ -53,10 +57,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.spatulox.wine.domain.enum.WineFormat
+import com.spatulox.wine.domain.enum.WineRegion
 import com.spatulox.wine.domain.enum.WineType
 import com.spatulox.wine.domain.model.Wine
 import com.spatulox.wine.ui.screens.wine.WineDropdownList
-import com.spatulox.wine.viewModels.HistoryViewModel
 import com.spatulox.wine.viewModels.StockViewModel
 import com.spatulox.wine.viewModels.WineViewModel
 import kotlinx.coroutines.flow.StateFlow
@@ -76,8 +80,10 @@ data class FilterOption(
 
 val filterFields = listOf(
     FilterOption("name", "Nom", Icons.Filled.Person),
+    FilterOption("wineId", "Nom distinct", Icons.Filled.PersonSearch),
     FilterOption("year", "Année", Icons.Filled.DateRange),
-    FilterOption("format", "Format", Icons.Filled.Liquor),
+    FilterOption("region", "Region", Icons.Filled.LocationOn, WineRegion::class),
+    FilterOption("format", "Format", Icons.Filled.Liquor, WineFormat::class),
     FilterOption("type", "Type", Icons.Filled.WineBar, WineType::class),
 )
 
@@ -86,7 +92,6 @@ val filterFields = listOf(
 fun SearchWithFilters(
     wineViewModel: WineViewModel,
     stockViewModel: StockViewModel,
-    historyViewModel: HistoryViewModel,
     selectedTabIndex: Int,
     modifier: Modifier = Modifier,
     isExpanded: Boolean,
@@ -99,6 +104,7 @@ fun SearchWithFilters(
     var year by remember(selectedTabIndex) { mutableStateOf<Int?>(null) }
     var selectedWineType by remember { mutableStateOf<WineType?>(null) }
     var selectedWineFormat by remember { mutableStateOf<WineFormat?>(null) }
+    var selectedWineRegion by remember { mutableStateOf<WineRegion?>(null) }
 
     var isNameInit by remember { mutableStateOf(true) }
     var isDateInit by remember { mutableStateOf(true) }
@@ -106,10 +112,22 @@ fun SearchWithFilters(
     var isTypeInit by remember { mutableStateOf(true) }
 
     val stockYears by stockViewModel.stockYears.collectAsStateWithLifecycle()
-    val historyYears by historyViewModel.historyYears.collectAsStateWithLifecycle()
+    val wineYears by wineViewModel.winesYears.collectAsStateWithLifecycle()
     val availableYears = when(selectedTabIndex) {
         0 -> stockYears
-        2 -> historyYears
+        1 -> wineYears
+        else -> emptyList()
+    }
+
+    val wineState by wineViewModel.wines.collectAsStateWithLifecycle()
+    val countStockedWine by stockViewModel.countWineIdStocked.collectAsStateWithLifecycle()
+    val excludeWineIds = when(selectedTabIndex) {
+        0 -> {
+            (countStockedWine.entries
+                .filter { it.value == 0 }.map { it.key } +
+                    wineState.keys.filter { !countStockedWine.containsKey(it) }
+                    ).toList()
+        }
         else -> emptyList()
     }
 
@@ -124,7 +142,6 @@ fun SearchWithFilters(
                 isFilterPopupVisible = false
                 wineViewModel.clearFilter()
                 stockViewModel.clearFilter()
-                historyViewModel.clearFilter()
             }
         },
         modifier = modifier
@@ -152,18 +169,18 @@ fun SearchWithFilters(
                                     val filter = Filter(content = wine.name, field = "name")
                                     wineViewModel.updateFilter(filter)
                                     stockViewModel.updateFilter(filter)
-                                    historyViewModel.updateFilter(filter)
                                 }
                             }
                             WineDropdownList(
                                 wineViewModel = wineViewModel,
                                 selectedWine = selectedWine,
+                                excludeWineId = excludeWineIds,
+                                distinctWineList = true,
                                 onSelectWine = { wine ->
                                     selectedWine = wine
                                     val filter = Filter(content = wine.name, field = "name")
                                     wineViewModel.updateFilter(filter)
                                     stockViewModel.updateFilter(filter)
-                                    historyViewModel.updateFilter(filter)
                                 },
                                 modifier = Modifier.weight(1f),
                             )
@@ -176,7 +193,6 @@ fun SearchWithFilters(
                                     val filter = Filter(content = year.toString(), field = "year")
                                     wineViewModel.updateFilter(filter)
                                     stockViewModel.updateFilter(filter)
-                                    historyViewModel.updateFilter(filter)
                                 }
                             }
                             DateSelection(
@@ -187,7 +203,6 @@ fun SearchWithFilters(
                                     val filter = Filter(content = lyear.toString(), field = "year")
                                     wineViewModel.updateFilter(filter)
                                     stockViewModel.updateFilter(filter)
-                                    historyViewModel.updateFilter(filter)
                                 },
                                 modifier = Modifier.weight(1f),
                             )
@@ -200,7 +215,6 @@ fun SearchWithFilters(
                                     val filter = Filter(content = type.name, field = "type")
                                     wineViewModel.updateFilter(filter)
                                     stockViewModel.updateFilter(filter)
-                                    historyViewModel.updateFilter(filter)
                                 }
                             }
                             EnumDropdownField(
@@ -211,12 +225,12 @@ fun SearchWithFilters(
                                     val filter = Filter(content = displayName, field = "type")
                                     wineViewModel.updateFilter(filter)
                                     stockViewModel.updateFilter(filter)
-                                    historyViewModel.updateFilter(filter)
                                 },
                                 modifier = Modifier.weight(1f),
                                 expanded = expanded,
                                 onExpandedChange = { expanded = it },
-                                placeholder = "Sélectionner type..."
+                                placeholder = "Sélectionner type...",
+                                invisibleBorder = true
                             )
                         }
 
@@ -227,7 +241,6 @@ fun SearchWithFilters(
                                     val filter = Filter(content = format.name, field = "format")
                                     wineViewModel.updateFilter(filter)
                                     stockViewModel.updateFilter(filter)
-                                    historyViewModel.updateFilter(filter)
                                 }
                             }
                             EnumDropdownField(
@@ -238,12 +251,61 @@ fun SearchWithFilters(
                                     val filter = Filter(content = displayName, field = "format")
                                     wineViewModel.updateFilter(filter)
                                     stockViewModel.updateFilter(filter)
-                                    historyViewModel.updateFilter(filter)
                                 },
                                 modifier = Modifier.weight(1f),
                                 expanded = expanded,
                                 onExpandedChange = { expanded = it },
-                                placeholder = "Sélectionner format..."
+                                placeholder = "Sélectionner format...",
+                                invisibleBorder = true
+                            )
+                        }
+
+                        "region" -> {
+                            if(isExpanded && isFormatInit){
+                                isFormatInit = false
+                                selectedWineRegion?.let { format ->
+                                    val filter = Filter(content = format.name, field = "region")
+                                    wineViewModel.updateFilter(filter)
+                                    stockViewModel.updateFilter(filter)
+                                }
+                            }
+                            EnumDropdownField(
+                                selectedEnum = selectedWineRegion,
+                                enumClass = WineRegion::class,
+                                onSelectionChange = { displayName, enumValue ->
+                                    selectedWineRegion = enumValue as WineRegion
+                                    val filter = Filter(content = displayName, field = "region")
+                                    wineViewModel.updateFilter(filter)
+                                    stockViewModel.updateFilter(filter)
+                                },
+                                modifier = Modifier.weight(1f),
+                                expanded = expanded,
+                                onExpandedChange = { expanded = it },
+                                placeholder = "Sélectionner region...",
+                                invisibleBorder = true
+                            )
+                        }
+
+                        "wineId" -> {
+                            if(isExpanded && isNameInit){
+                                isNameInit = false
+                                selectedWine?.let { wine ->
+                                    val filter = Filter(content = wine.id.toString(), field = "wineId")
+                                    wineViewModel.updateFilter(filter)
+                                    stockViewModel.updateFilter(filter)
+                                }
+                            }
+                            WineDropdownList(
+                                wineViewModel = wineViewModel,
+                                selectedWine = selectedWine,
+                                excludeWineId = excludeWineIds,
+                                onSelectWine = { wine ->
+                                    selectedWine = wine
+                                    val filter = Filter(content = wine.id.toString(), field = "wineId")
+                                    wineViewModel.updateFilter(filter)
+                                    stockViewModel.updateFilter(filter)
+                                },
+                                modifier = Modifier.weight(1f),
                             )
                         }
                     }
@@ -315,13 +377,13 @@ fun SearchWithFilters(
                                     val filter = Filter(content = "", field = field)
                                     wineViewModel.updateFilter(filter)
                                     stockViewModel.updateFilter(filter)
-                                    historyViewModel.updateFilter(filter)
                                     isFilterPopupVisible = false
                                 },
                                 modifier = Modifier.padding(bottom = 8.dp)
                             )
                         }
                     }
+
 
                     Row(
                         modifier = Modifier
@@ -381,66 +443,6 @@ private fun FilterButton(
                 else
                     MaterialTheme.colorScheme.onSurfaceVariant
             )
-        }
-    }
-}
-
-
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun EnumDropdownField(
-    selectedEnum: Any?,
-    enumClass: KClass<out Enum<*>>,
-    onSelectionChange: (String, Any) -> Unit,
-    expanded: Boolean,
-    onExpandedChange: (Boolean) -> Unit,
-    placeholder: String = "Sélectionner...",
-    modifier: Modifier = Modifier
-) {
-    val enumEntries = enumClass.java.enumConstants ?: emptyArray()
-
-    fun getDisplayName(enumEntry: Any): String = when (enumEntry) {
-        is WineType -> enumEntry.displayName
-        is WineFormat -> enumEntry.displayName
-        else -> enumEntry.toString()
-    }
-
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = onExpandedChange,
-        modifier = modifier
-    ) {
-        OutlinedTextField(
-            value = selectedEnum?.let { getDisplayName(it) } ?: placeholder,
-            onValueChange = { },
-            readOnly = true,
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = Color.Transparent,
-                unfocusedContainerColor = Color.Transparent,
-                focusedBorderColor = Color.Transparent,
-                unfocusedBorderColor = Color.Transparent,
-                focusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-            ),
-            modifier = Modifier.menuAnchor().fillMaxWidth()
-        )
-
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { onExpandedChange(false) }
-        ) {
-            enumEntries.forEach { enumEntry ->
-                val displayName = getDisplayName(enumEntry)
-                DropdownMenuItem(
-                    text = { Text(displayName) },
-                    onClick = {
-                        onExpandedChange(false)
-                        onSelectionChange(displayName, enumEntry)
-                    }
-                )
-            }
         }
     }
 }

@@ -1,9 +1,9 @@
 package com.spatulox.wine.domain.model
 
 data class Position(
+    val compartment: Int,
     val shelf: Int,
-    val row: Int,
     val col: Int
 ) {
-    override fun toString(): String = "s:${shelf}_r:${row}_c:${col}"
+    override fun toString(): String = "comp:${compartment}_shelf:${shelf}_col:${col}"
 }

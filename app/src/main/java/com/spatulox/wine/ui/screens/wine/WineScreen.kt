@@ -1,7 +1,5 @@
 package com.spatulox.wine.ui.screens.wine
 
-import android.R
-import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,14 +10,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.WineBar
-import androidx.compose.material3.Button
-import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,31 +26,41 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.spatulox.wine.SnackbarManager
 import com.spatulox.wine.domain.model.Wine
 import com.spatulox.wine.send
-import com.spatulox.wine.ui.screens.components.AddButton
+import com.spatulox.wine.ui.screens.components.Filter
+import com.spatulox.wine.viewModels.StockViewModel
 import com.spatulox.wine.viewModels.WineViewModel
 import kotlinx.coroutines.launch
 
 @Composable
 fun WineScreen(
     wineViewModel: WineViewModel,
+    stockViewModel: StockViewModel,
     showAddDialog: Boolean,
     onAddDialogChange: (Boolean) -> Unit,
+    onChangeTabScreen: (Filter) -> Unit
 ) {
     val wines by wineViewModel.filteredWinesList.collectAsStateWithLifecycle()
+    val distincWineCounts by stockViewModel.stockDistinctWineCount.collectAsStateWithLifecycle()
 
+    var selectedWineForEdit by remember { mutableStateOf<Wine?>(null) }
     var selectedWine by remember { mutableStateOf<Wine?>(null) }
 
     val coroutineScope = rememberCoroutineScope()
 
     selectedWine?.let { wine ->
+        onChangeTabScreen(Filter(wine.id.toString(), "wineId"))
+    }
+
+    selectedWineForEdit?.let { wine ->
         WineEditDialog(
             wine = wine,
-            onDismiss = { selectedWine = null },
+            distincWineCounts = distincWineCounts,
+            onDismiss = { selectedWineForEdit = null },
             onValidate = { updatedWine ->
                 coroutineScope.launch {
                     wineViewModel.updateWine(updatedWine)
                 }
-                selectedWine = null
+                selectedWineForEdit = null
             },
             onDelete = {
                 coroutineScope.launch {
@@ -64,7 +68,7 @@ fun WineScreen(
                         SnackbarManager.send("Wine exist in cave, cannot delete it !")
                     }
                 }
-                selectedWine = null
+                selectedWineForEdit = null
             }
         )
     }
@@ -144,7 +148,8 @@ fun WineScreen(
             ) { index, wine ->
                 WineItem(
                     wine = wine,
-                    onClick = { selectedWine = wine }
+                    onClick = { selectedWine = wine },
+                    onUpdateClick = { selectedWineForEdit = wine }
                 )
             }
         }

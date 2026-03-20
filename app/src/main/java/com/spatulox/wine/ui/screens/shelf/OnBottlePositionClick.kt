@@ -3,12 +3,18 @@ package com.spatulox.wine.ui.screens.shelf
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CompareArrows
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -19,7 +25,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -38,6 +46,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.spatulox.wine.domain.model.Position
+import com.spatulox.wine.domain.model.Stock
+import com.spatulox.wine.domain.model.StockWithWine
 import com.spatulox.wine.domain.model.Wine
 import com.spatulox.wine.ui.screens.wine.WineDropdownList
 import com.spatulox.wine.ui.screens.wine.WineStar
@@ -51,7 +61,8 @@ fun OnBottlePositionClick(
     stockViewModel: StockViewModel,
     position: Position,
     onDismiss: () -> Unit = {},
-    onPlaceWine: (Position, Wine, String) -> Unit = { _, _, _ -> },
+    onPlaceStock: (StockWithWine) -> Unit = { _ -> },
+    onEditStock: (StockWithWine) -> Unit = { _ -> },
     onWithdraw: (Position, String) -> Unit = { _, _ -> },
     onDeleteStock: (Position) -> Unit = { _ -> }
 ) {
@@ -60,9 +71,20 @@ fun OnBottlePositionClick(
     var reason by remember { mutableStateOf<String>("") }
 
     val stockState by stockViewModel.stockState.collectAsStateWithLifecycle()
+    val countStockedWine by stockViewModel.countWineIdStocked.collectAsStateWithLifecycle()
     val wineState by wineViewModel.wines.collectAsStateWithLifecycle()
     val currentStock = stockState[position]
-    val currentWine = currentStock?.wineId?.let { wineState[it] }
+    val currentWine = currentStock?.wine?.id?.let { wineState[it] }
+
+    var isEditing by remember { mutableStateOf(false) }
+
+    val excludeWineIds = countStockedWine.entries
+        .filter { (wineId, count) ->
+            val wine = wineState[wineId]
+            count == 0 || (wine != null && count >= wine.qte)
+        }
+        .map { it.key }
+
 
     Dialog (
         onDismissRequest = onDismiss
@@ -79,35 +101,41 @@ fun OnBottlePositionClick(
                 modifier = Modifier.padding(24.dp)
             ) {
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(14.dp),
+                    modifier = Modifier.padding(bottom = 8.dp)
                 ) {
                     Text(
                         text = currentWine?.name ?: "Ajouter",
                         style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.padding(bottom = 16.dp)
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
                     )
+
                     currentWine?.let { wine -> WineStar(wine = wine) }
+
                 }
 
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Text(
-                            text = "Étagère: ${position.shelf}",
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                        Text(
-                            text = "Ligne: ${position.row}",
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                        Text(
-                            text = "Colonne: ${position.col}",
-                            style = MaterialTheme.typography.bodyLarge
-                        )
+
+                    if (currentStock != null) {
+                        Row(
+                            horizontalArrangement = Arrangement.End
+                        ) {
+                            OutlinedButton(
+                                onClick = {
+                                    onDeleteStock(position)
+                                    onDismiss()
+                                },
+                                enabled = !isEditing
+                            ) {
+                                Icon(Icons.Filled.CompareArrows, null)
+                            }
+                        }
                     }
 
                     currentWine?.let { wine ->
+
                         Card(
                             colors = CardDefaults.cardColors(
                                 containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
@@ -130,24 +158,39 @@ fun OnBottlePositionClick(
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
-                                Text(
-                                    text = wine.format.displayName,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
+                                wine.region?.displayName?.let {
+                                    Text(
+                                        text = it,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
                             }
                         }
-                    } ?: Text(
-                        text = "Vide",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                        var editedComment by remember { mutableStateOf(currentStock.comment ?: "") }
+
+                        CommentCard(
+                            comment = editedComment,
+                            isEditing = isEditing,
+                            onEditClick = { isEditing = true },
+                            onCommentChange = { editedComment = it },
+                            onSave = {
+                                val stock: StockWithWine = currentStock.copy(
+                                    comment = editedComment
+                                )
+                                onEditStock(stock)
+                                isEditing = false
+                            }
+                        )
+
+                    }
 
                     when {
                         // CAS 1: Position VIDE → Placer vin
                         currentStock == null -> {
                             WineDropdownList(
                                 wineViewModel = wineViewModel,
+                                excludeWineId = excludeWineIds,
                                 selectedWine = selectedWine,
                                 onSelectWine = { wine -> selectedWine = wine }
                             )
@@ -156,21 +199,10 @@ fun OnBottlePositionClick(
                                 OutlinedTextField(
                                     value = reason,
                                     onValueChange = { reason = it },
-                                    label = { Text("Raison de l'ajout") },
+                                    label = { Text("Commentaire") },
                                     modifier = Modifier.fillMaxWidth(),
-                                    singleLine = true,
                                 )
                             }
-                        }
-                        // CAS 2: Position OCCUPÉE → Retrait
-                        else -> {
-                            OutlinedTextField(
-                                value = reason,
-                                onValueChange = { reason = it },
-                                label = { Text("Raison du retrait") },
-                                modifier = Modifier.fillMaxWidth(),
-                                singleLine = true,
-                            )
                         }
                     }
                 }
@@ -199,7 +231,13 @@ fun OnBottlePositionClick(
                     if (currentStock == null && selectedWine != null) {
                         Button(
                             onClick = {
-                                onPlaceWine(position, selectedWine!!, reason)
+                                val stock = StockWithWine(
+                                    wine = selectedWine!!,
+                                    position = position,
+                                    comment = reason,
+                                    date = System.currentTimeMillis()
+                                )
+                                onPlaceStock(stock)
                                 onDismiss()
                             },
                             modifier = Modifier.weight(1f)
@@ -213,13 +251,71 @@ fun OnBottlePositionClick(
                                 onWithdraw(position, reason)
                                 onDismiss()
                             },
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
+                            enabled = !isEditing
                         ) {
                             Icon(Icons.Filled.Remove, null)
                             Text("Retirer")
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+
+
+@Composable
+fun CommentCard(
+    comment: String,
+    isEditing: Boolean,
+    onEditClick: () -> Unit,
+    onCommentChange: (String) -> Unit,
+    onSave: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
+        ),
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (isEditing) {
+                OutlinedTextField(
+                    value = comment,
+                    onValueChange = onCommentChange,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(12.dp),
+                )
+            } else {
+                Text(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(12.dp),
+                    text = if(comment.isEmpty()) "Pas de commentaire" else comment,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = when {
+                        comment.isEmpty() -> MaterialTheme.colorScheme.onSurfaceVariant
+                        else -> MaterialTheme.colorScheme.onSurface  // couleur normale
+                    }
+                )
+            }
+
+            IconButton(
+                onClick = if (isEditing) onSave else onEditClick,
+                modifier = Modifier.padding(end = 8.dp)
+            ) {
+                Icon(
+                    imageVector = if (isEditing) Icons.Default.Check else Icons.Default.Edit,
+                    contentDescription = if (isEditing) "Sauvegarder" else "Modifier",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }
