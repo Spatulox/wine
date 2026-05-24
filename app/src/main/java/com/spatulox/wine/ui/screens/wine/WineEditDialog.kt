@@ -74,6 +74,7 @@ fun WineEditDialog(
     var editedQte by remember(wine) { mutableStateOf(wine.qte) }
     var editedStars by remember(wine) { mutableStateOf(wine.stars) }
     var editedWineColor by remember { mutableStateOf<Color?>(wine.color) }
+    var comment by remember { mutableStateOf(wine.comment) }
 
     var errorMessage by remember(editedQte, distincWineCounts[wine.id]) { mutableStateOf("") }
 
@@ -144,6 +145,13 @@ fun WineEditDialog(
                         DateSelection(
                             year = editedYear,
                             onYearChange = { editedYear = it }
+                        )
+
+                        OutlinedTextField(
+                            value = comment,
+                            onValueChange = { comment = it },
+                            label = { Text("Commentaire") },
+                            modifier = Modifier.fillMaxWidth(),
                         )
 
 
@@ -260,7 +268,8 @@ fun WineEditDialog(
                                         region = editedRegion,
                                         qte = editedQte,
                                         stars = editedStars,
-                                        color = editedWineColor
+                                        color = editedWineColor,
+                                        comment = comment
                                     )
                                 )
                             },

@@ -19,5 +19,6 @@ data class WineEntity(
     val stars: Int,
     val qte: Int,
     val region: String?,
-    val color: String? = null
+    val color: String? = null,
+    val comment: String = "",
 )

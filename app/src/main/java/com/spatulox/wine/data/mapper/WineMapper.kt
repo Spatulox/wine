@@ -35,7 +35,8 @@ object WineMapper {
             stars = entity.stars,
             qte = entity.qte,
             region = entity.region?.let { WineRegion.valueOf(it) },
-            color = entity.color?.toColor()
+            color = entity.color?.toColor(),
+            comment = entity.comment
         )
     }
 
@@ -50,7 +51,8 @@ object WineMapper {
             stars = wine.stars,
             qte = wine.qte,
             region = wine.region?.name,
-            color = wine.color?.toHex()
+            color = wine.color?.toHex(),
+            comment = wine.comment
         )
     }
 }

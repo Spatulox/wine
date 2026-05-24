@@ -15,5 +15,6 @@ data class Wine(
     var stars: Int,
     val qte: Int,
     val region: WineRegion?,
-    val color: Color? = null
+    val color: Color? = null,
+    val comment: String = "",
 )

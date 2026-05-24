@@ -32,6 +32,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -114,10 +115,6 @@ fun OnBottlePositionClick(
 
                     currentWine?.let { wine -> WineStar(wine = wine) }
 
-                }
-
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-
                     if (currentStock != null) {
                         Row(
                             horizontalArrangement = Arrangement.End
@@ -129,10 +126,14 @@ fun OnBottlePositionClick(
                                 },
                                 enabled = !isEditing
                             ) {
-                                Icon(Icons.Filled.CompareArrows, null)
+                                Icon(Icons.Filled.CompareArrows, "Déplacer une bouteille")
                             }
                         }
                     }
+
+                }
+
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
 
                     currentWine?.let { wine ->
 
@@ -167,7 +168,12 @@ fun OnBottlePositionClick(
                                 }
                             }
                         }
-                        var editedComment by remember { mutableStateOf(currentStock.comment ?: "") }
+
+                        Text(
+                            text = wine.comment,
+                        )
+
+                        /*var editedComment by remember { mutableStateOf(currentStock.comment ?: "") }
 
                         CommentCard(
                             comment = editedComment,
@@ -181,7 +187,7 @@ fun OnBottlePositionClick(
                                 onEditStock(stock)
                                 isEditing = false
                             }
-                        )
+                        )*/
 
                     }
 
@@ -195,6 +201,7 @@ fun OnBottlePositionClick(
                                 onSelectWine = { wine -> selectedWine = wine }
                             )
 
+                            /*
                             if(selectedWine != null){
                                 OutlinedTextField(
                                     value = reason,
@@ -203,6 +210,7 @@ fun OnBottlePositionClick(
                                     modifier = Modifier.fillMaxWidth(),
                                 )
                             }
+                            */
                         }
                     }
                 }

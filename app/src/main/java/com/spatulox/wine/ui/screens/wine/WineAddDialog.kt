@@ -71,6 +71,7 @@ fun WineAddDialog(
     var unitPrice by remember { mutableStateOf<Float?>(null) }
     val priceText by remember(unitPrice) { derivedStateOf { unitPrice?.toString() ?: "" } }
     var wineColor by remember { mutableStateOf<Color?>(null) }
+    var comment by remember { mutableStateOf("") }
 
     var errorMessage by remember { mutableStateOf("") }
     val wines by wineViewModel.wines.collectAsStateWithLifecycle()
@@ -169,6 +170,13 @@ fun WineAddDialog(
                             onYearChange = { localYear ->
                                 year = localYear
                             }
+                        )
+
+                        OutlinedTextField(
+                            value = comment,
+                            onValueChange = { comment = it },
+                            label = { Text("Commentaire") },
+                            modifier = Modifier.fillMaxWidth(),
                         )
 
                         var expandedFormat by remember { mutableStateOf(false) }
@@ -280,7 +288,8 @@ fun WineAddDialog(
                                                 stars = stars,
                                                 qte = qte,
                                                 region = region,
-                                                color = wineColor
+                                                color = wineColor,
+                                                comment = comment
                                             )
                                         )
                                     }
