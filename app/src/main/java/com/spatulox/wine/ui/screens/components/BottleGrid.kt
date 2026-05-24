@@ -64,7 +64,7 @@ fun BottleGrid(
     verticalSpacing: Dp = 8.dp,
     bottleSize: Dp = 40.dp,
     neckSize: Dp = 20.dp,
-    staggerOffset: Dp = 22.dp,
+    staggerOffset: Dp = 26.dp,
     rectBounds: SnapshotStateMap<Rect, Position>? = null,
     positionBounds: SnapshotStateMap<Position, Rect>? = null,
     isDraggingEnabled: Boolean = false,
