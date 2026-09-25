@@ -1,6 +1,12 @@
 package com.spatulox.wine.ui.screens.shelf
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -121,23 +127,16 @@ fun CompartmentScreen(
 
     val unrackedWinesCount = unrackedWines.values.sum()
 
-    val errorMessage by remember(unrackedWines) {
-        mutableStateOf(
-            if (unrackedWinesCount > 0) {
-                buildString {
-                    append("$unrackedWinesCount bouteille(s) à ranger :")
-                    unrackedWines.entries
-                        .sortedByDescending { it.value }
-                        .forEach { (wineId, count) ->
-                            val wine = winesPositionMap[wineId]!!
-                            append("\n• ${wine.name} ${wine.year} (${wine.format.displayName}) : $count")
-                        }
+    val unrackedLines = remember(unrackedWines) {
+        unrackedWines.entries
+            .sortedByDescending { it.value }
+            .mapNotNull { (wineId, count) ->
+                winesPositionMap[wineId]?.let { wine ->
+                    "• ${wine.name} ${wine.year} (${wine.format.displayName}) : $count"
                 }
-            } else {
-                ""
             }
-        )
     }
+    var isUnrackedExpanded by rememberSaveable { mutableStateOf(false) }
 
 
     fun moveUp(index: Int) {
@@ -178,31 +177,54 @@ fun CompartmentScreen(
         }
     ) {
 
-        if (errorMessage.isNotBlank() && !isEditing) {
-            Card(
-                colors = CardDefaults.elevatedCardColors(
-                    containerColor = MaterialTheme.colorScheme.errorContainer,
-                    contentColor = MaterialTheme.colorScheme.onErrorContainer
-                ),
-                shape = MaterialTheme.shapes.small,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 16.dp, end = 16.dp, top = 16.dp)
-            ) {
-                Text(
-                    text = errorMessage,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(12.dp)
-                )
-            }
-        }
-
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             contentPadding = PaddingValues(16.dp)
         ) {
+            // Part of the list (and collapsed by default) so a long list of wines to rack
+            // can't push the cellar off-screen
+            if (unrackedWinesCount > 0 && !isEditing) {
+                item {
+                    Card(
+                        colors = CardDefaults.elevatedCardColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer
+                        ),
+                        shape = MaterialTheme.shapes.small,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { isUnrackedExpanded = !isUnrackedExpanded }
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "$unrackedWinesCount bouteille(s) à ranger",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Icon(
+                                    imageVector = if (isUnrackedExpanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                                    contentDescription = if (isUnrackedExpanded) "Masquer le détail" else "Afficher le détail"
+                                )
+                            }
+                            if (isUnrackedExpanded) {
+                                unrackedLines.forEach { line ->
+                                    Text(
+                                        text = line,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             items(compartment.size) { index ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
