@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -65,7 +66,6 @@ fun BottleGrid(
     bottleSize: Dp = 40.dp,
     neckSize: Dp = 20.dp,
     staggerOffset: Dp = 26.dp,
-    rectBounds: SnapshotStateMap<Rect, Position>? = null,
     positionBounds: SnapshotStateMap<Position, Rect>? = null,
     isDraggingEnabled: Boolean = false,
     draggedPosition: Position? = null,
@@ -86,8 +86,8 @@ fun BottleGrid(
     fun findTargetPosition(fingerPos: Offset): Position? {
         val tolerancePx = with(density) { (bottleSize / 2 + bottleSpacing / 2).toPx() }
 
-        return rectBounds?.entries
-            ?.mapNotNull { (bounds, pos) ->
+        return positionBounds?.entries
+            ?.mapNotNull { (pos, bounds) ->
                 val distance = hypot(
                     fingerPos.x - bounds.center.x,
                     fingerPos.y - bounds.center.y
@@ -126,6 +126,14 @@ fun BottleGrid(
                                 shelf = shelf.id,
                                 col = colIndex
                             )
+
+                            if (positionBounds != null) {
+                                // A position leaving the composition (scrolled away, deleted shelf...)
+                                // must not stay a drop target at its last known place
+                                DisposableEffect(pos) {
+                                    onDispose { positionBounds.remove(pos) }
+                                }
+                            }
 
                             val stockWithWine = stock?.get(pos)
                             val wine = stockWithWine?.wine
@@ -166,7 +174,6 @@ fun BottleGrid(
                                 neckSize = neckSize,
                                 isDragging = draggedPosition == pos && isDraggingEnabled,
                                 positionBounds = { bounds ->
-                                    rectBounds?.let { rectBounds[bounds] = pos }
                                     positionBounds?.let { positionBounds[pos] = bounds }
                                 },
                                 modifier = Modifier
@@ -189,11 +196,6 @@ fun BottleGrid(
                                             onFingerPositionUpdate(fingerPosAbsolu)
                                             val targetPos = findTargetPosition(fingerPosAbsolu) // Find the target with a error margin
 
-                                            /*println(rectBounds)
-                                            println("initPosition: $initPosition / offset: $offset / doigt=$fingerPosAbsolu")
-                                            println("${Position(1,1, 0)} ${positionBounds[Position(1,1, 0)]}")
-                                            println("${Position(1,1, 1)} ${positionBounds[Position(1,1, 1)]}")
-                                            println("${targetPos}  ${positionBounds[targetPos]}")*/
                                             if(targetPos != null) {
                                                 onPositionDragHover(targetPos)
                                             } else {
@@ -223,13 +225,16 @@ private fun BottlePositionPreview(
     bottleSize: Dp,
     neckSize: Dp,
     isDragging: Boolean = false,
-    positionBounds: (Rect) -> Unit = {}, // ← NOUVEAU : callback pour les bounds
+    positionBounds: (Rect) -> Unit = {},
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
     Box(
-        modifier = modifier
+        modifier = Modifier
             .offset(x = offsetX)
+            // Gestures after the offset: the touch area and the drag coordinates match the drawn
+            // bottle and its reported bounds
+            .then(modifier)
             .size(bottleSize)
             .onGloballyPositioned { coords ->
                 val newBounds = Rect(
