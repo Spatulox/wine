@@ -45,6 +45,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
@@ -155,6 +157,8 @@ fun BottleGrid(
                             BottlePositionPreview(
                                 color = color,
                                 isEmpty = isEmpty,
+                                description = stockWithWine?.wine?.let { "${it.name} ${it.year}" }
+                                    ?: "Emplacement vide",
                                 arrangement = shelf.arrangement,
                                 offsetX = offset,
                                 bottleSize = bottleSize,
@@ -208,6 +212,7 @@ fun BottleGrid(
 private fun BottlePositionPreview(
     color: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     isEmpty: Boolean = false,
+    description: String? = null,
     arrangement: BottlePosition,
     offsetX: Dp,
     bottleSize: Dp,
@@ -232,6 +237,7 @@ private fun BottlePositionPreview(
                 positionBounds(newBounds)
             }
             .clickable { onClick() }
+            .semantics { description?.let { contentDescription = it } }
     ) {
         Box(
             modifier = Modifier

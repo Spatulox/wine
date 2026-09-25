@@ -3,8 +3,8 @@ package com.spatulox.wine.ui.screens.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -45,7 +45,7 @@ fun DateSelection(
                 }
             }
         ) {
-            Icon(Icons.Filled.KeyboardArrowLeft, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, "Année précédente", tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
 
         Text(
@@ -65,7 +65,7 @@ fun DateSelection(
                 }
             }
         ) {
-            Icon(Icons.Filled.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, "Année suivante", tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }

@@ -58,6 +58,7 @@ fun EnumDropdownField(
             value = displayValue,//selectedEnum?.let { getDisplayName(it) } ?: placeholder,
             onValueChange = { },
             readOnly = true,
+            singleLine = true,
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = Color.Transparent,

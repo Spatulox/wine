@@ -128,8 +128,9 @@ fun WineScreen(
     ) {
         if (wines.isEmpty()) {
             item {
+                // fillParentMaxSize: fillMaxSize has no effect on the height of a lazy item
                 Box(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillParentMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
                     Column(

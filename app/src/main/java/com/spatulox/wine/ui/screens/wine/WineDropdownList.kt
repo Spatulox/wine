@@ -51,6 +51,7 @@ fun WineDropdownList(
             value = selectedWine?.let {  "${selectedWine.name} " + if(distinctWineList) "" else "(${selectedWine.year}, ${selectedWine.format.displayName})" } ?: "Sélectionner un vin...",
             onValueChange = {},
             readOnly = true,
+            singleLine = true,
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier.menuAnchor().fillMaxWidth(),
             colors = OutlinedTextFieldDefaults.colors(
