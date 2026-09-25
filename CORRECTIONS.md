@@ -1,13 +1,25 @@
 # Récapitulatif des corrections de l'audit
 
-Les corrections de l'audit (`AUDIT.md`) sont sur la branche **`fix/audit`** : 35 commits, un par bug ou sujet, plus le commit du rapport. La branche n'est ni poussée ni fusionnée.
+Les corrections de l'audit (`AUDIT.md`) sont sur la branche **`fix/audit`** : 36 commits, un par bug ou sujet, plus le commit du rapport. La branche n'est ni poussée ni fusionnée.
 
 - **Compilation :** `assembleDebug` passe avec le JDK 23 installé sur la machine.
 - **Tests :** l'app n'a pas été lancée. Rien n'a été testé sur un appareil.
 
 ## Ta cave existante n'est pas touchée
 
-Aucune table ni colonne n'a changé, et la base reste en version 26. Le schéma exporté (`app/schemas/.../26.json`) ne bouge pas d'un commit à l'autre, donc les données déjà présentes sur le téléphone restent compatibles.
+Aucune table ni colonne n'a changé dans ces corrections. Le schéma exporté (`app/schemas/.../26.json`) ne bouge pas d'un commit à l'autre.
+
+### Migration 25 → 26
+
+Le téléphone avait une base en **version 25**, antérieure au commit `8660e17` (« Update Wine : add comment field ») qui a ajouté `wine.comment` et passé la base en v26 sans migration. Avant ces corrections, le fallback destructif aurait **effacé la cave** à la mise à jour. Une fois ce fallback retiré, l'app plantait au démarrage (« A migration from 25 to 26 was required but not found ») sans rien effacer.
+
+Le commit `9bf2388` ajoute la migration (`data/db/Migrations.kt`) :
+
+```sql
+ALTER TABLE `wine` ADD COLUMN `comment` TEXT NOT NULL DEFAULT ''
+```
+
+Les vins existants reçoivent un commentaire vide. Pour les prochaines évolutions du schéma : augmenter `version` dans `AppDatabase`, ajouter une `Migration` dans `Migrations.kt` et l'inclure dans `ALL_MIGRATIONS`.
 
 ## Ce qui a changé par rapport à l'audit
 
@@ -48,7 +60,7 @@ L'édition d'un commentaire sur un emplacement de bouteille était entièrement 
 - [ ] Filtre par format, puis fermer et rouvrir la recherche.
 - [ ] Tourner l'écran pendant la modification d'un compartiment.
 - [ ] Vérifier la liste des vins avec une région et un format longs : pas de texte en colonne.
-- [ ] Vérifier que les données existantes sont intactes après la mise à jour.
+- [ ] Au premier lancement après la mise à jour : pas de crash, et tous les vins, compartiments et bouteilles sont toujours là.
 
 ## Deux points à régler de ton côté
 
@@ -97,3 +109,4 @@ Du plus ancien au plus récent :
 | `1938054` | perf(db): EXISTS pour vérifier la présence de bouteilles |
 | `483f561` | chore: supprimer le code mort |
 | `3fc75b7` | fix(textes): coquilles affichées |
+| `9bf2388` | fix(db): migration 25 -> 26 manquante |

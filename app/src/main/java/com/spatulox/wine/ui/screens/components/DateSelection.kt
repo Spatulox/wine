@@ -12,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import java.time.LocalDate
@@ -21,7 +22,8 @@ fun DateSelection(
     year: Int?,
     onYearChange: (Int) -> Unit,
     availableYears: List<Int>? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    contentColor: Color = MaterialTheme.colorScheme.onSurfaceVariant
 ) {
 
     val displayYear = when {
@@ -45,12 +47,12 @@ fun DateSelection(
                 }
             }
         ) {
-            Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, "Année précédente", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, "Année précédente", tint = contentColor)
         }
 
         Text(
             text = "$displayYear",
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = contentColor,
             style = MaterialTheme.typography.headlineSmall,
             modifier = Modifier.weight(1f),
             textAlign = TextAlign.Center
@@ -65,7 +67,7 @@ fun DateSelection(
                 }
             }
         ) {
-            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, "Année suivante", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, "Année suivante", tint = contentColor)
         }
     }
 }

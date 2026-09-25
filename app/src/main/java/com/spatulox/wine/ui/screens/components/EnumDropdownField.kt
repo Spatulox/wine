@@ -30,7 +30,9 @@ fun EnumDropdownField(
     placeholder: String = "Sélectionner...",
     defaultValue: Any? = null,
     invisibleBorder: Boolean = false,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    // Text and arrow color: must contrast with whatever is behind the transparent field
+    contentColor: Color = MaterialTheme.colorScheme.onSurfaceVariant
 ) {
     val enumEntries = enumClass.java.enumConstants ?: emptyArray()
 
@@ -65,8 +67,10 @@ fun EnumDropdownField(
                 unfocusedContainerColor = Color.Transparent,
                 focusedBorderColor = if (invisibleBorder) Color.Transparent else MaterialTheme.colorScheme.onSurfaceVariant,
                 unfocusedBorderColor = if (invisibleBorder) Color.Transparent else MaterialTheme.colorScheme.onSurfaceVariant,
-                focusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                focusedTextColor = contentColor,
+                unfocusedTextColor = contentColor,
+                focusedTrailingIconColor = contentColor,
+                unfocusedTrailingIconColor = contentColor
             ),
             modifier = Modifier.menuAnchor().fillMaxWidth()
         )

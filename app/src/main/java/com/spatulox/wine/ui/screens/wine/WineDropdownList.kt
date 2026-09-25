@@ -29,7 +29,9 @@ fun WineDropdownList(
     excludeWineId: List<Int>? = null,
     selectedWine: Wine?,
     onSelectWine: (Wine) -> Unit,
-    distinctWineList: Boolean = false
+    distinctWineList: Boolean = false,
+    // Text and arrow color: must contrast with whatever is behind the transparent field
+    contentColor: Color = MaterialTheme.colorScheme.onSurfaceVariant
 ) {
 
     var expanded by remember { mutableStateOf(false) }
@@ -60,8 +62,10 @@ fun WineDropdownList(
                 focusedBorderColor = Color.Transparent,
                 unfocusedBorderColor = Color.Transparent,
                 disabledBorderColor = Color.Transparent,
-                focusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                focusedTextColor = contentColor,
+                unfocusedTextColor = contentColor,
+                focusedTrailingIconColor = contentColor,
+                unfocusedTrailingIconColor = contentColor
             ),
         )
 

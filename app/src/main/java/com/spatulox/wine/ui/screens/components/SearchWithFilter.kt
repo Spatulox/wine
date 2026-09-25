@@ -179,6 +179,7 @@ fun SearchWithFilters(
                                     applyFilter(selectionFilter("name"))
                                 },
                                 modifier = Modifier.weight(1f),
+                                contentColor = MaterialTheme.colorScheme.onPrimary,
                             )
                         }
 
@@ -200,6 +201,7 @@ fun SearchWithFilters(
                                     applyFilter(selectionFilter("year"))
                                 },
                                 modifier = Modifier.weight(1f),
+                                contentColor = MaterialTheme.colorScheme.onPrimary,
                             )
                         }
 
@@ -215,7 +217,8 @@ fun SearchWithFilters(
                                 expanded = expanded,
                                 onExpandedChange = { expanded = it },
                                 placeholder = "Sélectionner type...",
-                                invisibleBorder = true
+                                invisibleBorder = true,
+                                contentColor = MaterialTheme.colorScheme.onPrimary
                             )
                         }
 
@@ -231,7 +234,8 @@ fun SearchWithFilters(
                                 expanded = expanded,
                                 onExpandedChange = { expanded = it },
                                 placeholder = "Sélectionner format...",
-                                invisibleBorder = true
+                                invisibleBorder = true,
+                                contentColor = MaterialTheme.colorScheme.onPrimary
                             )
                         }
 
@@ -247,7 +251,8 @@ fun SearchWithFilters(
                                 expanded = expanded,
                                 onExpandedChange = { expanded = it },
                                 placeholder = "Sélectionner region...",
-                                invisibleBorder = true
+                                invisibleBorder = true,
+                                contentColor = MaterialTheme.colorScheme.onPrimary
                             )
                         }
 
@@ -261,6 +266,7 @@ fun SearchWithFilters(
                                     applyFilter(selectionFilter("wineId"))
                                 },
                                 modifier = Modifier.weight(1f),
+                                contentColor = MaterialTheme.colorScheme.onPrimary,
                             )
                         }
                     }
