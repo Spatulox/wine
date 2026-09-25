@@ -27,9 +27,9 @@ class CompartmentRepositoryImpl(val compartmentDao: CompartmentDao, val shelfRep
 
         return transactionProvider.run {
             val compID = compartmentDao.insert(CompartmentMapper.toEntity(comp))
-            shelves.forEach { shelf ->
+            shelves.forEachIndexed { index, shelf ->
                 shelfRepository.insert(
-                    shelf.copy(compartmentId = compID.toInt())
+                    shelf.copy(compartmentId = compID.toInt(), order = index)
                 )
             }
             return@run compID
@@ -68,27 +68,33 @@ class CompartmentRepositoryImpl(val compartmentDao: CompartmentDao, val shelfRep
             compartmentDao.update(CompartmentMapper.toEntity(comp))
 
             val existingShelves = shelfRepository.getShelvesByCompartmentId(comp.id)
-            existingShelves.forEach { existingShelf ->
-                // Avoid order update constrainst
-                shelfRepository.update(existingShelf.copy(order = shelves.size + existingShelf.order))
-
-                // Delete all shelf which do not exist in the new shelves list
-                if (!shelves.any { it.id == existingShelf.id }) {
-                    val stock = stockRepository.getStockByShelfId(existingShelf.id) // If there is stock in the shelf
-                    if(stock != null){
-                        // Throwing (not returning) rolls the whole transaction back
-                        error("Impossible de supprimer une ligne qui contient encore des bouteilles")
-                    }
-                    shelfRepository.delete(existingShelf.id)
-                }
+            val (keptShelves, removedShelves) = existingShelves.partition { existing ->
+                shelves.any { it.id == existing.id }
             }
 
-            shelves.forEach { shelf ->
-                val sh = shelfRepository.get(shelf.id)
-                if(sh != null){
-                    shelfRepository.update(shelf)
+            // Delete all shelf which do not exist in the new shelves list
+            removedShelves.forEach { removed ->
+                val stock = stockRepository.getStockByShelfId(removed.id) // If there is stock in the shelf
+                if(stock != null){
+                    // Throwing (not returning) rolls the whole transaction back
+                    error("Impossible de supprimer une ligne qui contient encore des bouteilles")
+                }
+                shelfRepository.delete(removed.id)
+            }
+
+            // Move the kept shelves above every current and final order first, so that the
+            // unique (compartmentId, order) index can't collide while renumbering
+            val offset = maxOf((existingShelves.maxOfOrNull { it.order } ?: 0) + 1, shelves.size)
+            keptShelves.forEach { kept ->
+                shelfRepository.update(kept.copy(order = offset + kept.order))
+            }
+
+            shelves.forEachIndexed { index, shelf ->
+                val ordered = shelf.copy(compartmentId = comp.id, order = index)
+                if (keptShelves.any { it.id == shelf.id }) {
+                    shelfRepository.update(ordered)
                 } else {
-                    shelfRepository.insert(shelf)
+                    shelfRepository.insert(ordered.copy(id = 0))
                 }
             }
             return@run comp.id

@@ -263,7 +263,7 @@ fun CompartmentActionDialog(
                             }
                             return@CompartmentPreview
                         }
-                        shelves = shelves - shelf
+                        shelves = (shelves - shelf).mapIndexed { i, s -> s.copy(order = i) }
                     }
                 )
                 Spacer(modifier = Modifier.height(24.dp))
