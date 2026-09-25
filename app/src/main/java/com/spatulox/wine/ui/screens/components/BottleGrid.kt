@@ -10,6 +10,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -106,6 +107,8 @@ fun BottleGrid(
             state = listState,
             horizontalArrangement = Arrangement.spacedBy(bottleSpacing, Alignment.CenterHorizontally),
             verticalAlignment = Alignment.CenterVertically,
+            // Staggered bottles are drawn up to staggerOffset outside their slot
+            contentPadding = PaddingValues(horizontal = staggerOffset),
             modifier = Modifier.fillMaxSize()
         ) {
             items(maxCols) { colIndex ->
