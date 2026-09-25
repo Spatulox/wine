@@ -1,6 +1,6 @@
 # Récapitulatif des corrections de l'audit
 
-Les corrections de l'audit (`AUDIT.md`) sont sur la branche **`fix/audit`** : 36 commits, un par bug ou sujet, plus le commit du rapport. La branche n'est ni poussée ni fusionnée.
+Les corrections de l'audit (`AUDIT.md`) sont sur la branche **`fix/audit`** : 37 commits, un par bug ou sujet, plus le commit du rapport. La branche n'est ni poussée ni fusionnée.
 
 - **Compilation :** `assembleDebug` passe avec le JDK 23 installé sur la machine.
 - **Tests :** l'app n'a pas été lancée. Rien n'a été testé sur un appareil.
@@ -58,6 +58,7 @@ L'édition d'un commentaire sur un emplacement de bouteille était entièrement 
 - [ ] Choisir une couleur à l'ajout d'un vin : elle doit être gardée.
 - [ ] Filtre par année, avec plusieurs vins de la même année.
 - [ ] Filtre par format, puis fermer et rouvrir la recherche.
+- [ ] Texte lisible dans la barre de recherche, en thème clair et sombre.
 - [ ] Tourner l'écran pendant la modification d'un compartiment.
 - [ ] Vérifier la liste des vins avec une région et un format longs : pas de texte en colonne.
 - [ ] Au premier lancement après la mise à jour : pas de crash, et tous les vins, compartiments et bouteilles sont toujours là.
@@ -110,3 +111,4 @@ Du plus ancien au plus récent :
 | `483f561` | chore: supprimer le code mort |
 | `3fc75b7` | fix(textes): coquilles affichées |
 | `9bf2388` | fix(db): migration 25 -> 26 manquante |
+| `7efa3ca` | fix(ui): texte illisible dans la barre de recherche |
