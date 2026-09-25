@@ -107,10 +107,27 @@ fun SearchWithFilters(
     var selectedWineFormat by remember { mutableStateOf<WineFormat?>(null) }
     var selectedWineRegion by remember { mutableStateOf<WineRegion?>(null) }
 
-    var isNameInit by remember { mutableStateOf(true) }
-    var isDateInit by remember { mutableStateOf(true) }
-    var isFormatInit by remember { mutableStateOf(true) }
-    var isTypeInit by remember { mutableStateOf(true) }
+    fun applyFilter(filter: Filter?) {
+        if (filter == null) {
+            wineViewModel.clearFilter()
+            stockViewModel.clearFilter()
+        } else {
+            wineViewModel.updateFilter(filter)
+            stockViewModel.updateFilter(filter)
+        }
+    }
+
+    // The filter matching what the search bar shows for a field. Enums always use their
+    // displayName, which is what FilterViewModel.applyFilter compares against
+    fun selectionFilter(field: String): Filter? = when (field) {
+        "name" -> selectedWine?.let { Filter(content = it.name, field = "name") }
+        "wineId" -> selectedWine?.let { Filter(content = it.id.toString(), field = "wineId") }
+        "year" -> year?.let { Filter(content = it.toString(), field = "year") }
+        "type" -> selectedWineType?.let { Filter(content = it.displayName, field = "type") }
+        "format" -> selectedWineFormat?.let { Filter(content = it.displayName, field = "format") }
+        "region" -> selectedWineRegion?.let { Filter(content = it.displayName, field = "region") }
+        else -> null
+    }
 
     val stockYears by stockViewModel.stockYears.collectAsStateWithLifecycle()
     val wineYears by wineViewModel.winesYears.collectAsStateWithLifecycle()
@@ -132,18 +149,22 @@ fun SearchWithFilters(
         else -> emptyList()
     }
 
+    // A filter set from elsewhere (a wine clicked in the wine list) is shown in the search bar
+    val activeFilter by wineViewModel.currentFilter.collectAsStateWithLifecycle()
+    LaunchedEffect(activeFilter) {
+        val filter = activeFilter ?: return@LaunchedEffect
+        if (filter.field == "wineId" && filter != selectionFilter(selectedField)) {
+            selectedField = "wineId"
+            selectedWine = wineState[filter.content.toIntOrNull()]
+        }
+    }
+
     FloatingActionButton(
         onClick = {
             onExpandedChange(!isExpanded)
-            if (!isExpanded) {
-                isNameInit = true
-                isDateInit = true
-                isFormatInit = true
-                isTypeInit = true
-                isFilterPopupVisible = false
-                wineViewModel.clearFilter()
-                stockViewModel.clearFilter()
-            }
+            isFilterPopupVisible = false
+            // Reopening the search restores the previous selection, closing it removes the filter
+            applyFilter(if (!isExpanded) selectionFilter(selectedField) else null)
         },
         modifier = modifier
             .padding(24.dp)
@@ -164,14 +185,6 @@ fun SearchWithFilters(
                     when(selectedField) {
 
                         "name" -> {
-                            if(isExpanded && isNameInit){
-                                isNameInit = false
-                                selectedWine?.let { wine ->
-                                    val filter = Filter(content = wine.name, field = "name")
-                                    wineViewModel.updateFilter(filter)
-                                    stockViewModel.updateFilter(filter)
-                                }
-                            }
                             WineDropdownList(
                                 wineViewModel = wineViewModel,
                                 selectedWine = selectedWine,
@@ -179,31 +192,19 @@ fun SearchWithFilters(
                                 distinctWineList = true,
                                 onSelectWine = { wine ->
                                     selectedWine = wine
-                                    val filter = Filter(content = wine.name, field = "name")
-                                    wineViewModel.updateFilter(filter)
-                                    stockViewModel.updateFilter(filter)
+                                    applyFilter(selectionFilter("name"))
                                 },
                                 modifier = Modifier.weight(1f),
                             )
                         }
 
                         "year" -> {
-                            if(isExpanded && isDateInit){
-                                isDateInit = false
-                                year?.let { year ->
-                                    val filter = Filter(content = year.toString(), field = "year")
-                                    wineViewModel.updateFilter(filter)
-                                    stockViewModel.updateFilter(filter)
-                                }
-                            }
                             // No year chosen yet: filter on the most recent available one
                             LaunchedEffect(availableYears) {
                                 if (year == null) {
                                     availableYears.lastOrNull()?.let { lastYear ->
                                         year = lastYear
-                                        val filter = Filter(content = lastYear.toString(), field = "year")
-                                        wineViewModel.updateFilter(filter)
-                                        stockViewModel.updateFilter(filter)
+                                        applyFilter(selectionFilter("year"))
                                     }
                                 }
                             }
@@ -212,31 +213,19 @@ fun SearchWithFilters(
                                 availableYears = availableYears,
                                 onYearChange = { lyear ->
                                     year = lyear
-                                    val filter = Filter(content = lyear.toString(), field = "year")
-                                    wineViewModel.updateFilter(filter)
-                                    stockViewModel.updateFilter(filter)
+                                    applyFilter(selectionFilter("year"))
                                 },
                                 modifier = Modifier.weight(1f),
                             )
                         }
 
                         "type" -> {
-                            if(isExpanded && isTypeInit){
-                                isTypeInit = false
-                                selectedWineType?.let { type ->
-                                    val filter = Filter(content = type.name, field = "type")
-                                    wineViewModel.updateFilter(filter)
-                                    stockViewModel.updateFilter(filter)
-                                }
-                            }
                             EnumDropdownField(
                                 selectedEnum = selectedWineType,
                                 enumClass = WineType::class,
                                 onSelectionChange = { displayName, enumValue ->
                                     selectedWineType = enumValue as WineType
-                                    val filter = Filter(content = displayName, field = "type")
-                                    wineViewModel.updateFilter(filter)
-                                    stockViewModel.updateFilter(filter)
+                                    applyFilter(selectionFilter("type"))
                                 },
                                 modifier = Modifier.weight(1f),
                                 expanded = expanded,
@@ -247,22 +236,12 @@ fun SearchWithFilters(
                         }
 
                         "format" -> {
-                            if(isExpanded && isFormatInit){
-                                isFormatInit = false
-                                selectedWineFormat?.let { format ->
-                                    val filter = Filter(content = format.name, field = "format")
-                                    wineViewModel.updateFilter(filter)
-                                    stockViewModel.updateFilter(filter)
-                                }
-                            }
                             EnumDropdownField(
                                 selectedEnum = selectedWineFormat,
                                 enumClass = WineFormat::class,
                                 onSelectionChange = { displayName, enumValue ->
                                     selectedWineFormat = enumValue as WineFormat
-                                    val filter = Filter(content = displayName, field = "format")
-                                    wineViewModel.updateFilter(filter)
-                                    stockViewModel.updateFilter(filter)
+                                    applyFilter(selectionFilter("format"))
                                 },
                                 modifier = Modifier.weight(1f),
                                 expanded = expanded,
@@ -273,22 +252,12 @@ fun SearchWithFilters(
                         }
 
                         "region" -> {
-                            if(isExpanded && isFormatInit){
-                                isFormatInit = false
-                                selectedWineRegion?.let { format ->
-                                    val filter = Filter(content = format.name, field = "region")
-                                    wineViewModel.updateFilter(filter)
-                                    stockViewModel.updateFilter(filter)
-                                }
-                            }
                             EnumDropdownField(
                                 selectedEnum = selectedWineRegion,
                                 enumClass = WineRegion::class,
                                 onSelectionChange = { displayName, enumValue ->
                                     selectedWineRegion = enumValue as WineRegion
-                                    val filter = Filter(content = displayName, field = "region")
-                                    wineViewModel.updateFilter(filter)
-                                    stockViewModel.updateFilter(filter)
+                                    applyFilter(selectionFilter("region"))
                                 },
                                 modifier = Modifier.weight(1f),
                                 expanded = expanded,
@@ -299,23 +268,13 @@ fun SearchWithFilters(
                         }
 
                         "wineId" -> {
-                            if(isExpanded && isNameInit){
-                                isNameInit = false
-                                selectedWine?.let { wine ->
-                                    val filter = Filter(content = wine.id.toString(), field = "wineId")
-                                    wineViewModel.updateFilter(filter)
-                                    stockViewModel.updateFilter(filter)
-                                }
-                            }
                             WineDropdownList(
                                 wineViewModel = wineViewModel,
                                 selectedWine = selectedWine,
                                 excludeWineId = excludeWineIds,
                                 onSelectWine = { wine ->
                                     selectedWine = wine
-                                    val filter = Filter(content = wine.id.toString(), field = "wineId")
-                                    wineViewModel.updateFilter(filter)
-                                    stockViewModel.updateFilter(filter)
+                                    applyFilter(selectionFilter("wineId"))
                                 },
                                 modifier = Modifier.weight(1f),
                             )
@@ -386,9 +345,7 @@ fun SearchWithFilters(
                                 option = filterFields[index],
                                 onClick = {
                                     selectedField = field
-                                    val filter = Filter(content = "", field = field)
-                                    wineViewModel.updateFilter(filter)
-                                    stockViewModel.updateFilter(filter)
+                                    applyFilter(selectionFilter(field))
                                     isFilterPopupVisible = false
                                 },
                                 modifier = Modifier.padding(bottom = 8.dp)
