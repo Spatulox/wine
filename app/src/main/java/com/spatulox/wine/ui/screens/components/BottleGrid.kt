@@ -136,38 +136,22 @@ fun BottleGrid(
                             }
 
                             val stockWithWine = stock?.get(pos)
-                            val wine = stockWithWine?.wine
-                            // Couleur selon état
+                            val isEmpty = stock != null && stockWithWine == null
                             val color = when {
-                                // 1. Stock & wine
-                                stockWithWine != null && wine != null && wines?.containsKey(wine.id) == true -> {
-                                    wines[wine.id]?.color ?: MaterialTheme.colorScheme.primary
-                                }
-                                // 2. No stock neither wines
-                                wines == null || wines.isEmpty() -> {
-                                    val colors = listOf(
-                                        Color(0xFFFF6B6B), // Coral
-                                        Color(0xFF4ECDC4), // Turquoise
-                                        Color(0xFF45B7D1), // Sky blue
-                                        Color(0xFF96CEB4), // Mint
-                                        Color(0xFFFFEEAD), // Pale yellow
-                                        Color(0xFFD4A5A5), // Light pink
-                                        Color(0xFF9B59B6), // Amethyst
-                                        Color(0xFF3498DB), // Blue
-                                        Color(0xFFE74C3C), // Red
-                                        Color(0xFF2ECC71)  // Emerald
-                                    )
-
-                                    colors[(pos.col + pos.shelf * 3 + pos.compartment) % colors.size]
-                                }
-
-                                // 3. Default
-                                else -> MaterialTheme.colorScheme.onSurfaceVariant
+                                // Shelf preview (no stock at all): a color per position
+                                stock == null -> PREVIEW_COLORS[(pos.col + pos.shelf * 3 + pos.compartment) % PREVIEW_COLORS.size]
+                                // Empty spot: drawn as an outline only
+                                stockWithWine == null -> MaterialTheme.colorScheme.outline
+                                // Bottle matching the current filter
+                                wines?.containsKey(stockWithWine.wine.id) == true ->
+                                    wines[stockWithWine.wine.id]?.color ?: MaterialTheme.colorScheme.primary
+                                // Bottle hidden by the current filter
+                                else -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.25f)
                             }
-
 
                             BottlePositionPreview(
                                 color = color,
+                                isEmpty = isEmpty,
                                 arrangement = shelf.arrangement,
                                 offsetX = offset,
                                 bottleSize = bottleSize,
@@ -220,6 +204,7 @@ fun BottleGrid(
 @Composable
 private fun BottlePositionPreview(
     color: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    isEmpty: Boolean = false,
     arrangement: BottlePosition,
     offsetX: Dp,
     bottleSize: Dp,
@@ -256,7 +241,10 @@ private fun BottlePositionPreview(
                 .align(Alignment.Center)
                 .scale(if (isDragging) 1.1f else 1f)
                 .alpha(if (isDragging) 0.7f else 1f)
-                .background(color, CircleShape)
+                .then(
+                    if (isEmpty) Modifier.border(2.dp, color, CircleShape)
+                    else Modifier.background(color, CircleShape)
+                )
         )
     }
 }
@@ -269,3 +257,16 @@ private fun InvisibleBottle(size: Dp) {
             .background(Color.Transparent, CircleShape)
     )
 }
+
+private val PREVIEW_COLORS = listOf(
+    Color(0xFFFF6B6B), // Coral
+    Color(0xFF4ECDC4), // Turquoise
+    Color(0xFF45B7D1), // Sky blue
+    Color(0xFF96CEB4), // Mint
+    Color(0xFFFFEEAD), // Pale yellow
+    Color(0xFFD4A5A5), // Light pink
+    Color(0xFF9B59B6), // Amethyst
+    Color(0xFF3498DB), // Blue
+    Color(0xFFE74C3C), // Red
+    Color(0xFF2ECC71)  // Emerald
+)
