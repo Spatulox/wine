@@ -79,12 +79,10 @@ fun OnBottlePositionClick(
 
     var isEditing by remember { mutableStateOf(false) }
 
-    val excludeWineIds = countStockedWine.entries
-        .filter { (wineId, count) ->
-            val wine = wineState[wineId]
-            count == 0 || (wine != null && count >= wine.qte)
-        }
-        .map { it.key }
+    // Only wines with bottles left to rack can be placed (including wines with nothing racked yet)
+    val excludeWineIds = wineState.values
+        .filter { wine -> wine.qte - (countStockedWine[wine.id] ?: 0) <= 0 }
+        .map { it.id }
 
 
     Dialog (

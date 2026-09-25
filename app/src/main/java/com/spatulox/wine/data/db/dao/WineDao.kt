@@ -45,7 +45,7 @@ interface WineDao {
     @Insert
     suspend fun insert(wine: WineEntity): Long
 
-    @Query("UPDATE wine SET qte = qte -1 WHERE id= :wineId")
+    @Query("UPDATE wine SET qte = qte - 1 WHERE id = :wineId AND qte > 0")
     suspend fun withdrawWine(wineId: Int)
 
     @Update
