@@ -15,10 +15,14 @@ import kotlinx.coroutines.flow.stateIn
 open class WineViewModel(
     private val wineRepository: WineRepository
 ) : FilterViewModel() {
-    val wines: StateFlow<Map<Int, Wine>> =
+    // Single Room query shared by every derived state below
+    private val allWines: StateFlow<List<Wine>> =
         wineRepository.getWineStream()
-            .map { wines -> wines.associateBy { it.id } }
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val wines: StateFlow<Map<Int, Wine>> = allWines
+        .map { wines -> wines.associateBy { it.id } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
     val winesYears: StateFlow<List<Int>> =
         wineRepository.getwineYearsStream()
@@ -28,8 +32,7 @@ open class WineViewModel(
                 emptyList()
             )
 
-    val winesByYearMap: StateFlow<Map<Int, Wine>> =
-        wineRepository.getWineStream()
+    val winesByYearMap: StateFlow<Map<Int, Wine>> = allWines
             .map { wines ->
                 wines
                     .sortedWith(compareByDescending<Wine> { it.year }.thenBy { it.name.lowercase() })

@@ -13,37 +13,23 @@ import kotlinx.coroutines.flow.stateIn
 open class StockViewModel(
     private val stockRepository: StockRepository
 ) : FilterViewModel() {
-    val stockState: StateFlow<Map<Position, StockWithWine>> =
+    // Single Room query (with its @Relation) shared by every derived state below
+    private val stocks: StateFlow<List<StockWithWine>> =
         stockRepository.getStockStream()
-            .map { stocks ->
-                stocks.associateBy { it.position }
-            }.stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5000),
-                initialValue = emptyMap()
-            )
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val stockByShelfId: StateFlow<Map<Int, List<StockWithWine>>> =
-        stockRepository.getStockStream()
-            .map { stocks ->
-                stocks.groupBy { it.position.shelf }
-            }
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5000),
-                initialValue = emptyMap()
-            )
+    val stockState: StateFlow<Map<Position, StockWithWine>> = stocks
+        .map { stocks -> stocks.associateBy { it.position } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
+    val stockByShelfId: StateFlow<Map<Int, List<StockWithWine>>> = stocks
+        .map { stocks -> stocks.groupBy { it.position.shelf } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
-    val countWineIdStocked: StateFlow<Map<Int, Int>> =
-        stockRepository.getStockStream()
-            .map { stocks ->
-                stocks.groupingBy { it.wine.id }.eachCount()
-            }.stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5000),
-                initialValue = emptyMap()
-            )
+    // Number of racked bottles per wine id
+    val countWineIdStocked: StateFlow<Map<Int, Int>> = stocks
+        .map { stocks -> stocks.groupingBy { it.wine.id }.eachCount() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
     val stockYears: StateFlow<List<Int>> =
         stockRepository.getStockYearsStream()
@@ -52,16 +38,6 @@ open class StockViewModel(
                 SharingStarted.WhileSubscribed(5000),
                 emptyList()
             )
-
-    val stockDistinctWineCount: StateFlow<Map<Int, Int>> = stockRepository.getStockStream()
-        .map { stocks ->
-            stocks.groupingBy { it.wine.id }.eachCount()
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyMap()
-        )
 
     suspend fun insert(stock: StockWithWine){
         stockRepository.insert(stock, "")

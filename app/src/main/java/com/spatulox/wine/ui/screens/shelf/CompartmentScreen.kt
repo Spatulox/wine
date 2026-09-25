@@ -113,15 +113,11 @@ fun CompartmentScreen(
         resetDrag()
     }
 
-    val unrackedWines = remember(winesPositionMap, stockState) {
+    val countStockedWine by stockViewModel.countWineIdStocked.collectAsStateWithLifecycle()
+
+    val unrackedWines = remember(winesPositionMap, countStockedWine) {
         winesPositionMap.values
-            .filter { it.qte > 0 }  // Vins présents
-            .associate { wine ->
-                val wineId = wine.id
-                val totalBottles = wine.qte  // Total à placer
-                val stockedBottles = stockState.values.count { it.wine.id == wineId }  // Déjà rangés
-                wineId to (totalBottles - stockedBottles).coerceAtLeast(0)
-            }
+            .associate { wine -> wine.id to wine.qte - (countStockedWine[wine.id] ?: 0) }
             .filterValues { it > 0 }  // Seulement celles à ranger
     }
 
@@ -225,7 +221,7 @@ fun CompartmentScreen(
                 }
             }
 
-            items(compartment.size) { index ->
+            items(compartment.size, key = { compartment[it].id }) { index ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center

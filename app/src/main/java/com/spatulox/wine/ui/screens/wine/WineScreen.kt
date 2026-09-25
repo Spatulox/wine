@@ -41,7 +41,7 @@ fun WineScreen(
     onChangeTabScreen: (Filter) -> Unit
 ) {
     val wines by wineViewModel.filteredWinesList.collectAsStateWithLifecycle()
-    val distincWineCounts by stockViewModel.stockDistinctWineCount.collectAsStateWithLifecycle()
+    val distincWineCounts by stockViewModel.countWineIdStocked.collectAsStateWithLifecycle()
 
     val allWines by wineViewModel.wines.collectAsStateWithLifecycle()
     // The id (not the Wine) is saved, so the edit dialog survives a rotation
