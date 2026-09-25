@@ -5,5 +5,5 @@ object Destinations {
     const val SHELF = "shelf"
     const val WINE = "wine"
     const val COMPARTMENT_ADD = "compartment/add"
-    const val COMPARTMENT_EDIT = "compartment/edit/{compartmentId}"
+    const val COMPARTMENT_EDIT = "compartment/edit"
 }
