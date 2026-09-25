@@ -71,7 +71,7 @@ fun WineAddDialog(
     var region by remember { mutableStateOf<WineRegion?>(null) }
     var unitPrice by remember { mutableStateOf<Float?>(null) }
     val priceText by remember(unitPrice) { derivedStateOf { unitPrice?.toString() ?: "" } }
-    var wineColor by remember { mutableStateOf<Color?>(null) }
+    var wineColor by remember { mutableStateOf<Color?>(DEFAULT_WINE_COLOR) }
     var comment by remember { mutableStateOf("") }
 
     val wines by wineViewModel.wines.collectAsStateWithLifecycle()
@@ -93,7 +93,6 @@ fun WineAddDialog(
     ) {
         val focusManager = LocalFocusManager.current
         val keyboardController = LocalSoftwareKeyboardController.current
-        wineColor = MaterialTheme.colorScheme.primary
         Card(
             modifier = Modifier
             .fillMaxWidth()
@@ -303,3 +302,6 @@ fun WineAddDialog(
         }
     }
 }
+
+// Fixed default instead of the (dynamic) theme color, so the stored color doesn't depend on the wallpaper
+private val DEFAULT_WINE_COLOR = Color(0xFF8E1B3A)

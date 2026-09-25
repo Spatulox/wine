@@ -30,6 +30,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import io.mhssn.colorpicker.ColorPicker
@@ -44,7 +45,9 @@ fun ButtonColorPicker(
 ) {
     var showDialog by remember { mutableStateOf(false) }
 
-    var displayColor = currentColor ?: MaterialTheme.colorScheme.surface
+    val displayColor = currentColor ?: MaterialTheme.colorScheme.surface
+    // Color being picked in the dialog, only applied on "OK"
+    var pickedColor by remember(showDialog) { mutableStateOf(displayColor) }
 
     Box(
         modifier = modifier
@@ -60,7 +63,7 @@ fun ButtonColorPicker(
         Icon(
             imageVector = Icons.Default.Edit,
             contentDescription = "Modifier couleur",
-            tint = Color.White,
+            tint = if (displayColor.luminance() > 0.5f) Color.Black else Color.White,
             modifier = Modifier
                 .size(20.dp)
                 .align(Alignment.Center)
@@ -96,11 +99,11 @@ fun ButtonColorPicker(
                     ColorPicker(
                         type = ColorPickerType.Circle(
                             showBrightnessBar = true,
-                            showAlphaBar = true,
+                            showAlphaBar = false,
                             lightCenter = true
                         ),
                         onPickedColor = {
-                            displayColor = it
+                            pickedColor = it
                         }
                     )
 
@@ -118,7 +121,7 @@ fun ButtonColorPicker(
 
                         TextButton(
                             onClick = {
-                                onColorChange(displayColor)
+                                onColorChange(pickedColor)
                                 showDialog = false
                             }
                         ) {
