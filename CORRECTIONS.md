@@ -1,6 +1,6 @@
 # Récapitulatif des corrections de l'audit
 
-Les corrections de l'audit (`AUDIT.md`) sont sur la branche **`fix/audit`** : 37 commits, un par bug ou sujet, plus le commit du rapport. La branche n'est ni poussée ni fusionnée.
+Les corrections de l'audit (`AUDIT.md`) sont sur la branche **`fix/audit`** : 38 commits, un par bug ou sujet, plus le commit du rapport. La branche n'est ni poussée ni fusionnée.
 
 - **Compilation :** `assembleDebug` passe avec le JDK 23 installé sur la machine.
 - **Tests :** l'app n'a pas été lancée. Rien n'a été testé sur un appareil.
@@ -112,3 +112,4 @@ Du plus ancien au plus récent :
 | `3fc75b7` | fix(textes): coquilles affichées |
 | `9bf2388` | fix(db): migration 25 -> 26 manquante |
 | `7efa3ca` | fix(ui): texte illisible dans la barre de recherche |
+| `4928646` | feat(wine): année par défaut à l'ajout = année en cours - 2 |
