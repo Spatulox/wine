@@ -28,13 +28,11 @@ interface StockDao {
     @Query("SELECT * FROM stock WHERE id= :id")
     suspend fun getStockById(id: Int): StockWithWineEntity?
 
-    @Transaction
-    @Query("SELECT * FROM stock WHERE shelfId= :id")
-    suspend fun getStockByShelfId(id: Int): StockWithWineEntity?
+    @Query("SELECT EXISTS(SELECT 1 FROM stock WHERE shelfId = :id)")
+    suspend fun hasStockInShelf(id: Int): Boolean
 
-    @Transaction
-    @Query("SELECT * FROM stock WHERE compartmentId= :id")
-    suspend fun getStockByCompartmentId(id: Int): StockWithWineEntity?
+    @Query("SELECT EXISTS(SELECT 1 FROM stock WHERE compartmentId = :id)")
+    suspend fun hasStockInCompartment(id: Int): Boolean
 
     @Transaction
     @Query("SELECT * FROM stock ORDER BY compartmentId, shelfId, col")

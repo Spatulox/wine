@@ -49,8 +49,7 @@ class CompartmentRepositoryImpl(val compartmentDao: CompartmentDao, val shelfRep
 
                 // Delete all comp which do not exist in the new comp list
                 if (!comps.any { it.id == existingComp.id }) {
-                    val stock = stockRepository.getStockByCompartmentId(existingComp.id) // If there is stock in the compartment
-                    if(stock != null){
+                    if (stockRepository.hasStockInCompartment(existingComp.id)) {
                         // Throwing (not returning) rolls the whole transaction back
                         error("Le compartiment ${existingComp.name} contient encore des bouteilles")
                     }
@@ -78,8 +77,7 @@ class CompartmentRepositoryImpl(val compartmentDao: CompartmentDao, val shelfRep
 
             // Delete all shelf which do not exist in the new shelves list
             removedShelves.forEach { removed ->
-                val stock = stockRepository.getStockByShelfId(removed.id) // If there is stock in the shelf
-                if(stock != null){
+                if (stockRepository.hasStockInShelf(removed.id)) {
                     // Throwing (not returning) rolls the whole transaction back
                     error("Impossible de supprimer une ligne qui contient encore des bouteilles")
                 }
@@ -108,8 +106,7 @@ class CompartmentRepositoryImpl(val compartmentDao: CompartmentDao, val shelfRep
     override suspend fun delete(comp: Compartment): String? {
 
         return transactionProvider.run {
-            val stock = stockRepository.getStockByCompartmentId(comp.id)
-            if(stock != null){
+            if (stockRepository.hasStockInCompartment(comp.id)) {
                 return@run "Impossible de supprimer ce compartiment : il contient encore des bouteilles"
             }
             val shelf = shelfRepository.getShelvesByCompartmentId(comp.id)

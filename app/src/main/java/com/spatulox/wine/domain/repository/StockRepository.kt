@@ -11,8 +11,8 @@ interface StockRepository {
     suspend fun getStock(): List<StockWithWine>
     suspend fun getStockById(id: Int): StockWithWine?
     suspend fun getStockByPos(pos: Position): StockWithWine?
-    suspend fun getStockByShelfId(id: Int): StockWithWine?
-    suspend fun getStockByCompartmentId(id: Int): StockWithWine?
+    suspend fun hasStockInShelf(shelfId: Int): Boolean
+    suspend fun hasStockInCompartment(compartmentId: Int): Boolean
     fun getStockStream(): Flow<List<StockWithWine>>
     fun getStockYearsStream(): Flow<List<Int>>
     suspend fun insert(stock: StockWithWine, reason: String): Long
