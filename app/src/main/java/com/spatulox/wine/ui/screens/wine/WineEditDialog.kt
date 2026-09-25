@@ -6,6 +6,8 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
@@ -44,6 +46,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.spatulox.wine.domain.enum.WineFormat
@@ -127,20 +130,21 @@ fun WineEditDialog(
 
             Row(
                 modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    ButtonColorPicker(
-                        currentColor = editedWineColor,
-                        onColorChange = { editedWineColor = it }
-                    )
-                    Text(
-                        text = "Modifier le vin",
-                        style = MaterialTheme.typography.titleLarge,
-                    )
-                }
+                ButtonColorPicker(
+                    currentColor = editedWineColor,
+                    onColorChange = { editedWineColor = it }
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                // Weighted so a large font can't push the delete button out of the dialog
+                Text(
+                    text = "Modifier le vin",
+                    style = MaterialTheme.typography.titleLarge,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
                 IconButton(
                     onClick = { showDeleteConfirm = true },
                 ) {
