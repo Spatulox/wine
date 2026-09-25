@@ -2,8 +2,7 @@ package com.spatulox.wine.viewModels
 
 import android.database.sqlite.SQLiteConstraintException
 import androidx.lifecycle.viewModelScope
-import com.spatulox.wine.data.repository.WineRepositoryImpl
-import com.spatulox.wine.domain.model.Position
+import com.spatulox.wine.domain.repository.WineRepository
 import com.spatulox.wine.domain.model.Wine
 import com.spatulox.wine.ui.screens.components.Filter
 import kotlinx.coroutines.flow.SharingStarted
@@ -13,12 +12,16 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 open class WineViewModel(
-    private val wineRepository: WineRepositoryImpl
+    private val wineRepository: WineRepository
 ) : FilterViewModel() {
-    val wines: StateFlow<Map<Int, Wine>> =
+    // Single Room query shared by every derived state below
+    private val allWines: StateFlow<List<Wine>> =
         wineRepository.getWineStream()
-            .map { wines -> wines.associateBy { it.id } }
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val wines: StateFlow<Map<Int, Wine>> = allWines
+        .map { wines -> wines.associateBy { it.id } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
     val winesYears: StateFlow<List<Int>> =
         wineRepository.getwineYearsStream()
@@ -28,8 +31,7 @@ open class WineViewModel(
                 emptyList()
             )
 
-    val winesByYearMap: StateFlow<Map<Int, Wine>> =
-        wineRepository.getWineStream()
+    val winesByYearMap: StateFlow<Map<Int, Wine>> = allWines
             .map { wines ->
                 wines
                     .sortedWith(compareByDescending<Wine> { it.year }.thenBy { it.name.lowercase() })
@@ -37,13 +39,6 @@ open class WineViewModel(
             }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
-
-    val winesByYearAsc: StateFlow<List<Wine>> = wines
-        .map { winesMap ->
-            winesMap.values
-                .sortedWith(compareBy<Wine> { it.year }.thenBy { it.name.lowercase() })
-        }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val winesByYearDesc: StateFlow<List<Wine>> = wines
         .map { winesMap ->
@@ -81,9 +76,6 @@ open class WineViewModel(
             emptyMap()
         )
 
-    suspend fun getWineByPos(pos: Position): Wine?{
-        return wineRepository.getWineByPos(pos)
-    }
     suspend fun addWine(wine: Wine): Boolean {
         return try {
             wineRepository.insert(wine)
@@ -93,12 +85,14 @@ open class WineViewModel(
         }
     }
 
-    suspend fun withdrawWine(wine: Wine){
-        wineRepository.withdrawWine(wine)
-    }
-
-    suspend fun updateWine(wine: Wine){
-        wineRepository.update(wine)
+    // Returns false when the (name, year, format) unique constraint is violated
+    suspend fun updateWine(wine: Wine): Boolean {
+        return try {
+            wineRepository.update(wine)
+            true
+        } catch (e: SQLiteConstraintException) {
+            false
+        }
     }
 
     suspend fun deleteWine(wine: Wine): Boolean{

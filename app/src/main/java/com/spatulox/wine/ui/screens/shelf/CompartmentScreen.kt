@@ -1,10 +1,13 @@
 package com.spatulox.wine.ui.screens.shelf
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -12,11 +15,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -40,7 +41,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -53,7 +53,6 @@ import com.spatulox.wine.viewModels.ShelfViewModel
 import com.spatulox.wine.viewModels.StockViewModel
 import com.spatulox.wine.viewModels.WineViewModel
 import kotlinx.coroutines.launch
-import kotlin.math.roundToInt
 
 @Composable
 fun CompartmentScreen(
@@ -79,48 +78,54 @@ fun CompartmentScreen(
     var draggedPosition by remember { mutableStateOf<Position?>(null) }
     var hoveredPosition by remember { mutableStateOf<Position?>(null) }
     var currentDragFingerPos by remember { mutableStateOf<Offset?>(null) }
-    var endOfDrag by remember { mutableStateOf<Boolean>(false) }
-    val rectBounds = remember { mutableStateMapOf<Rect, Position>() }
     val positionBounds = remember { mutableStateMapOf<Position, Rect>() }
 
-    LaunchedEffect(isEditing) {
-        if (!isEditing) {
-            draggedPosition = null
-            hoveredPosition = null
+    fun resetDrag() {
+        draggedPosition = null
+        hoveredPosition = null
+        currentDragFingerPos = null
+    }
+
+    // Always resets the drag state, whether the bottle is dropped on a free spot, an occupied
+    // one or in the void
+    fun endDrag() {
+        val from = draggedPosition
+        val to = hoveredPosition
+        resetDrag()
+        if (from == null || to == null || from == to) return
+        val stock = stockState[from] ?: return
+        coroutine.launch {
+            if (stockState[to] != null || !stockViewModel.move(stock, to)) {
+                SnackbarManager.send("Impossible de déplacer la bouteille ici : l'emplacement est déjà occupé")
+            }
         }
     }
 
-    val unrackedWines = remember(winesPositionMap, stockState) {
+    // Entering or leaving the edit mode never inherits a previous drag
+    LaunchedEffect(isEditing) {
+        resetDrag()
+    }
+
+    val countStockedWine by stockViewModel.countWineIdStocked.collectAsStateWithLifecycle()
+
+    val unrackedWines = remember(winesPositionMap, countStockedWine) {
         winesPositionMap.values
-            .filter { it.qte > 0 }  // Vins présents
-            .associate { wine ->
-                val wineId = wine.id
-                val totalBottles = wine.qte  // Total à placer
-                val stockedBottles = stockState.values.count { it.wine.id == wineId }  // Déjà rangés
-                wineId to (totalBottles - stockedBottles).coerceAtLeast(0)
-            }
+            .associate { wine -> wine.id to wine.qte - (countStockedWine[wine.id] ?: 0) }
             .filterValues { it > 0 }  // Seulement celles à ranger
     }
 
     val unrackedWinesCount = unrackedWines.values.sum()
 
-    val errorMessage by remember(unrackedWines) {
-        mutableStateOf(
-            if (unrackedWinesCount > 0) {
-                buildString {
-                    append("$unrackedWinesCount bouteille(s) à ranger :")
-                    unrackedWines.entries
-                        .sortedByDescending { it.value }
-                        .forEach { (wineId, count) ->
-                            val wine = winesPositionMap[wineId]!!
-                            append("\n• ${wine.name} ${wine.year} (${wine.format.displayName}) : $count")
-                        }
+    val unrackedLines = remember(unrackedWines) {
+        unrackedWines.entries
+            .sortedByDescending { it.value }
+            .mapNotNull { (wineId, count) ->
+                winesPositionMap[wineId]?.let { wine ->
+                    "• ${wine.name} ${wine.year} (${wine.format.displayName}) : $count"
                 }
-            } else {
-                ""
             }
-        )
     }
+    var isUnrackedExpanded by rememberSaveable { mutableStateOf(false) }
 
 
     fun moveUp(index: Int) {
@@ -130,7 +135,9 @@ fun CompartmentScreen(
         mutable[index - 1] = mutable[index]
         mutable[index] = tmp
         coroutine.launch {
-            compartmentViewModel.updateOrder(mutable.mapIndexed { i, comp -> comp.copy(order = i) })
+            if (!compartmentViewModel.updateOrder(mutable.mapIndexed { i, comp -> comp.copy(order = i) })) {
+                SnackbarManager.send("Impossible de changer l'ordre des compartiments")
+            }
         }
     }
 
@@ -141,7 +148,9 @@ fun CompartmentScreen(
         mutable[index + 1] = mutable[index]
         mutable[index] = tmp
         coroutine.launch {
-            compartmentViewModel.updateOrder(mutable.mapIndexed { i, comp -> comp.copy(order = i) })
+            if (!compartmentViewModel.updateOrder(mutable.mapIndexed { i, comp -> comp.copy(order = i) })) {
+                SnackbarManager.send("Impossible de changer l'ordre des compartiments")
+            }
         }
     }
 
@@ -157,32 +166,55 @@ fun CompartmentScreen(
         }
     ) {
 
-        if (errorMessage.isNotBlank() && !isEditing) {
-            Card(
-                colors = CardDefaults.elevatedCardColors(
-                    containerColor = MaterialTheme.colorScheme.errorContainer,
-                    contentColor = MaterialTheme.colorScheme.onErrorContainer
-                ),
-                shape = MaterialTheme.shapes.small,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 16.dp, end = 16.dp, top = 16.dp)
-            ) {
-                Text(
-                    text = errorMessage,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(12.dp)
-                )
-            }
-        }
-
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             contentPadding = PaddingValues(16.dp)
         ) {
-            items(compartment.size) { index ->
+            // Part of the list (and collapsed by default) so a long list of wines to rack
+            // can't push the cellar off-screen
+            if (unrackedWinesCount > 0 && !isEditing) {
+                item {
+                    Card(
+                        colors = CardDefaults.elevatedCardColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer
+                        ),
+                        shape = MaterialTheme.shapes.small,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { isUnrackedExpanded = !isUnrackedExpanded }
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "$unrackedWinesCount bouteille(s) à ranger",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Icon(
+                                    imageVector = if (isUnrackedExpanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                                    contentDescription = if (isUnrackedExpanded) "Masquer le détail" else "Afficher le détail"
+                                )
+                            }
+                            if (isUnrackedExpanded) {
+                                unrackedLines.forEach { line ->
+                                    Text(
+                                        text = line,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            items(compartment.size, key = { compartment[it].id }) { index ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
@@ -224,13 +256,11 @@ fun CompartmentScreen(
                         stock = stockState,
                         wines = winesPositionMap,
                         isParentEditing = isEditing,
-                        rectBounds = rectBounds,
                         positionBounds = positionBounds,
                         draggedPosition = draggedPosition,
                         hoveredPosition = hoveredPosition,
                         onFingerPositionUpdate = { newPos -> currentDragFingerPos = newPos },
                         onPositionDragStart = { position, _ ->
-                            endOfDrag = false
                             if (stockState[position] != null) {
                                 draggedPosition = position
                                 hoveredPosition = null
@@ -239,13 +269,8 @@ fun CompartmentScreen(
                         onPositionDragHover = { hoverPos ->
                             hoveredPosition = hoverPos
                         },
-                        onDragEnd = { _ ->
-                            endOfDrag = true
-                        },
-                        onDragCancel = {
-                            draggedPosition = null
-                            hoveredPosition = null
-                        },
+                        onDragEnd = { _ -> endDrag() },
+                        onDragCancel = { resetDrag() },
                         onPositionClick = { position ->
                             if(!isEditing){
                                 positionClicked = position
@@ -299,66 +324,13 @@ fun CompartmentScreen(
                 .padding(start = 16.dp, end = 16.dp, top = 16.dp)
         ) {
             Text(
-                text = "Moving",
+                text = "Déplacement…",
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(12.dp)
             )
         }
     }
 
-
-    if(isEditing && draggedPosition != null && currentDragFingerPos != null) {
-        /*Box(
-            modifier = Modifier
-                .offset {
-                    IntOffset(
-                        currentDragFingerPos!!.x.roundToInt(),
-                        currentDragFingerPos!!.y.roundToInt()
-                    )
-                }
-                .size(16.dp)
-                .background(
-                    MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
-                    CircleShape
-                )
-                .border(2.dp, MaterialTheme.colorScheme.primaryContainer, CircleShape)
-        )*/
-    }
-
-
-    if (isEditing && endOfDrag && draggedPosition != null && hoveredPosition != null) {
-
-        if(stockState[hoveredPosition] != null) {
-            hoveredPosition = null
-            draggedPosition = null
-            return
-        }
-        MoveBottleDialog(
-            from = draggedPosition!!,
-            to = hoveredPosition!!,
-            stockState = stockState,
-            onMove = { from, to ->
-                coroutine.launch {
-                    val stock = stockState[from]
-                    stock?.let {
-                        if(stockState[to] != null){
-                            SnackbarManager.send("You can't move the bottle here, there is already another one...")
-                            return@let
-                        }
-                        stockViewModel.delete(from)
-                        stockViewModel.insert(it.copy(position = to))
-                    }
-                }
-                // Reset état
-                draggedPosition = null
-                hoveredPosition = null
-            },
-            onCancel = {
-                draggedPosition = null
-                hoveredPosition = null
-            }
-        )
-    }
 
     if (!isEditing && positionClicked != null) {
             OnBottlePositionClick(
@@ -368,17 +340,8 @@ fun CompartmentScreen(
                 onPlaceStock = {stock ->
                     coroutine.launch { stockViewModel.insert(stock) }
                 },
-                onEditStock = {stock ->
-                    coroutine.launch { stockViewModel.update(stock) }
-                },
-                onWithdraw = {position, comment ->
-                    coroutine.launch {
-                        val wine = wineViewModel.getWineByPos(position)
-                        if(wine != null){
-                            stockViewModel.withdraw(position, comment)
-                            wineViewModel.withdrawWine(wine)
-                        }
-                    }
+                onWithdraw = { position ->
+                    coroutine.launch { stockViewModel.withdraw(position) }
                 },
                 onDeleteStock = {position ->
                     coroutine.launch { stockViewModel.delete(position) }

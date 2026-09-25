@@ -6,6 +6,6 @@ enum class WineType(val displayName: String) {
     BLANC("Blanc"),
     ROSE("Rosé"),
     CHAMPAGNE("Champagne"),
-    MOUSSEUX("Mousseaux"),
+    MOUSSEUX("Mousseux"),
     AUTRE("Autre")
 }

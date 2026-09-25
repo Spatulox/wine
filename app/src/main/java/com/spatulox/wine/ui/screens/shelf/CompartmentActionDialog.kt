@@ -1,11 +1,6 @@
 package com.spatulox.wine.ui.screens.shelf
 
-import android.graphics.drawable.Icon
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,25 +8,19 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -46,7 +35,6 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButtonDefaults.Icon
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -59,35 +47,31 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.spatulox.wine.SnackbarManager
 import com.spatulox.wine.domain.enum.BottlePosition
 import com.spatulox.wine.domain.enum.ShelfInterleave
 import com.spatulox.wine.domain.model.Compartment
 import com.spatulox.wine.domain.model.Position
 import com.spatulox.wine.domain.model.Shelf
-import com.spatulox.wine.send
 import com.spatulox.wine.ui.screens.components.BottleGrid
+import com.spatulox.wine.ui.screens.components.ConfirmDialog
 import com.spatulox.wine.ui.screens.components.EnumDropdownField
 import com.spatulox.wine.viewModels.CompartmentViewModel
 import com.spatulox.wine.viewModels.ShelfViewModel
 import com.spatulox.wine.viewModels.StockViewModel
 import kotlinx.coroutines.launch
-import kotlin.math.roundToInt
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -103,15 +87,18 @@ fun CompartmentActionDialog(
     val compartment by compartmentViewModel.compartments.collectAsStateWithLifecycle()
     val stock by stockViewModel.stockByShelfId.collectAsStateWithLifecycle()
 
-    var name by remember { mutableStateOf("") }
-
+    var name by rememberSaveable { mutableStateOf("") }
+    // Loaded once from the database, then kept (with the user's edits) across recreations
+    var isLoaded by rememberSaveable { mutableStateOf(false) }
+    var existingOrder by rememberSaveable { mutableStateOf<Int?>(null) }
 
     // État lignes
-    var shelves by remember { mutableStateOf(listOf<Shelf>()) }
+    var shelves by rememberSaveable(stateSaver = ShelvesSaver) { mutableStateOf(listOf<Shelf>()) }
     val shelfOrder by remember(shelves) { derivedStateOf { shelves.lastOrNull()?.order?.let { it + 1 } ?: 0 } }
     val compOrder by remember(compartment) { derivedStateOf { compartment.lastOrNull()?.order?.let { it + 1 } ?: 0 } }
     var showAddShelfDialog by remember { mutableStateOf(false) }
-    var newShelfCols by remember { mutableStateOf("6") }
+    var showDeleteConfirm by remember { mutableStateOf(false) }
+    var newShelfCols by rememberSaveable { mutableStateOf("6") }
     var newShelfInterleaveExpanded by remember { mutableStateOf(false) }
     var newShelfBottleExpanded by remember { mutableStateOf(false) }
     var newShelfInterleave by remember { mutableStateOf<ShelfInterleave>(ShelfInterleave.STRAIGHT) }
@@ -125,19 +112,15 @@ fun CompartmentActionDialog(
     val keyboardController = LocalSoftwareKeyboardController.current
 
     LaunchedEffect(compartmentId) {
+        if (isLoaded) return@LaunchedEffect
         compartmentId?.toIntOrNull()?.let { id ->
-            val compartment = compartmentViewModel.getCompartmentById(id)
-            compartment?.let {
-                name = it.name
-
-                val localshelves = shelfViewModel.getShelvesByCompartmentId(id)
-                localshelves?.let {
-                    shelves = localshelves
-                }
-
+            compartmentViewModel.loadCompartment(id)?.let { compartment ->
+                name = compartment.name
+                existingOrder = compartment.order
+                shelves = compartmentViewModel.loadShelves(id)
             }
-
         }
+        isLoaded = true
     }
 
     val duplicateError by remember(name, shelves.size) {
@@ -167,26 +150,13 @@ fun CompartmentActionDialog(
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, "Retour")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Retour")
                     }
                 },
                 actions = {
                     if (compartmentId != null) {
                         IconButton(
-                            onClick = {
-                                coroutine.launch {
-                                    val id = compartmentId.toInt()
-                                    val compartment = compartmentViewModel.getCompartmentById(id)
-                                    compartment?.let {
-                                        val res = compartmentViewModel.delete(compartment)
-                                        if (res != null) {
-                                            snackbarHostState.showSnackbar(res)
-                                            return@launch
-                                        }
-                                        navController.popBackStack()
-                                    }
-                                }
-                            },
+                            onClick = { showDeleteConfirm = true },
                             colors = IconButtonDefaults.iconButtonColors(
                                 containerColor = Color.Transparent,
                                 contentColor = MaterialTheme.colorScheme.error
@@ -259,11 +229,11 @@ fun CompartmentActionDialog(
                     onShelvesDelete = { shelf ->
                         stock[shelf.id]?.size?.let {
                             coroutine.launch {
-                                snackbarHostState.showSnackbar("You can't delete this shelf since there is wine stocked inside...")
+                                snackbarHostState.showSnackbar("Impossible de supprimer cette ligne : elle contient encore des bouteilles")
                             }
                             return@CompartmentPreview
                         }
-                        shelves = shelves - shelf
+                        shelves = (shelves - shelf).mapIndexed { i, s -> s.copy(order = i) }
                     }
                 )
                 Spacer(modifier = Modifier.height(24.dp))
@@ -294,19 +264,20 @@ fun CompartmentActionDialog(
                         val compartment = Compartment(
                             id = compartmentId?.toInt() ?: 0,
                             name = name,
-                            order = compOrder
+                            // Only a new compartment goes at the end, an edited one keeps its place
+                            order = existingOrder ?: compOrder
                         )
 
-                        compartmentId?.let {
-                            coroutine.launch {
-                                compartmentViewModel.update(compartment, shelves)
-                                navController.popBackStack()
-                            }
-                            return@Button
-                        }
-
                         coroutine.launch {
-                            compartmentViewModel.insert(compartment, shelves)
+                            val error = if (compartmentId != null) {
+                                compartmentViewModel.update(compartment, shelves)
+                            } else {
+                                compartmentViewModel.insert(compartment, shelves)
+                            }
+                            if (error != null) {
+                                snackbarHostState.showSnackbar(error)
+                                return@launch
+                            }
                             navController.popBackStack()
                         }
                     },
@@ -316,6 +287,31 @@ fun CompartmentActionDialog(
                 }
             }
         }
+    }
+
+    if (showDeleteConfirm && compartmentId != null) {
+        ConfirmDialog(
+            title = "Supprimer le compartiment ?",
+            text = "Le compartiment « $name » et toutes ses lignes seront supprimés.",
+            confirmLabel = "Supprimer",
+            onConfirm = {
+                showDeleteConfirm = false
+                coroutine.launch {
+                    val compartment = Compartment(
+                        id = compartmentId.toInt(),
+                        name = name,
+                        order = existingOrder ?: compOrder
+                    )
+                    val res = compartmentViewModel.delete(compartment)
+                    if (res != null) {
+                        snackbarHostState.showSnackbar(res)
+                        return@launch
+                    }
+                    navController.popBackStack()
+                }
+            },
+            onDismiss = { showDeleteConfirm = false }
+        )
     }
 
     // DIALOG Ajout ligne
@@ -533,3 +529,22 @@ private fun CompartmentPreview(
     }
 }
 
+// Shelf is a plain data class: saved as a flat list of its fields
+private val ShelvesSaver = listSaver<List<Shelf>, Any>(
+    save = { shelves ->
+        shelves.flatMap { listOf(it.id, it.name, it.compartmentId, it.order, it.col, it.aligment.name, it.arrangement.name) }
+    },
+    restore = { fields ->
+        fields.chunked(7).map {
+            Shelf(
+                id = it[0] as Int,
+                name = it[1] as String,
+                compartmentId = it[2] as Int,
+                order = it[3] as Int,
+                col = it[4] as Int,
+                aligment = ShelfInterleave.valueOf(it[5] as String),
+                arrangement = BottlePosition.valueOf(it[6] as String)
+            )
+        }
+    }
+)

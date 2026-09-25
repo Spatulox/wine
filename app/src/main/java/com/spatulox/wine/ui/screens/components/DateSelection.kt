@@ -3,8 +3,8 @@ package com.spatulox.wine.ui.screens.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -12,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import java.time.LocalDate
@@ -21,15 +22,15 @@ fun DateSelection(
     year: Int?,
     onYearChange: (Int) -> Unit,
     availableYears: List<Int>? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    contentColor: Color = MaterialTheme.colorScheme.onSurfaceVariant
 ) {
 
     val displayYear = when {
         year != null -> year
         availableYears?.isNotEmpty() == true -> availableYears.last()
-        else -> LocalDate.now().year - 3
+        else -> LocalDate.now().year - 2
     }
-    onYearChange(displayYear)
 
     Row(
         modifier = modifier,
@@ -39,21 +40,19 @@ fun DateSelection(
         IconButton(
             onClick = {
                 if (availableYears?.isNotEmpty() == true) {
-                    val currentIndex = availableYears.indexOf(year)
-                    if (currentIndex > 0) {
-                        onYearChange( (availableYears[currentIndex - 1]) )
-                    }
+                    // Nearest previous year: works with duplicates or a year missing from the list
+                    availableYears.filter { it < displayYear }.maxOrNull()?.let(onYearChange)
                 } else {
-                    onYearChange((displayYear - 1))
+                    onYearChange((displayYear - 1).coerceAtLeast(MIN_YEAR))
                 }
             }
         ) {
-            Icon(Icons.Filled.KeyboardArrowLeft, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, "Année précédente", tint = contentColor)
         }
 
         Text(
-            text = "${year}",
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            text = "$displayYear",
+            color = contentColor,
             style = MaterialTheme.typography.headlineSmall,
             modifier = Modifier.weight(1f),
             textAlign = TextAlign.Center
@@ -62,16 +61,15 @@ fun DateSelection(
         IconButton(
             onClick = {
                 if (availableYears?.isNotEmpty() == true) {
-                    val currentIndex = availableYears.indexOf(year)
-                    if (currentIndex < availableYears.lastIndex) {
-                        onYearChange(availableYears[currentIndex + 1])
-                    }
+                    availableYears.filter { it > displayYear }.minOrNull()?.let(onYearChange)
                 } else {
                     onYearChange((displayYear + 1).coerceAtMost(LocalDate.now().year))
                 }
             }
         ) {
-            Icon(Icons.Filled.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, "Année suivante", tint = contentColor)
         }
     }
 }
+
+private const val MIN_YEAR = 1900

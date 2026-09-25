@@ -1,6 +1,5 @@
 package com.spatulox.wine.ui.screens.wine
 
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,9 +10,6 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -24,11 +20,11 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -37,7 +33,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -49,6 +44,8 @@ import com.spatulox.wine.ui.screens.components.ButtonColorPicker
 import com.spatulox.wine.ui.screens.components.DateSelection
 import com.spatulox.wine.ui.screens.components.EnumDropdownField
 import com.spatulox.wine.ui.screens.components.NumberField
+import com.spatulox.wine.ui.screens.components.PriceField
+import com.spatulox.wine.ui.screens.components.parsePrice
 import com.spatulox.wine.viewModels.WineViewModel
 import java.time.LocalDate
 import kotlin.math.roundToInt
@@ -58,45 +55,39 @@ import kotlin.math.roundToInt
 fun WineAddDialog(
     wineViewModel: WineViewModel,
     onDismiss: () -> Unit,
-    onValidate: (Wine) -> Unit
+    onValidate: (Wine) -> Unit,
+    saveError: String? = null
 ) {
-    var name by remember { mutableStateOf("") }
-    var type by remember { mutableStateOf<WineType>(WineType.ROUGE) }
-    var year by remember { mutableStateOf(LocalDate.now().year - 3) }
-    var stars by remember { mutableStateOf(0) }
-    var format by remember { mutableStateOf(WineFormat.BOTTLE) }
-    var qte by remember { mutableStateOf(6) }
-    val qteText by remember(qte) { derivedStateOf { qte.toString() } }
-    var region by remember { mutableStateOf<WineRegion?>(null) }
-    var unitPrice by remember { mutableStateOf<Float?>(null) }
-    val priceText by remember(unitPrice) { derivedStateOf { unitPrice?.toString() ?: "" } }
-    var wineColor by remember { mutableStateOf<Color?>(null) }
-    var comment by remember { mutableStateOf("") }
+    var name by rememberSaveable { mutableStateOf("") }
+    var type by rememberSaveable { mutableStateOf<WineType>(WineType.ROUGE) }
+    var year by rememberSaveable { mutableStateOf(LocalDate.now().year - 2) }
+    var stars by rememberSaveable { mutableStateOf(0) }
+    var format by rememberSaveable { mutableStateOf(WineFormat.BOTTLE) }
+    var qte by rememberSaveable { mutableStateOf(6) }
+    var region by rememberSaveable { mutableStateOf<WineRegion?>(null) }
+    var priceText by rememberSaveable { mutableStateOf("") }
+    var wineColor by remember { mutableStateOf<Color?>(DEFAULT_WINE_COLOR) }
+    var comment by rememberSaveable { mutableStateOf("") }
 
-    var errorMessage by remember { mutableStateOf("") }
     val wines by wineViewModel.wines.collectAsStateWithLifecycle()
-    val duplicateError by remember(name, year, type, format, wines) {
+    // Same fields and case sensitivity as the unique (name, year, format) index
+    val isDuplicate by remember(name, year, format, wines) {
         derivedStateOf {
-            wines.values.find { existing ->
-                existing.name.equals(name.trim(), ignoreCase = true) &&
+            wines.values.any { existing ->
+                existing.name == name.trim() &&
                         existing.year == year &&
-                        existing.type == type &&
                         existing.format == format
-            }?.let {
-                "Duplicate Entry"
-            } ?: ""
+            }
         }
     }
-    LaunchedEffect(duplicateError) {
-        errorMessage = duplicateError
-    }
+    val errorMessage = saveError
+        ?: if (isDuplicate) "Ce vin existe déjà (même nom, année et format)" else ""
 
     Dialog(
         onDismissRequest = onDismiss,
     ) {
         val focusManager = LocalFocusManager.current
         val keyboardController = LocalSoftwareKeyboardController.current
-        wineColor = MaterialTheme.colorScheme.primary
         Card(
             modifier = Modifier
             .fillMaxWidth()
@@ -220,29 +211,12 @@ fun WineAddDialog(
                             value = qte,
                             onValueChange = { qte = it },
                             minValue = 0,
-                            startValue = 6,
-                            label = "Nombres de bouteilles :"
+                            label = "Nombre de bouteilles"
                         )
 
-                        OutlinedTextField(
+                        PriceField(
                             value = priceText,
-                            onValueChange = { text ->
-                                val cleaned = text.filter { it.isDigit() || it == '.' }
-                                val hasDot = cleaned.contains('.')
-                                val dotParts = cleaned.split('.')
-
-                                val validText = if (hasDot && dotParts[1].length > 2) {
-                                    dotParts[0] + "." + dotParts[1].take(2)
-                                } else cleaned
-
-                                unitPrice = validText.toFloatOrNull() ?: 0f
-                            },
-                            label = { Text("Prix unitaire (€)") },
-                            prefix = { Text("€") },
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Decimal
-                            ),
-                            singleLine = true,
+                            onValueChange = { priceText = it },
                             modifier = Modifier.fillMaxWidth()
                         )
 
@@ -284,7 +258,7 @@ fun WineAddDialog(
                                                 year = year,
                                                 format = format,
                                                 type = type,
-                                                unitPrice = unitPrice,
+                                                unitPrice = parsePrice(priceText),
                                                 stars = stars,
                                                 qte = qte,
                                                 region = region,
@@ -295,7 +269,7 @@ fun WineAddDialog(
                                     }
                                 },
                                 modifier = Modifier.weight(1f),
-                                enabled = name.isNotBlank()
+                                enabled = name.isNotBlank() && !isDuplicate
                             ) {
                                 Text("Ajouter")
                             }
@@ -306,3 +280,6 @@ fun WineAddDialog(
         }
     }
 }
+
+// Fixed default instead of the (dynamic) theme color, so the stored color doesn't depend on the wallpaper
+private val DEFAULT_WINE_COLOR = Color(0xFF8E1B3A)

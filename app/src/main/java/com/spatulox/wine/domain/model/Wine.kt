@@ -12,7 +12,7 @@ data class Wine(
     val format: WineFormat,
     val type: WineType,
     val unitPrice: Float?,
-    var stars: Int,
+    val stars: Int,
     val qte: Int,
     val region: WineRegion?,
     val color: Color? = null,

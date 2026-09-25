@@ -9,10 +9,8 @@ import com.spatulox.wine.domain.model.Shelf
 import com.spatulox.wine.domain.repository.CompartmentRepository
 import com.spatulox.wine.domain.repository.ShelfRepository
 import com.spatulox.wine.domain.repository.StockRepository
-import com.spatulox.wine.ui.screens.shelf.CompartmentScreen
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlin.collections.map
 
 class CompartmentRepositoryImpl(val compartmentDao: CompartmentDao, val shelfRepository: ShelfRepository, val stockRepository: StockRepository, val transactionProvider: TransactionProvider): CompartmentRepository {
 
@@ -24,13 +22,17 @@ class CompartmentRepositoryImpl(val compartmentDao: CompartmentDao, val shelfRep
         return compartmentDao.getAllCompartments().map { CompartmentMapper.toDomain(it) }
     }
 
+    override suspend fun getById(id: Int): Compartment? {
+        return compartmentDao.getById(id)?.let { CompartmentMapper.toDomain(it) }
+    }
+
     override suspend fun insert(comp: Compartment, shelves: List<Shelf>): Long {
 
         return transactionProvider.run {
             val compID = compartmentDao.insert(CompartmentMapper.toEntity(comp))
-            shelves.forEach { shelf ->
+            shelves.forEachIndexed { index, shelf ->
                 shelfRepository.insert(
-                    shelf.copy(compartmentId = compID.toInt())
+                    shelf.copy(compartmentId = compID.toInt(), order = index)
                 )
             }
             return@run compID
@@ -46,9 +48,9 @@ class CompartmentRepositoryImpl(val compartmentDao: CompartmentDao, val shelfRep
 
                 // Delete all comp which do not exist in the new comp list
                 if (!comps.any { it.id == existingComp.id }) {
-                    val stock = stockRepository.getStockByCompartmentId(existingComp.id) // If there is stock in the compartment
-                    if(stock != null){
-                        return@run false
+                    if (stockRepository.hasStockInCompartment(existingComp.id)) {
+                        // Throwing (not returning) rolls the whole transaction back
+                        error("Le compartiment ${existingComp.name} contient encore des bouteilles")
                     }
                     compartmentDao.delete(existingComp.id)
                 }
@@ -68,26 +70,32 @@ class CompartmentRepositoryImpl(val compartmentDao: CompartmentDao, val shelfRep
             compartmentDao.update(CompartmentMapper.toEntity(comp))
 
             val existingShelves = shelfRepository.getShelvesByCompartmentId(comp.id)
-            existingShelves.forEach { existingShelf ->
-                // Avoid order update constrainst
-                shelfRepository.update(existingShelf.copy(order = shelves.size + existingShelf.order))
-
-                // Delete all shelf which do not exist in the new shelves list
-                if (!shelves.any { it.id == existingShelf.id }) {
-                    val stock = stockRepository.getStockByShelfId(existingShelf.id) // If there is stock in the shelf
-                    if(stock != null){
-                        return@run -1
-                    }
-                    shelfRepository.delete(existingShelf.id)
-                }
+            val (keptShelves, removedShelves) = existingShelves.partition { existing ->
+                shelves.any { it.id == existing.id }
             }
 
-            shelves.forEach { shelf ->
-                val sh = shelfRepository.get(shelf.id)
-                if(sh != null){
-                    shelfRepository.update(shelf)
+            // Delete all shelf which do not exist in the new shelves list
+            removedShelves.forEach { removed ->
+                if (stockRepository.hasStockInShelf(removed.id)) {
+                    // Throwing (not returning) rolls the whole transaction back
+                    error("Impossible de supprimer une ligne qui contient encore des bouteilles")
+                }
+                shelfRepository.delete(removed.id)
+            }
+
+            // Move the kept shelves above every current and final order first, so that the
+            // unique (compartmentId, order) index can't collide while renumbering
+            val offset = maxOf((existingShelves.maxOfOrNull { it.order } ?: 0) + 1, shelves.size)
+            keptShelves.forEach { kept ->
+                shelfRepository.update(kept.copy(order = offset + kept.order))
+            }
+
+            shelves.forEachIndexed { index, shelf ->
+                val ordered = shelf.copy(compartmentId = comp.id, order = index)
+                if (keptShelves.any { it.id == shelf.id }) {
+                    shelfRepository.update(ordered)
                 } else {
-                    shelfRepository.insert(shelf)
+                    shelfRepository.insert(ordered.copy(id = 0))
                 }
             }
             return@run comp.id
@@ -97,9 +105,8 @@ class CompartmentRepositoryImpl(val compartmentDao: CompartmentDao, val shelfRep
     override suspend fun delete(comp: Compartment): String? {
 
         return transactionProvider.run {
-            val stock = stockRepository.getStockByCompartmentId(comp.id)
-            if(stock != null){
-                return@run "There is stock inside the compartment you want to delete"
+            if (stockRepository.hasStockInCompartment(comp.id)) {
+                return@run "Impossible de supprimer ce compartiment : il contient encore des bouteilles"
             }
             val shelf = shelfRepository.getShelvesByCompartmentId(comp.id)
 
@@ -108,7 +115,7 @@ class CompartmentRepositoryImpl(val compartmentDao: CompartmentDao, val shelfRep
                     shelfRepository.delete(shelf)
                 }
             } catch (e: SQLiteConstraintException) {
-                return@run "Can't delete all the shelf from the compartment"
+                return@run "Impossible de supprimer les lignes du compartiment"
             }
 
             compartmentDao.delete(CompartmentMapper.toEntity(comp))

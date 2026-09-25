@@ -6,7 +6,7 @@ enum class WineFormat(val displayName: String, val capacityMl: Int) {
     MAGNUM("Magnum", 1500),
     JEROBOAM("Jéroboam", 3000),
     REHOBOAM("Réhoboam", 4500),
-    METHUSELAH("Matusalem", 6000),
+    METHUSELAH("Mathusalem", 6000),
     SALMANAZAR("Salmanazar", 9000),
     BALTHAZAR("Balthazar", 12000),
     NEBUCHadneZZAR("Nabuchodonosor", 15000),

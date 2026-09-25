@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -40,77 +41,46 @@ fun WineScreen(
     onChangeTabScreen: (Filter) -> Unit
 ) {
     val wines by wineViewModel.filteredWinesList.collectAsStateWithLifecycle()
-    val distincWineCounts by stockViewModel.stockDistinctWineCount.collectAsStateWithLifecycle()
+    val distincWineCounts by stockViewModel.countWineIdStocked.collectAsStateWithLifecycle()
 
-    var selectedWineForEdit by remember { mutableStateOf<Wine?>(null) }
-    var selectedWine by remember { mutableStateOf<Wine?>(null) }
+    val allWines by wineViewModel.wines.collectAsStateWithLifecycle()
+    // The id (not the Wine) is saved, so the edit dialog survives a rotation
+    var selectedWineIdForEdit by rememberSaveable { mutableStateOf<Int?>(null) }
+    val selectedWineForEdit = selectedWineIdForEdit?.let { allWines[it] }
+    var editError by remember { mutableStateOf<String?>(null) }
+    var addError by remember { mutableStateOf<String?>(null) }
 
     val coroutineScope = rememberCoroutineScope()
-
-    selectedWine?.let { wine ->
-        onChangeTabScreen(Filter(wine.id.toString(), "wineId"))
-    }
 
     selectedWineForEdit?.let { wine ->
         WineEditDialog(
             wine = wine,
             distincWineCounts = distincWineCounts,
-            onDismiss = { selectedWineForEdit = null },
+            saveError = editError,
+            onDismiss = {
+                selectedWineIdForEdit = null
+                editError = null
+            },
             onValidate = { updatedWine ->
                 coroutineScope.launch {
-                    wineViewModel.updateWine(updatedWine)
+                    if (wineViewModel.updateWine(updatedWine)) {
+                        selectedWineIdForEdit = null
+                        editError = null
+                    } else {
+                        editError = "Un vin avec ce nom, cette année et ce format existe déjà"
+                    }
                 }
-                selectedWineForEdit = null
             },
             onDelete = {
                 coroutineScope.launch {
                     if(!wineViewModel.deleteWine(wine)){
-                        SnackbarManager.send("Wine exist in cave, cannot delete it !")
+                        SnackbarManager.send("Ce vin a encore des bouteilles rangées dans la cave, impossible de le supprimer")
                     }
                 }
-                selectedWineForEdit = null
+                selectedWineIdForEdit = null
             }
         )
     }
-
-    /*val winesTest by remember {
-        mutableStateOf(
-            mapOf(
-                1 to Wine(
-                    id = 1,
-                    name = "Château Margaux",
-                    year = 2018,
-                    format = WineFormat.BOTTLE,
-                    type = WineType.ROUGE,
-                    stars = 5
-                ),
-                2 to Wine(
-                    id = 2,
-                    name = "Domaine Romanée-Conti",
-                    year = 2015,
-                    format = WineFormat.MAGNUM,
-                    type = WineType.ROUGE,
-                    stars = 4
-                ),
-                3 to Wine(
-                    id = 3,
-                    name = "Pétrus",
-                    year = 2020,
-                    format = WineFormat.BOTTLE,
-                    type = WineType.ROUGE,
-                    stars = 5
-                ),
-                4 to Wine(
-                    id = 4,
-                    name = "Bordeaux Supérieur",
-                    year = 2022,
-                    format = WineFormat.BOTTLE,
-                    type = WineType.ROUGE,
-                    stars = 3
-                )
-            )
-        )
-    }*/
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -119,8 +89,9 @@ fun WineScreen(
     ) {
         if (wines.isEmpty()) {
             item {
+                // fillParentMaxSize: fillMaxSize has no effect on the height of a lazy item
                 Box(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillParentMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
                     Column(
@@ -148,8 +119,8 @@ fun WineScreen(
             ) { index, wine ->
                 WineItem(
                     wine = wine,
-                    onClick = { selectedWine = wine },
-                    onUpdateClick = { selectedWineForEdit = wine }
+                    onClick = { onChangeTabScreen(Filter(wine.id.toString(), "wineId")) },
+                    onUpdateClick = { selectedWineIdForEdit = wine.id }
                 )
             }
         }
@@ -157,16 +128,23 @@ fun WineScreen(
 
     if (showAddDialog) {
         WineAddDialog(
-            onDismiss = { onAddDialogChange(false) },
+            onDismiss = {
+                onAddDialogChange(false)
+                addError = null
+            },
             onValidate = { newWine ->
                 coroutineScope.launch {
-                    if(!wineViewModel.addWine(newWine)){
-                        SnackbarManager.send("Duplicate entry")
+                    // Only close on success, so the input isn't lost
+                    if (wineViewModel.addWine(newWine)) {
+                        onAddDialogChange(false)
+                        addError = null
+                    } else {
+                        addError = "Ce vin existe déjà (même nom, année et format)"
                     }
                 }
-                onAddDialogChange(false)
             },
-            wineViewModel = wineViewModel
+            wineViewModel = wineViewModel,
+            saveError = addError
         )
     }
 }

@@ -8,10 +8,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class ShelfRepositoryImpl(private val shelfDao: ShelfDao): ShelfRepository {
-    override suspend fun get(id: Int): Shelf? {
-        return ShelfMapper.toDomain(shelfDao.get(id) ?: return null)
-    }
-
     override suspend fun insert(shelf: Shelf) {
         shelfDao.insert(ShelfMapper.toEntity(shelf))
     }

@@ -4,10 +4,11 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.material3.Text
+import androidx.activity.viewModels
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.spatulox.wine.data.db.DatabaseProvider
 import com.spatulox.wine.data.db.TransactionProvider
 import com.spatulox.wine.data.repository.CompartmentRepositoryImpl
@@ -23,27 +24,28 @@ import com.spatulox.wine.viewModels.WineViewModel
 
 class MainActivity : ComponentActivity() {
 
-    private lateinit var wineViewModel: WineViewModel
-    private lateinit var stockViewModel: StockViewModel
-    private lateinit var shelfViewModel: ShelfViewModel
-    private lateinit var compartmentViewModel: CompartmentViewModel
+    private val db by lazy { DatabaseProvider.getDatabase(applicationContext) }
+    private val transactionProvider by lazy { TransactionProvider(db) }
+    private val wineRepository by lazy { WineRepositoryImpl(db.wineDao()) }
+    private val stockRepository by lazy { StockRepositoryImpl(db.stockDao(), db.wineDao(), transactionProvider) }
+    private val shelfRepository by lazy { ShelfRepositoryImpl(db.shelfDao()) }
+    private val compartmentRepository by lazy {
+        CompartmentRepositoryImpl(db.compartmentDao(), shelfRepository, stockRepository, transactionProvider)
+    }
 
+    // Created through the ViewModelProvider: they survive rotations and are cleared with the activity
+    private val wineViewModel: WineViewModel by viewModels { factory { WineViewModel(wineRepository) } }
+    private val stockViewModel: StockViewModel by viewModels { factory { StockViewModel(stockRepository) } }
+    private val shelfViewModel: ShelfViewModel by viewModels { factory { ShelfViewModel(shelfRepository) } }
+    private val compartmentViewModel: CompartmentViewModel by viewModels {
+        factory { CompartmentViewModel(compartmentRepository, shelfRepository) }
+    }
+
+    private inline fun <reified VM : ViewModel> factory(noinline create: () -> VM) =
+        viewModelFactory { initializer { create() } }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        val db = DatabaseProvider.getDatabase(applicationContext)
-        val transactionProvider = TransactionProvider(db)
-
-        val wineRepository = WineRepositoryImpl(db.wineDao())
-        val stockRepository = StockRepositoryImpl(db.stockDao(), transactionProvider)
-        val shelfRepository = ShelfRepositoryImpl(db.shelfDao())
-        val compartmentRepository = CompartmentRepositoryImpl(db.compartmentDao(), shelfRepository, stockRepository,  transactionProvider)
-
-        wineViewModel = WineViewModel(wineRepository)
-        stockViewModel = StockViewModel(stockRepository)
-        shelfViewModel = ShelfViewModel(shelfRepository)
-        compartmentViewModel = CompartmentViewModel(compartmentRepository, shelfRepository)
 
         enableEdgeToEdge()
         setContent {

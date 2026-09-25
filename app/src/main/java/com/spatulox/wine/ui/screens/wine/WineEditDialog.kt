@@ -1,30 +1,21 @@
 package com.spatulox.wine.ui.screens.wine
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -43,7 +34,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.spatulox.wine.domain.enum.WineFormat
@@ -51,9 +42,13 @@ import com.spatulox.wine.domain.enum.WineRegion
 import com.spatulox.wine.domain.enum.WineType
 import com.spatulox.wine.domain.model.Wine
 import com.spatulox.wine.ui.screens.components.ButtonColorPicker
+import com.spatulox.wine.ui.screens.components.ConfirmDialog
 import com.spatulox.wine.ui.screens.components.DateSelection
 import com.spatulox.wine.ui.screens.components.EnumDropdownField
 import com.spatulox.wine.ui.screens.components.NumberField
+import com.spatulox.wine.ui.screens.components.PriceField
+import com.spatulox.wine.ui.screens.components.formatPriceInput
+import com.spatulox.wine.ui.screens.components.parsePrice
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -64,7 +59,8 @@ fun WineEditDialog(
     onDismiss: () -> Unit,
     onValidate: (Wine) -> Unit,
     onDelete: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    saveError: String? = null
 ) {
     var editedName by remember(wine) { mutableStateOf(wine.name) }
     var editedYear by remember(wine) { mutableStateOf(wine.year) }
@@ -75,8 +71,28 @@ fun WineEditDialog(
     var editedStars by remember(wine) { mutableStateOf(wine.stars) }
     var editedWineColor by remember { mutableStateOf<Color?>(wine.color) }
     var comment by remember { mutableStateOf(wine.comment) }
+    var priceText by remember(wine) { mutableStateOf(formatPriceInput(wine.unitPrice)) }
 
-    var errorMessage by remember(editedQte, distincWineCounts[wine.id]) { mutableStateOf("") }
+    val stockedCount = distincWineCounts[wine.id] ?: 0
+    val errorMessage = if (editedQte < stockedCount) {
+        "Impossible de mettre moins que le nombre de bouteilles rangées dans la cave ($stockedCount)"
+    } else {
+        ""
+    }
+
+    var showDeleteConfirm by remember { mutableStateOf(false) }
+    if (showDeleteConfirm) {
+        ConfirmDialog(
+            title = "Supprimer le vin ?",
+            text = "« ${wine.name} ${wine.year} » sera définitivement supprimé.",
+            confirmLabel = "Supprimer",
+            onConfirm = {
+                showDeleteConfirm = false
+                onDelete()
+            },
+            onDismiss = { showDeleteConfirm = false }
+        )
+    }
 
     Dialog (
         onDismissRequest = onDismiss,
@@ -102,22 +118,23 @@ fun WineEditDialog(
 
             Row(
                 modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    ButtonColorPicker(
-                        currentColor = editedWineColor,
-                        onColorChange = { editedWineColor = it }
-                    )
-                    Text(
-                        text = "Modifier le vin",
-                        style = MaterialTheme.typography.titleLarge,
-                    )
-                }
+                ButtonColorPicker(
+                    currentColor = editedWineColor,
+                    onColorChange = { editedWineColor = it }
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                // Weighted so a large font can't push the delete button out of the dialog
+                Text(
+                    text = "Modifier le vin",
+                    style = MaterialTheme.typography.titleLarge,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
                 IconButton(
-                    onClick = onDelete,
+                    onClick = { showDeleteConfirm = true },
                 ) {
                     Icon(
                         imageVector = Icons.Default.Delete,
@@ -134,6 +151,23 @@ fun WineEditDialog(
                 item {
 
                     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        saveError?.let { error ->
+                            Card(
+                                colors = CardDefaults.elevatedCardColors(
+                                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                                    contentColor = MaterialTheme.colorScheme.onErrorContainer
+                                ),
+                                shape = MaterialTheme.shapes.small,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = error,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    modifier = Modifier.padding(12.dp)
+                                )
+                            }
+                        }
+
                         OutlinedTextField(
                             value = editedName,
                             onValueChange = { editedName = it },
@@ -191,6 +225,12 @@ fun WineEditDialog(
                             placeholder = "Region"
                         )
 
+                        PriceField(
+                            value = priceText,
+                            onValueChange = { priceText = it },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
                         if (errorMessage.isNotBlank()) {
                             Card(
                                 colors = CardDefaults.elevatedCardColors(
@@ -211,19 +251,9 @@ fun WineEditDialog(
                         NumberField(
                             modifier = Modifier.fillMaxWidth(),
                             value = editedQte,
-                            onValueChange = { qte ->
-                                editedQte = qte
-                                val currentStockCount = distincWineCounts[wine.id] ?: 0
-                                if (qte <= currentStockCount) {
-                                    errorMessage =
-                                        "Impossible de mettre moins que le stock actuel rangé dans la cave ($currentStockCount)"
-                                } else {
-                                    errorMessage = ""
-                                }
-                            },
-                            minValue = distincWineCounts[wine.id] ?: 0,
-                            startValue = wine.qte,
-                            label = "Nombres de bouteilles :"
+                            onValueChange = { qte -> editedQte = qte },
+                            minValue = stockedCount,
+                            label = "Nombre de bouteilles"
                         )
 
                         Column {
@@ -269,11 +299,13 @@ fun WineEditDialog(
                                         qte = editedQte,
                                         stars = editedStars,
                                         color = editedWineColor,
-                                        comment = comment
+                                        comment = comment,
+                                        unitPrice = parsePrice(priceText)
                                     )
                                 )
                             },
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
+                            enabled = editedName.isNotBlank() && errorMessage.isBlank()
                         ) {
                             Text("Valider")
                         }

@@ -1,36 +1,24 @@
 
 package com.spatulox.wine.ui.screens.components
 
-import android.widget.HorizontalScrollView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
@@ -43,6 +31,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
@@ -65,7 +55,6 @@ fun BottleGrid(
     bottleSize: Dp = 40.dp,
     neckSize: Dp = 20.dp,
     staggerOffset: Dp = 26.dp,
-    rectBounds: SnapshotStateMap<Rect, Position>? = null,
     positionBounds: SnapshotStateMap<Position, Rect>? = null,
     isDraggingEnabled: Boolean = false,
     draggedPosition: Position? = null,
@@ -86,8 +75,8 @@ fun BottleGrid(
     fun findTargetPosition(fingerPos: Offset): Position? {
         val tolerancePx = with(density) { (bottleSize / 2 + bottleSpacing / 2).toPx() }
 
-        return rectBounds?.entries
-            ?.mapNotNull { (bounds, pos) ->
+        return positionBounds?.entries
+            ?.mapNotNull { (pos, bounds) ->
                 val distance = hypot(
                     fingerPos.x - bounds.center.x,
                     fingerPos.y - bounds.center.y
@@ -106,6 +95,8 @@ fun BottleGrid(
             state = listState,
             horizontalArrangement = Arrangement.spacedBy(bottleSpacing, Alignment.CenterHorizontally),
             verticalAlignment = Alignment.CenterVertically,
+            // Staggered bottles are drawn up to staggerOffset outside their slot
+            contentPadding = PaddingValues(horizontal = staggerOffset),
             modifier = Modifier.fillMaxSize()
         ) {
             items(maxCols) { colIndex ->
@@ -127,46 +118,39 @@ fun BottleGrid(
                                 col = colIndex
                             )
 
-                            val stockWithWine = stock?.get(pos)
-                            val wine = stockWithWine?.wine
-                            // Couleur selon état
-                            val color = when {
-                                // 1. Stock & wine
-                                stockWithWine != null && wine != null && wines?.containsKey(wine.id) == true -> {
-                                    wines[wine.id]?.color ?: MaterialTheme.colorScheme.primary
+                            if (positionBounds != null) {
+                                // A position leaving the composition (scrolled away, deleted shelf...)
+                                // must not stay a drop target at its last known place
+                                DisposableEffect(pos) {
+                                    onDispose { positionBounds.remove(pos) }
                                 }
-                                // 2. No stock neither wines
-                                wines == null || wines.isEmpty() -> {
-                                    val colors = listOf(
-                                        Color(0xFFFF6B6B), // Coral
-                                        Color(0xFF4ECDC4), // Turquoise
-                                        Color(0xFF45B7D1), // Sky blue
-                                        Color(0xFF96CEB4), // Mint
-                                        Color(0xFFFFEEAD), // Pale yellow
-                                        Color(0xFFD4A5A5), // Light pink
-                                        Color(0xFF9B59B6), // Amethyst
-                                        Color(0xFF3498DB), // Blue
-                                        Color(0xFFE74C3C), // Red
-                                        Color(0xFF2ECC71)  // Emerald
-                                    )
-
-                                    colors[(pos.col + pos.shelf * 3 + pos.compartment) % colors.size]
-                                }
-
-                                // 3. Default
-                                else -> MaterialTheme.colorScheme.onSurfaceVariant
                             }
 
+                            val stockWithWine = stock?.get(pos)
+                            val isEmpty = stock != null && stockWithWine == null
+                            val color = when {
+                                // Shelf preview (no stock at all): a color per position
+                                stock == null -> PREVIEW_COLORS[(pos.col + pos.shelf * 3 + pos.compartment) % PREVIEW_COLORS.size]
+                                // Empty spot: drawn as an outline only
+                                stockWithWine == null -> MaterialTheme.colorScheme.outline
+                                // Bottle matching the current filter
+                                wines?.containsKey(stockWithWine.wine.id) == true ->
+                                    wines[stockWithWine.wine.id]?.color ?: MaterialTheme.colorScheme.primary
+                                // Bottle hidden by the current filter
+                                else -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.25f)
+                            }
 
                             BottlePositionPreview(
                                 color = color,
+                                isEmpty = isEmpty,
+                                description = stockWithWine?.wine?.let { "${it.name} ${it.year}" }
+                                    ?: "Emplacement vide",
                                 arrangement = shelf.arrangement,
                                 offsetX = offset,
                                 bottleSize = bottleSize,
                                 neckSize = neckSize,
                                 isDragging = draggedPosition == pos && isDraggingEnabled,
                                 positionBounds = { bounds ->
-                                    rectBounds?.let { rectBounds[bounds] = pos }
                                     positionBounds?.let { positionBounds[pos] = bounds }
                                 },
                                 modifier = Modifier
@@ -189,11 +173,6 @@ fun BottleGrid(
                                             onFingerPositionUpdate(fingerPosAbsolu)
                                             val targetPos = findTargetPosition(fingerPosAbsolu) // Find the target with a error margin
 
-                                            /*println(rectBounds)
-                                            println("initPosition: $initPosition / offset: $offset / doigt=$fingerPosAbsolu")
-                                            println("${Position(1,1, 0)} ${positionBounds[Position(1,1, 0)]}")
-                                            println("${Position(1,1, 1)} ${positionBounds[Position(1,1, 1)]}")
-                                            println("${targetPos}  ${positionBounds[targetPos]}")*/
                                             if(targetPos != null) {
                                                 onPositionDragHover(targetPos)
                                             } else {
@@ -218,18 +197,23 @@ fun BottleGrid(
 @Composable
 private fun BottlePositionPreview(
     color: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    isEmpty: Boolean = false,
+    description: String? = null,
     arrangement: BottlePosition,
     offsetX: Dp,
     bottleSize: Dp,
     neckSize: Dp,
     isDragging: Boolean = false,
-    positionBounds: (Rect) -> Unit = {}, // ← NOUVEAU : callback pour les bounds
+    positionBounds: (Rect) -> Unit = {},
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
     Box(
-        modifier = modifier
+        modifier = Modifier
             .offset(x = offsetX)
+            // Gestures after the offset: the touch area and the drag coordinates match the drawn
+            // bottle and its reported bounds
+            .then(modifier)
             .size(bottleSize)
             .onGloballyPositioned { coords ->
                 val newBounds = Rect(
@@ -239,6 +223,7 @@ private fun BottlePositionPreview(
                 positionBounds(newBounds)
             }
             .clickable { onClick() }
+            .semantics { description?.let { contentDescription = it } }
     ) {
         Box(
             modifier = Modifier
@@ -251,7 +236,10 @@ private fun BottlePositionPreview(
                 .align(Alignment.Center)
                 .scale(if (isDragging) 1.1f else 1f)
                 .alpha(if (isDragging) 0.7f else 1f)
-                .background(color, CircleShape)
+                .then(
+                    if (isEmpty) Modifier.border(2.dp, color, CircleShape)
+                    else Modifier.background(color, CircleShape)
+                )
         )
     }
 }
@@ -264,3 +252,16 @@ private fun InvisibleBottle(size: Dp) {
             .background(Color.Transparent, CircleShape)
     )
 }
+
+private val PREVIEW_COLORS = listOf(
+    Color(0xFFFF6B6B), // Coral
+    Color(0xFF4ECDC4), // Turquoise
+    Color(0xFF45B7D1), // Sky blue
+    Color(0xFF96CEB4), // Mint
+    Color(0xFFFFEEAD), // Pale yellow
+    Color(0xFFD4A5A5), // Light pink
+    Color(0xFF9B59B6), // Amethyst
+    Color(0xFF3498DB), // Blue
+    Color(0xFFE74C3C), // Red
+    Color(0xFF2ECC71)  // Emerald
+)
