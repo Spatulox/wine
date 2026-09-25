@@ -37,25 +37,35 @@ class CompartmentViewModel(
         return compartments.value.find { it.id == id }
     }
 
-    suspend fun insert(compartment: Compartment, shelves: List<Shelf>) {
-        compartmentRepository.insert(compartment, shelves)
+    // Returns null on success, or an error message
+    suspend fun insert(compartment: Compartment, shelves: List<Shelf>): String? {
+        return try {
+            compartmentRepository.insert(compartment, shelves)
+            null
+        } catch (e: SQLiteConstraintException) {
+            "Impossible de créer le compartiment"
+        }
     }
 
     suspend fun updateOrder(compartments: List<Compartment>): Boolean {
         return try {
             compartmentRepository.updateOrder(compartments)
-            true
         } catch (e: SQLiteConstraintException) {
+            false
+        } catch (e: IllegalStateException) {
             false
         }
     }
 
-    suspend fun update(compartment: Compartment, shelves: List<Shelf>): Boolean {
+    // Returns null on success, or an error message
+    suspend fun update(compartment: Compartment, shelves: List<Shelf>): String? {
         return try {
             compartmentRepository.update(compartment, shelves)
-            true
+            null
         } catch (e: SQLiteConstraintException) {
-            false
+            "Impossible de mettre à jour le compartiment"
+        } catch (e: IllegalStateException) {
+            e.message ?: "Impossible de mettre à jour le compartiment"
         }
     }
 

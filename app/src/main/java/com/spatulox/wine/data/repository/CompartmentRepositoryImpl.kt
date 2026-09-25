@@ -9,7 +9,6 @@ import com.spatulox.wine.domain.model.Shelf
 import com.spatulox.wine.domain.repository.CompartmentRepository
 import com.spatulox.wine.domain.repository.ShelfRepository
 import com.spatulox.wine.domain.repository.StockRepository
-import com.spatulox.wine.ui.screens.shelf.CompartmentScreen
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlin.collections.map
@@ -48,7 +47,8 @@ class CompartmentRepositoryImpl(val compartmentDao: CompartmentDao, val shelfRep
                 if (!comps.any { it.id == existingComp.id }) {
                     val stock = stockRepository.getStockByCompartmentId(existingComp.id) // If there is stock in the compartment
                     if(stock != null){
-                        return@run false
+                        // Throwing (not returning) rolls the whole transaction back
+                        error("Le compartiment ${existingComp.name} contient encore des bouteilles")
                     }
                     compartmentDao.delete(existingComp.id)
                 }
@@ -76,7 +76,8 @@ class CompartmentRepositoryImpl(val compartmentDao: CompartmentDao, val shelfRep
                 if (!shelves.any { it.id == existingShelf.id }) {
                     val stock = stockRepository.getStockByShelfId(existingShelf.id) // If there is stock in the shelf
                     if(stock != null){
-                        return@run -1
+                        // Throwing (not returning) rolls the whole transaction back
+                        error("Impossible de supprimer une ligne qui contient encore des bouteilles")
                     }
                     shelfRepository.delete(existingShelf.id)
                 }

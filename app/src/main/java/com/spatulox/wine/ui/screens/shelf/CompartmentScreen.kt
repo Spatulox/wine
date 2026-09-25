@@ -130,7 +130,9 @@ fun CompartmentScreen(
         mutable[index - 1] = mutable[index]
         mutable[index] = tmp
         coroutine.launch {
-            compartmentViewModel.updateOrder(mutable.mapIndexed { i, comp -> comp.copy(order = i) })
+            if (!compartmentViewModel.updateOrder(mutable.mapIndexed { i, comp -> comp.copy(order = i) })) {
+                SnackbarManager.send("Impossible de changer l'ordre des compartiments")
+            }
         }
     }
 
@@ -141,7 +143,9 @@ fun CompartmentScreen(
         mutable[index + 1] = mutable[index]
         mutable[index] = tmp
         coroutine.launch {
-            compartmentViewModel.updateOrder(mutable.mapIndexed { i, comp -> comp.copy(order = i) })
+            if (!compartmentViewModel.updateOrder(mutable.mapIndexed { i, comp -> comp.copy(order = i) })) {
+                SnackbarManager.send("Impossible de changer l'ordre des compartiments")
+            }
         }
     }
 

@@ -297,16 +297,16 @@ fun CompartmentActionDialog(
                             order = compOrder
                         )
 
-                        compartmentId?.let {
-                            coroutine.launch {
-                                compartmentViewModel.update(compartment, shelves)
-                                navController.popBackStack()
-                            }
-                            return@Button
-                        }
-
                         coroutine.launch {
-                            compartmentViewModel.insert(compartment, shelves)
+                            val error = if (compartmentId != null) {
+                                compartmentViewModel.update(compartment, shelves)
+                            } else {
+                                compartmentViewModel.insert(compartment, shelves)
+                            }
+                            if (error != null) {
+                                snackbarHostState.showSnackbar(error)
+                                return@launch
+                            }
                             navController.popBackStack()
                         }
                     },
