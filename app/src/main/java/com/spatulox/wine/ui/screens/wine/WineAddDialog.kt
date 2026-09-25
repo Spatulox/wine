@@ -60,7 +60,7 @@ fun WineAddDialog(
 ) {
     var name by rememberSaveable { mutableStateOf("") }
     var type by rememberSaveable { mutableStateOf<WineType>(WineType.ROUGE) }
-    var year by rememberSaveable { mutableStateOf(LocalDate.now().year - 3) }
+    var year by rememberSaveable { mutableStateOf(LocalDate.now().year - 2) }
     var stars by rememberSaveable { mutableStateOf(0) }
     var format by rememberSaveable { mutableStateOf(WineFormat.BOTTLE) }
     var qte by rememberSaveable { mutableStateOf(6) }

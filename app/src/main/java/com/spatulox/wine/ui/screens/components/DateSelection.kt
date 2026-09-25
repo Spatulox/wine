@@ -29,7 +29,7 @@ fun DateSelection(
     val displayYear = when {
         year != null -> year
         availableYears?.isNotEmpty() == true -> availableYears.last()
-        else -> LocalDate.now().year - 3
+        else -> LocalDate.now().year - 2
     }
 
     Row(
