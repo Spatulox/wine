@@ -73,7 +73,8 @@ fun MainMenu(
         floatingActionButton = {
             Box(modifier = Modifier.fillMaxWidth()) {
 
-                if (selectedTabIndex == 0) {
+                // The expanded search takes the whole width: the left button would be hidden under it
+                if (selectedTabIndex == 0 && !isFabExpanded) {
                     if(isEditingCompartment){
                         CustomFloatingButton(
                             onClick = { compartmentViewModel.setEditingOrder(false) },
@@ -91,7 +92,7 @@ fun MainMenu(
                     }
                 }
 
-                if (selectedTabIndex == 1) {
+                if (selectedTabIndex == 1 && !isFabExpanded) {
                     CustomFloatingButton(
                         onClick = { showAddWineDialog = true },
                         modifier = Modifier.align(Alignment.BottomStart),
