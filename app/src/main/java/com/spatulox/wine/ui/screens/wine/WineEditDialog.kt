@@ -54,6 +54,9 @@ import com.spatulox.wine.ui.screens.components.ButtonColorPicker
 import com.spatulox.wine.ui.screens.components.DateSelection
 import com.spatulox.wine.ui.screens.components.EnumDropdownField
 import com.spatulox.wine.ui.screens.components.NumberField
+import com.spatulox.wine.ui.screens.components.PriceField
+import com.spatulox.wine.ui.screens.components.formatPriceInput
+import com.spatulox.wine.ui.screens.components.parsePrice
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -76,6 +79,7 @@ fun WineEditDialog(
     var editedStars by remember(wine) { mutableStateOf(wine.stars) }
     var editedWineColor by remember { mutableStateOf<Color?>(wine.color) }
     var comment by remember { mutableStateOf(wine.comment) }
+    var priceText by remember(wine) { mutableStateOf(formatPriceInput(wine.unitPrice)) }
 
     var errorMessage by remember(editedQte, distincWineCounts[wine.id]) { mutableStateOf("") }
 
@@ -209,6 +213,12 @@ fun WineEditDialog(
                             placeholder = "Region"
                         )
 
+                        PriceField(
+                            value = priceText,
+                            onValueChange = { priceText = it },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
                         if (errorMessage.isNotBlank()) {
                             Card(
                                 colors = CardDefaults.elevatedCardColors(
@@ -287,7 +297,8 @@ fun WineEditDialog(
                                         qte = editedQte,
                                         stars = editedStars,
                                         color = editedWineColor,
-                                        comment = comment
+                                        comment = comment,
+                                        unitPrice = parsePrice(priceText)
                                     )
                                 )
                             },

@@ -49,6 +49,8 @@ import com.spatulox.wine.ui.screens.components.ButtonColorPicker
 import com.spatulox.wine.ui.screens.components.DateSelection
 import com.spatulox.wine.ui.screens.components.EnumDropdownField
 import com.spatulox.wine.ui.screens.components.NumberField
+import com.spatulox.wine.ui.screens.components.PriceField
+import com.spatulox.wine.ui.screens.components.parsePrice
 import com.spatulox.wine.viewModels.WineViewModel
 import java.time.LocalDate
 import kotlin.math.roundToInt
@@ -69,8 +71,7 @@ fun WineAddDialog(
     var qte by remember { mutableStateOf(6) }
     val qteText by remember(qte) { derivedStateOf { qte.toString() } }
     var region by remember { mutableStateOf<WineRegion?>(null) }
-    var unitPrice by remember { mutableStateOf<Float?>(null) }
-    val priceText by remember(unitPrice) { derivedStateOf { unitPrice?.toString() ?: "" } }
+    var priceText by remember { mutableStateOf("") }
     var wineColor by remember { mutableStateOf<Color?>(DEFAULT_WINE_COLOR) }
     var comment by remember { mutableStateOf("") }
 
@@ -220,25 +221,9 @@ fun WineAddDialog(
                             label = "Nombres de bouteilles :"
                         )
 
-                        OutlinedTextField(
+                        PriceField(
                             value = priceText,
-                            onValueChange = { text ->
-                                val cleaned = text.filter { it.isDigit() || it == '.' }
-                                val hasDot = cleaned.contains('.')
-                                val dotParts = cleaned.split('.')
-
-                                val validText = if (hasDot && dotParts[1].length > 2) {
-                                    dotParts[0] + "." + dotParts[1].take(2)
-                                } else cleaned
-
-                                unitPrice = validText.toFloatOrNull() ?: 0f
-                            },
-                            label = { Text("Prix unitaire (€)") },
-                            prefix = { Text("€") },
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Decimal
-                            ),
-                            singleLine = true,
+                            onValueChange = { priceText = it },
                             modifier = Modifier.fillMaxWidth()
                         )
 
@@ -280,7 +265,7 @@ fun WineAddDialog(
                                                 year = year,
                                                 format = format,
                                                 type = type,
-                                                unitPrice = unitPrice,
+                                                unitPrice = parsePrice(priceText),
                                                 stars = stars,
                                                 qte = qte,
                                                 region = region,

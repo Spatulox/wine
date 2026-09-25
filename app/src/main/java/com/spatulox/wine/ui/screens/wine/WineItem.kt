@@ -30,6 +30,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.spatulox.wine.domain.model.Wine
 import com.spatulox.wine.ui.screens.components.IconFromName
+import com.spatulox.wine.ui.screens.components.formatPrice
 
 @Composable
 fun WineItem(
@@ -120,11 +121,13 @@ fun WineItem(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
-                Text(
-                    text =  "${wine.unitPrice ?: "N/A"} €",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                wine.unitPrice?.let { price ->
+                    Text(
+                        text = formatPrice(price),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
     }
