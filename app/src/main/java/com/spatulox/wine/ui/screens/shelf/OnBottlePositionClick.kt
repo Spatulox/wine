@@ -12,7 +12,7 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.CompareArrows
+import androidx.compose.material.icons.filled.Unarchive
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Remove
@@ -50,6 +50,7 @@ import com.spatulox.wine.domain.model.Position
 import com.spatulox.wine.domain.model.Stock
 import com.spatulox.wine.domain.model.StockWithWine
 import com.spatulox.wine.domain.model.Wine
+import com.spatulox.wine.ui.screens.components.ConfirmDialog
 import com.spatulox.wine.ui.screens.wine.WineDropdownList
 import com.spatulox.wine.ui.screens.wine.WineStar
 import com.spatulox.wine.viewModels.StockViewModel
@@ -85,6 +86,21 @@ fun OnBottlePositionClick(
         .map { it.id }
 
 
+    var showUnrackConfirm by remember { mutableStateOf(false) }
+    if (showUnrackConfirm) {
+        ConfirmDialog(
+            title = "Retirer de l'emplacement ?",
+            text = "La bouteille n'est pas bue : elle repasse dans les bouteilles à ranger.",
+            confirmLabel = "Retirer",
+            onConfirm = {
+                showUnrackConfirm = false
+                onDeleteStock(position)
+                onDismiss()
+            },
+            onDismiss = { showUnrackConfirm = false }
+        )
+    }
+
     Dialog (
         onDismissRequest = onDismiss
     ) {
@@ -118,13 +134,10 @@ fun OnBottlePositionClick(
                             horizontalArrangement = Arrangement.End
                         ) {
                             OutlinedButton(
-                                onClick = {
-                                    onDeleteStock(position)
-                                    onDismiss()
-                                },
+                                onClick = { showUnrackConfirm = true },
                                 enabled = !isEditing
                             ) {
-                                Icon(Icons.Filled.CompareArrows, "Déplacer une bouteille")
+                                Icon(Icons.Filled.Unarchive, "Retirer de l'emplacement")
                             }
                         }
                     }

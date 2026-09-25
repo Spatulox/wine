@@ -84,6 +84,7 @@ import com.spatulox.wine.domain.model.Position
 import com.spatulox.wine.domain.model.Shelf
 import com.spatulox.wine.send
 import com.spatulox.wine.ui.screens.components.BottleGrid
+import com.spatulox.wine.ui.screens.components.ConfirmDialog
 import com.spatulox.wine.ui.screens.components.EnumDropdownField
 import com.spatulox.wine.viewModels.CompartmentViewModel
 import com.spatulox.wine.viewModels.ShelfViewModel
@@ -115,6 +116,7 @@ fun CompartmentActionDialog(
     val shelfOrder by remember(shelves) { derivedStateOf { shelves.lastOrNull()?.order?.let { it + 1 } ?: 0 } }
     val compOrder by remember(compartment) { derivedStateOf { compartment.lastOrNull()?.order?.let { it + 1 } ?: 0 } }
     var showAddShelfDialog by remember { mutableStateOf(false) }
+    var showDeleteConfirm by remember { mutableStateOf(false) }
     var newShelfCols by rememberSaveable { mutableStateOf("6") }
     var newShelfInterleaveExpanded by remember { mutableStateOf(false) }
     var newShelfBottleExpanded by remember { mutableStateOf(false) }
@@ -173,21 +175,7 @@ fun CompartmentActionDialog(
                 actions = {
                     if (compartmentId != null) {
                         IconButton(
-                            onClick = {
-                                coroutine.launch {
-                                    val compartment = Compartment(
-                                        id = compartmentId.toInt(),
-                                        name = name,
-                                        order = existingOrder ?: compOrder
-                                    )
-                                    val res = compartmentViewModel.delete(compartment)
-                                    if (res != null) {
-                                        snackbarHostState.showSnackbar(res)
-                                        return@launch
-                                    }
-                                    navController.popBackStack()
-                                }
-                            },
+                            onClick = { showDeleteConfirm = true },
                             colors = IconButtonDefaults.iconButtonColors(
                                 containerColor = Color.Transparent,
                                 contentColor = MaterialTheme.colorScheme.error
@@ -318,6 +306,31 @@ fun CompartmentActionDialog(
                 }
             }
         }
+    }
+
+    if (showDeleteConfirm && compartmentId != null) {
+        ConfirmDialog(
+            title = "Supprimer le compartiment ?",
+            text = "Le compartiment « $name » et toutes ses lignes seront supprimés.",
+            confirmLabel = "Supprimer",
+            onConfirm = {
+                showDeleteConfirm = false
+                coroutine.launch {
+                    val compartment = Compartment(
+                        id = compartmentId.toInt(),
+                        name = name,
+                        order = existingOrder ?: compOrder
+                    )
+                    val res = compartmentViewModel.delete(compartment)
+                    if (res != null) {
+                        snackbarHostState.showSnackbar(res)
+                        return@launch
+                    }
+                    navController.popBackStack()
+                }
+            },
+            onDismiss = { showDeleteConfirm = false }
+        )
     }
 
     // DIALOG Ajout ligne

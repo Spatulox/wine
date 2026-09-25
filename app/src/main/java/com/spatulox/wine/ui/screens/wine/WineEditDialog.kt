@@ -51,6 +51,7 @@ import com.spatulox.wine.domain.enum.WineRegion
 import com.spatulox.wine.domain.enum.WineType
 import com.spatulox.wine.domain.model.Wine
 import com.spatulox.wine.ui.screens.components.ButtonColorPicker
+import com.spatulox.wine.ui.screens.components.ConfirmDialog
 import com.spatulox.wine.ui.screens.components.DateSelection
 import com.spatulox.wine.ui.screens.components.EnumDropdownField
 import com.spatulox.wine.ui.screens.components.NumberField
@@ -86,6 +87,20 @@ fun WineEditDialog(
         "Impossible de mettre moins que le nombre de bouteilles rangées dans la cave ($stockedCount)"
     } else {
         ""
+    }
+
+    var showDeleteConfirm by remember { mutableStateOf(false) }
+    if (showDeleteConfirm) {
+        ConfirmDialog(
+            title = "Supprimer le vin ?",
+            text = "« ${wine.name} ${wine.year} » sera définitivement supprimé.",
+            confirmLabel = "Supprimer",
+            onConfirm = {
+                showDeleteConfirm = false
+                onDelete()
+            },
+            onDismiss = { showDeleteConfirm = false }
+        )
     }
 
     Dialog (
@@ -127,7 +142,7 @@ fun WineEditDialog(
                     )
                 }
                 IconButton(
-                    onClick = onDelete,
+                    onClick = { showDeleteConfirm = true },
                 ) {
                     Icon(
                         imageVector = Icons.Default.Delete,
