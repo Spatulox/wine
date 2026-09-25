@@ -3,7 +3,6 @@ package com.spatulox.wine.data.mapper
 import com.spatulox.wine.data.db.entity.StockEntity
 import com.spatulox.wine.data.db.entity.StockWithWineEntity
 import com.spatulox.wine.domain.model.Position
-import com.spatulox.wine.domain.model.Stock
 import com.spatulox.wine.domain.model.StockWithWine
 
 // Stock represent a single position in a shelf

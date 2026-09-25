@@ -11,7 +11,6 @@ import com.spatulox.wine.domain.repository.ShelfRepository
 import com.spatulox.wine.domain.repository.StockRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlin.collections.map
 
 class CompartmentRepositoryImpl(val compartmentDao: CompartmentDao, val shelfRepository: ShelfRepository, val stockRepository: StockRepository, val transactionProvider: TransactionProvider): CompartmentRepository {
 

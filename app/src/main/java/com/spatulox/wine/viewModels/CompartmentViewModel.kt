@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 class CompartmentViewModel(
@@ -33,10 +32,6 @@ class CompartmentViewModel(
             SharingStarted.WhileSubscribed(5000),
             emptyList()
         )
-    fun getCompartmentById(id: Int): Compartment? {
-        return compartments.value.find { it.id == id }
-    }
-
     // Reads the database: unlike compartments.value, works before the stream has emitted
     suspend fun loadCompartment(id: Int): Compartment? {
         return compartmentRepository.getById(id)

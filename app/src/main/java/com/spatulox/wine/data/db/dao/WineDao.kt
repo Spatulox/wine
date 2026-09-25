@@ -3,44 +3,21 @@ package com.spatulox.wine.data.db.dao
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
-import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
-import com.spatulox.wine.data.db.entity.StockEntity
 import com.spatulox.wine.data.db.entity.WineEntity
-import com.spatulox.wine.domain.model.Position
-import com.spatulox.wine.domain.model.Wine
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface WineDao {
-    @Query("SELECT * FROM wine ORDER BY name ASC")
-    suspend fun getWine(): List<WineEntity>
-
-    @Query("""
-        SELECT w.* 
-        FROM stock s 
-        LEFT JOIN wine w ON s.wineId = w.id 
-        WHERE s.compartmentId = :compId 
-          AND s.shelfId = :shelfId 
-          AND s.col = :col
-    """)
-    suspend fun getWineByPos(compId: Int, shelfId: Int, col: Int): WineEntity?
-
     @Query("SELECT * FROM wine WHERE id = :id")
     suspend fun getById(id: Int): WineEntity?
-
-    @Query("SELECT * FROM wine WHERE year = :year ORDER BY name ASC")
-    suspend fun getByYear(year: Int): List<WineEntity>
 
     @Query("SELECT * FROM wine ORDER BY name ASC")
     fun getWineStream(): Flow<List<WineEntity>>
 
     @Query("SELECT DISTINCT year FROM wine ORDER BY year ASC")
     fun getWineYearStream(): Flow<List<Int>>
-
-    @Query("SELECT * FROM wine WHERE name = :query OR year = :query") // We do not user " LIKE '%' || :query || '%' " because the search field is not user powered but absolute list powered
-    suspend fun search(query: String): List<WineEntity>
 
     @Insert
     suspend fun insert(wine: WineEntity): Long
@@ -53,10 +30,4 @@ interface WineDao {
 
     @Delete
     suspend fun delete(wine: WineEntity)
-
-    @Query("DELETE FROM wine WHERE id = :id")
-    suspend fun deleteById(id: Int)
-
-    @Query("SELECT COUNT(*) FROM wine")
-    suspend fun getCount(): Int
 }

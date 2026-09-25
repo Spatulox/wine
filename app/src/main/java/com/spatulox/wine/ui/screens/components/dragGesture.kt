@@ -3,7 +3,6 @@ package com.spatulox.wine.ui.screens.components
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
 import com.spatulox.wine.domain.model.Position
 import kotlinx.coroutines.coroutineScope

@@ -82,45 +82,6 @@ fun WineScreen(
         )
     }
 
-    /*val winesTest by remember {
-        mutableStateOf(
-            mapOf(
-                1 to Wine(
-                    id = 1,
-                    name = "Château Margaux",
-                    year = 2018,
-                    format = WineFormat.BOTTLE,
-                    type = WineType.ROUGE,
-                    stars = 5
-                ),
-                2 to Wine(
-                    id = 2,
-                    name = "Domaine Romanée-Conti",
-                    year = 2015,
-                    format = WineFormat.MAGNUM,
-                    type = WineType.ROUGE,
-                    stars = 4
-                ),
-                3 to Wine(
-                    id = 3,
-                    name = "Pétrus",
-                    year = 2020,
-                    format = WineFormat.BOTTLE,
-                    type = WineType.ROUGE,
-                    stars = 5
-                ),
-                4 to Wine(
-                    id = 4,
-                    name = "Bordeaux Supérieur",
-                    year = 2022,
-                    format = WineFormat.BOTTLE,
-                    type = WineType.ROUGE,
-                    stars = 3
-                )
-            )
-        )
-    }*/
-
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),

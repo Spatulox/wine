@@ -40,7 +40,7 @@ open class StockViewModel(
             )
 
     suspend fun insert(stock: StockWithWine){
-        stockRepository.insert(stock, "")
+        stockRepository.insert(stock)
     }
 
     suspend fun update(stock: StockWithWine){
@@ -57,10 +57,10 @@ open class StockViewModel(
         }
     }
 
-    suspend fun withdraw(position: Position, reason: String){
+    suspend fun withdraw(position: Position){
         val entity = stockRepository.getStockByPos(position)
         if(entity != null){
-            stockRepository.withdraw(entity, reason)
+            stockRepository.withdraw(entity)
         }
     }
 

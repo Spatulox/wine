@@ -3,7 +3,6 @@ package com.spatulox.wine.viewModels
 import android.database.sqlite.SQLiteConstraintException
 import androidx.lifecycle.viewModelScope
 import com.spatulox.wine.domain.repository.WineRepository
-import com.spatulox.wine.domain.model.Position
 import com.spatulox.wine.domain.model.Wine
 import com.spatulox.wine.ui.screens.components.Filter
 import kotlinx.coroutines.flow.SharingStarted
@@ -41,13 +40,6 @@ open class WineViewModel(
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
 
-    val winesByYearAsc: StateFlow<List<Wine>> = wines
-        .map { winesMap ->
-            winesMap.values
-                .sortedWith(compareBy<Wine> { it.year }.thenBy { it.name.lowercase() })
-        }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
     val winesByYearDesc: StateFlow<List<Wine>> = wines
         .map { winesMap ->
             winesMap.values
@@ -84,9 +76,6 @@ open class WineViewModel(
             emptyMap()
         )
 
-    suspend fun getWineByPos(pos: Position): Wine?{
-        return wineRepository.getWineByPos(pos)
-    }
     suspend fun addWine(wine: Wine): Boolean {
         return try {
             wineRepository.insert(wine)
@@ -94,10 +83,6 @@ open class WineViewModel(
         } catch (e: SQLiteConstraintException) {
             false
         }
-    }
-
-    suspend fun withdrawWine(wine: Wine){
-        wineRepository.withdrawWine(wine)
     }
 
     // Returns false when the (name, year, format) unique constraint is violated

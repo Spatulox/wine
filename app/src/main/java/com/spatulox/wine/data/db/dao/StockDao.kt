@@ -13,20 +13,8 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface StockDao {
     @Transaction
-    @Query("SELECT * FROM stock ORDER BY date DESC")
-    suspend fun getStock(): List<StockWithWineEntity>
-
-    @Transaction
-    @Query("SELECT * FROM stock ORDER BY date DESC")
-    suspend fun getStockWithWine(): List<StockWithWineEntity>
-
-    @Transaction
     @Query("SELECT * FROM stock WHERE compartmentId= :compartmentId AND `shelfId`= :shelfId AND col= :col")
     suspend fun getStockByPos(compartmentId: Int, shelfId: Int, col: Int): StockWithWineEntity?
-
-    @Transaction
-    @Query("SELECT * FROM stock WHERE id= :id")
-    suspend fun getStockById(id: Int): StockWithWineEntity?
 
     @Query("SELECT EXISTS(SELECT 1 FROM stock WHERE shelfId = :id)")
     suspend fun hasStockInShelf(id: Int): Boolean
