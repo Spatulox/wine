@@ -44,6 +44,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -193,6 +194,17 @@ fun SearchWithFilters(
                                     val filter = Filter(content = year.toString(), field = "year")
                                     wineViewModel.updateFilter(filter)
                                     stockViewModel.updateFilter(filter)
+                                }
+                            }
+                            // No year chosen yet: filter on the most recent available one
+                            LaunchedEffect(availableYears) {
+                                if (year == null) {
+                                    availableYears.lastOrNull()?.let { lastYear ->
+                                        year = lastYear
+                                        val filter = Filter(content = lastYear.toString(), field = "year")
+                                        wineViewModel.updateFilter(filter)
+                                        stockViewModel.updateFilter(filter)
+                                    }
                                 }
                             }
                             DateSelection(

@@ -29,7 +29,6 @@ fun DateSelection(
         availableYears?.isNotEmpty() == true -> availableYears.last()
         else -> LocalDate.now().year - 3
     }
-    onYearChange(displayYear)
 
     Row(
         modifier = modifier,
@@ -39,12 +38,10 @@ fun DateSelection(
         IconButton(
             onClick = {
                 if (availableYears?.isNotEmpty() == true) {
-                    val currentIndex = availableYears.indexOf(year)
-                    if (currentIndex > 0) {
-                        onYearChange( (availableYears[currentIndex - 1]) )
-                    }
+                    // Nearest previous year: works with duplicates or a year missing from the list
+                    availableYears.filter { it < displayYear }.maxOrNull()?.let(onYearChange)
                 } else {
-                    onYearChange((displayYear - 1))
+                    onYearChange((displayYear - 1).coerceAtLeast(MIN_YEAR))
                 }
             }
         ) {
@@ -52,7 +49,7 @@ fun DateSelection(
         }
 
         Text(
-            text = "${year}",
+            text = "$displayYear",
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             style = MaterialTheme.typography.headlineSmall,
             modifier = Modifier.weight(1f),
@@ -62,10 +59,7 @@ fun DateSelection(
         IconButton(
             onClick = {
                 if (availableYears?.isNotEmpty() == true) {
-                    val currentIndex = availableYears.indexOf(year)
-                    if (currentIndex < availableYears.lastIndex) {
-                        onYearChange(availableYears[currentIndex + 1])
-                    }
+                    availableYears.filter { it > displayYear }.minOrNull()?.let(onYearChange)
                 } else {
                     onYearChange((displayYear + 1).coerceAtMost(LocalDate.now().year))
                 }
@@ -75,3 +69,5 @@ fun DateSelection(
         }
     }
 }
+
+private const val MIN_YEAR = 1900
