@@ -30,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -44,16 +45,17 @@ fun NumberField(
     label: String? = null,
     minValue: Int = 0,
     maxValue: Int = Int.MAX_VALUE,
-    startValue: Int = 0,
     step: Int = 1,
     keyboardType: KeyboardType = KeyboardType.Number
 ) {
-    var textFieldValue by remember(value, startValue) {
-        mutableStateOf(if (value == 0) startValue.toString() else value.toString())
-    }
+    // The text stays free while typing (e.g. empty, or below the minimum on the way to a bigger
+    // number); it is only clamped when the field loses focus
+    var textFieldValue by remember { mutableStateOf(value.toString()) }
 
     LaunchedEffect(value) {
-        textFieldValue = value.toString()
+        if (textFieldValue.toIntOrNull() != value) {
+            textFieldValue = value.toString()
+        }
     }
 
     Column(
@@ -90,14 +92,24 @@ fun NumberField(
                 value = textFieldValue,
                 textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center),
                 onValueChange = { text ->
-                    textFieldValue = text
-                    val cleaned = text.filter { it.isDigit() }.take(10)
-                    val newValue = cleaned.toIntOrNull()?.coerceIn(minValue, maxValue) ?: minValue
-                    onValueChange(newValue)
+                    val cleaned = text.filter { it.isDigit() }.take(9)
+                    val parsed = cleaned.toIntOrNull()
+                    if (parsed == null || parsed <= maxValue) {
+                        textFieldValue = cleaned
+                        parsed?.let(onValueChange)
+                    }
                 },
                 keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
                 singleLine = true,
-                modifier = Modifier.width(70.dp),
+                modifier = Modifier
+                    .width(70.dp)
+                    .onFocusChanged { focus ->
+                        if (!focus.isFocused) {
+                            val clamped = (textFieldValue.toIntOrNull() ?: value).coerceIn(minValue, maxValue)
+                            textFieldValue = clamped.toString()
+                            if (clamped != value) onValueChange(clamped)
+                        }
+                    },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,

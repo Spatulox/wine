@@ -81,7 +81,12 @@ fun WineEditDialog(
     var comment by remember { mutableStateOf(wine.comment) }
     var priceText by remember(wine) { mutableStateOf(formatPriceInput(wine.unitPrice)) }
 
-    var errorMessage by remember(editedQte, distincWineCounts[wine.id]) { mutableStateOf("") }
+    val stockedCount = distincWineCounts[wine.id] ?: 0
+    val errorMessage = if (editedQte < stockedCount) {
+        "Impossible de mettre moins que le nombre de bouteilles rangées dans la cave ($stockedCount)"
+    } else {
+        ""
+    }
 
     Dialog (
         onDismissRequest = onDismiss,
@@ -239,18 +244,8 @@ fun WineEditDialog(
                         NumberField(
                             modifier = Modifier.fillMaxWidth(),
                             value = editedQte,
-                            onValueChange = { qte ->
-                                editedQte = qte
-                                val currentStockCount = distincWineCounts[wine.id] ?: 0
-                                if (qte <= currentStockCount) {
-                                    errorMessage =
-                                        "Impossible de mettre moins que le stock actuel rangé dans la cave ($currentStockCount)"
-                                } else {
-                                    errorMessage = ""
-                                }
-                            },
-                            minValue = distincWineCounts[wine.id] ?: 0,
-                            startValue = wine.qte,
+                            onValueChange = { qte -> editedQte = qte },
+                            minValue = stockedCount,
                             label = "Nombres de bouteilles :"
                         )
 
@@ -302,7 +297,8 @@ fun WineEditDialog(
                                     )
                                 )
                             },
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
+                            enabled = editedName.isNotBlank() && errorMessage.isBlank()
                         ) {
                             Text("Valider")
                         }

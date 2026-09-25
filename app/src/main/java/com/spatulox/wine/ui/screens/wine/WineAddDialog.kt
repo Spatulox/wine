@@ -217,7 +217,6 @@ fun WineAddDialog(
                             value = qte,
                             onValueChange = { qte = it },
                             minValue = 0,
-                            startValue = 6,
                             label = "Nombres de bouteilles :"
                         )
 
