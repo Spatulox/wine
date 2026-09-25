@@ -10,13 +10,13 @@ object DatabaseProvider {
 
     fun getDatabase(context: Context): AppDatabase {
         return INSTANCE ?: synchronized(this) {
-            val instance = Room.databaseBuilder(
-                        context.applicationContext,
-                        AppDatabase::class.java,
-                        "wine_db"
-                    ).fallbackToDestructiveMigration(true).build()
-            INSTANCE = instance
-            instance
+            // No destructive fallback: a schema change without a Migration must fail loudly
+            // instead of silently wiping the user's cellar.
+            INSTANCE ?: Room.databaseBuilder(
+                context.applicationContext,
+                AppDatabase::class.java,
+                "wine_db"
+            ).build().also { INSTANCE = it }
         }
     }
 }
