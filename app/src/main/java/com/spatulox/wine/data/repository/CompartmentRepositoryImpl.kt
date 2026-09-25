@@ -23,6 +23,10 @@ class CompartmentRepositoryImpl(val compartmentDao: CompartmentDao, val shelfRep
         return compartmentDao.getAllCompartments().map { CompartmentMapper.toDomain(it) }
     }
 
+    override suspend fun getById(id: Int): Compartment? {
+        return compartmentDao.getById(id)?.let { CompartmentMapper.toDomain(it) }
+    }
+
     override suspend fun insert(comp: Compartment, shelves: List<Shelf>): Long {
 
         return transactionProvider.run {

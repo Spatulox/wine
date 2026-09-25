@@ -2,7 +2,7 @@ package com.spatulox.wine.viewModels
 
 import android.database.sqlite.SQLiteConstraintException
 import androidx.lifecycle.viewModelScope
-import com.spatulox.wine.data.repository.StockRepositoryImpl
+import com.spatulox.wine.domain.repository.StockRepository
 import com.spatulox.wine.domain.model.Position
 import com.spatulox.wine.domain.model.StockWithWine
 import kotlinx.coroutines.flow.SharingStarted
@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 open class StockViewModel(
-    private val stockRepository: StockRepositoryImpl
+    private val stockRepository: StockRepository
 ) : FilterViewModel() {
     val stockState: StateFlow<Map<Position, StockWithWine>> =
         stockRepository.getStockStream()

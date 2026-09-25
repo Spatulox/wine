@@ -12,5 +12,6 @@ interface CompartmentRepository {
     fun getAllCompartmentsStream(): Flow<List<Compartment>>
 
     suspend fun getAllCompartments(): List<Compartment>
+    suspend fun getById(id: Int): Compartment?
 
 }

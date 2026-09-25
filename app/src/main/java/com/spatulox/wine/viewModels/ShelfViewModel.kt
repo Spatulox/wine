@@ -3,7 +3,7 @@ package com.spatulox.wine.viewModels
 import android.database.sqlite.SQLiteConstraintException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.spatulox.wine.data.repository.ShelfRepositoryImpl
+import com.spatulox.wine.domain.repository.ShelfRepository
 import com.spatulox.wine.domain.model.Compartment
 import com.spatulox.wine.domain.model.Shelf
 import kotlinx.coroutines.flow.SharingStarted
@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
-class ShelfViewModel(private val shelfRepository: ShelfRepositoryImpl): ViewModel() {
+class ShelfViewModel(private val shelfRepository: ShelfRepository): ViewModel() {
 
     val shelves: StateFlow<List<Shelf>> = shelfRepository
         .getAllShelvesStream()

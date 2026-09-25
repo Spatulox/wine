@@ -3,9 +3,9 @@ package com.spatulox.wine.viewModels
 import android.database.sqlite.SQLiteConstraintException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.spatulox.wine.data.repository.CompartmentRepositoryImpl
 import com.spatulox.wine.domain.model.Compartment
 import com.spatulox.wine.domain.model.Shelf
+import com.spatulox.wine.domain.repository.CompartmentRepository
 import com.spatulox.wine.domain.repository.ShelfRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 class CompartmentViewModel(
-    private val compartmentRepository: CompartmentRepositoryImpl,
+    private val compartmentRepository: CompartmentRepository,
     private val shelfRepository: ShelfRepository
 ) : ViewModel() {
 
@@ -35,6 +35,15 @@ class CompartmentViewModel(
         )
     fun getCompartmentById(id: Int): Compartment? {
         return compartments.value.find { it.id == id }
+    }
+
+    // Reads the database: unlike compartments.value, works before the stream has emitted
+    suspend fun loadCompartment(id: Int): Compartment? {
+        return compartmentRepository.getById(id)
+    }
+
+    suspend fun loadShelves(compartmentId: Int): List<Shelf> {
+        return shelfRepository.getShelvesByCompartmentId(compartmentId).sortedBy { it.order }
     }
 
     // Returns null on success, or an error message

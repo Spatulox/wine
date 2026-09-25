@@ -23,6 +23,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,12 +49,12 @@ fun MainMenu(
     compartmentViewModel: CompartmentViewModel,
     navController: NavController
 ) {
-    var selectedTabIndex by remember { mutableStateOf(0) }
-    var showAddWineDialog by remember { mutableStateOf(false) }
+    var selectedTabIndex by rememberSaveable { mutableStateOf(0) }
+    var showAddWineDialog by rememberSaveable { mutableStateOf(false) }
     val isEditingCompartment by compartmentViewModel.isEditingOrder.collectAsStateWithLifecycle()
     val tabs = listOf("Cave", "Vins")//, "Statistiques")
 
-    var isFabExpanded by remember { mutableStateOf(false) }
+    var isFabExpanded by rememberSaveable { mutableStateOf(false) }
 
 
     val snackbarHostState = remember { SnackbarHostState() }

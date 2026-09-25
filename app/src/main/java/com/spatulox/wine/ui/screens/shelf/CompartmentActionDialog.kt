@@ -59,6 +59,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -103,15 +105,17 @@ fun CompartmentActionDialog(
     val compartment by compartmentViewModel.compartments.collectAsStateWithLifecycle()
     val stock by stockViewModel.stockByShelfId.collectAsStateWithLifecycle()
 
-    var name by remember { mutableStateOf("") }
-
+    var name by rememberSaveable { mutableStateOf("") }
+    // Loaded once from the database, then kept (with the user's edits) across recreations
+    var isLoaded by rememberSaveable { mutableStateOf(false) }
+    var existingOrder by rememberSaveable { mutableStateOf<Int?>(null) }
 
     // État lignes
-    var shelves by remember { mutableStateOf(listOf<Shelf>()) }
+    var shelves by rememberSaveable(stateSaver = ShelvesSaver) { mutableStateOf(listOf<Shelf>()) }
     val shelfOrder by remember(shelves) { derivedStateOf { shelves.lastOrNull()?.order?.let { it + 1 } ?: 0 } }
     val compOrder by remember(compartment) { derivedStateOf { compartment.lastOrNull()?.order?.let { it + 1 } ?: 0 } }
     var showAddShelfDialog by remember { mutableStateOf(false) }
-    var newShelfCols by remember { mutableStateOf("6") }
+    var newShelfCols by rememberSaveable { mutableStateOf("6") }
     var newShelfInterleaveExpanded by remember { mutableStateOf(false) }
     var newShelfBottleExpanded by remember { mutableStateOf(false) }
     var newShelfInterleave by remember { mutableStateOf<ShelfInterleave>(ShelfInterleave.STRAIGHT) }
@@ -125,19 +129,15 @@ fun CompartmentActionDialog(
     val keyboardController = LocalSoftwareKeyboardController.current
 
     LaunchedEffect(compartmentId) {
+        if (isLoaded) return@LaunchedEffect
         compartmentId?.toIntOrNull()?.let { id ->
-            val compartment = compartmentViewModel.getCompartmentById(id)
-            compartment?.let {
-                name = it.name
-
-                val localshelves = shelfViewModel.getShelvesByCompartmentId(id)
-                localshelves?.let {
-                    shelves = localshelves
-                }
-
+            compartmentViewModel.loadCompartment(id)?.let { compartment ->
+                name = compartment.name
+                existingOrder = compartment.order
+                shelves = compartmentViewModel.loadShelves(id)
             }
-
         }
+        isLoaded = true
     }
 
     val duplicateError by remember(name, shelves.size) {
@@ -175,16 +175,17 @@ fun CompartmentActionDialog(
                         IconButton(
                             onClick = {
                                 coroutine.launch {
-                                    val id = compartmentId.toInt()
-                                    val compartment = compartmentViewModel.getCompartmentById(id)
-                                    compartment?.let {
-                                        val res = compartmentViewModel.delete(compartment)
-                                        if (res != null) {
-                                            snackbarHostState.showSnackbar(res)
-                                            return@launch
-                                        }
-                                        navController.popBackStack()
+                                    val compartment = Compartment(
+                                        id = compartmentId.toInt(),
+                                        name = name,
+                                        order = existingOrder ?: compOrder
+                                    )
+                                    val res = compartmentViewModel.delete(compartment)
+                                    if (res != null) {
+                                        snackbarHostState.showSnackbar(res)
+                                        return@launch
                                     }
+                                    navController.popBackStack()
                                 }
                             },
                             colors = IconButtonDefaults.iconButtonColors(
@@ -291,12 +292,11 @@ fun CompartmentActionDialog(
                 Button(
                     onClick = {
 
-                        val existing = compartmentId?.toIntOrNull()?.let { compartmentViewModel.getCompartmentById(it) }
                         val compartment = Compartment(
                             id = compartmentId?.toInt() ?: 0,
                             name = name,
                             // Only a new compartment goes at the end, an edited one keeps its place
-                            order = existing?.order ?: compOrder
+                            order = existingOrder ?: compOrder
                         )
 
                         coroutine.launch {
@@ -535,3 +535,22 @@ private fun CompartmentPreview(
     }
 }
 
+// Shelf is a plain data class: saved as a flat list of its fields
+private val ShelvesSaver = listSaver<List<Shelf>, Any>(
+    save = { shelves ->
+        shelves.flatMap { listOf(it.id, it.name, it.compartmentId, it.order, it.col, it.aligment.name, it.arrangement.name) }
+    },
+    restore = { fields ->
+        fields.chunked(7).map {
+            Shelf(
+                id = it[0] as Int,
+                name = it[1] as String,
+                compartmentId = it[2] as Int,
+                order = it[3] as Int,
+                col = it[4] as Int,
+                aligment = ShelfInterleave.valueOf(it[5] as String),
+                arrangement = BottlePosition.valueOf(it[6] as String)
+            )
+        }
+    }
+)

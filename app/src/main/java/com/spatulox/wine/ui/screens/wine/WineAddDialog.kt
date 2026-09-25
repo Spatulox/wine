@@ -29,6 +29,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -63,17 +64,17 @@ fun WineAddDialog(
     onValidate: (Wine) -> Unit,
     saveError: String? = null
 ) {
-    var name by remember { mutableStateOf("") }
-    var type by remember { mutableStateOf<WineType>(WineType.ROUGE) }
-    var year by remember { mutableStateOf(LocalDate.now().year - 3) }
-    var stars by remember { mutableStateOf(0) }
-    var format by remember { mutableStateOf(WineFormat.BOTTLE) }
-    var qte by remember { mutableStateOf(6) }
+    var name by rememberSaveable { mutableStateOf("") }
+    var type by rememberSaveable { mutableStateOf<WineType>(WineType.ROUGE) }
+    var year by rememberSaveable { mutableStateOf(LocalDate.now().year - 3) }
+    var stars by rememberSaveable { mutableStateOf(0) }
+    var format by rememberSaveable { mutableStateOf(WineFormat.BOTTLE) }
+    var qte by rememberSaveable { mutableStateOf(6) }
     val qteText by remember(qte) { derivedStateOf { qte.toString() } }
-    var region by remember { mutableStateOf<WineRegion?>(null) }
-    var priceText by remember { mutableStateOf("") }
+    var region by rememberSaveable { mutableStateOf<WineRegion?>(null) }
+    var priceText by rememberSaveable { mutableStateOf("") }
     var wineColor by remember { mutableStateOf<Color?>(DEFAULT_WINE_COLOR) }
-    var comment by remember { mutableStateOf("") }
+    var comment by rememberSaveable { mutableStateOf("") }
 
     val wines by wineViewModel.wines.collectAsStateWithLifecycle()
     // Same fields and case sensitivity as the unique (name, year, format) index

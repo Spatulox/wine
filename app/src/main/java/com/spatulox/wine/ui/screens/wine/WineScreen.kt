@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -42,7 +43,10 @@ fun WineScreen(
     val wines by wineViewModel.filteredWinesList.collectAsStateWithLifecycle()
     val distincWineCounts by stockViewModel.stockDistinctWineCount.collectAsStateWithLifecycle()
 
-    var selectedWineForEdit by remember { mutableStateOf<Wine?>(null) }
+    val allWines by wineViewModel.wines.collectAsStateWithLifecycle()
+    // The id (not the Wine) is saved, so the edit dialog survives a rotation
+    var selectedWineIdForEdit by rememberSaveable { mutableStateOf<Int?>(null) }
+    val selectedWineForEdit = selectedWineIdForEdit?.let { allWines[it] }
     var editError by remember { mutableStateOf<String?>(null) }
     var addError by remember { mutableStateOf<String?>(null) }
     var selectedWine by remember { mutableStateOf<Wine?>(null) }
@@ -59,13 +63,13 @@ fun WineScreen(
             distincWineCounts = distincWineCounts,
             saveError = editError,
             onDismiss = {
-                selectedWineForEdit = null
+                selectedWineIdForEdit = null
                 editError = null
             },
             onValidate = { updatedWine ->
                 coroutineScope.launch {
                     if (wineViewModel.updateWine(updatedWine)) {
-                        selectedWineForEdit = null
+                        selectedWineIdForEdit = null
                         editError = null
                     } else {
                         editError = "Un vin avec ce nom, cette année et ce format existe déjà"
@@ -78,7 +82,7 @@ fun WineScreen(
                         SnackbarManager.send("Wine exist in cave, cannot delete it !")
                     }
                 }
-                selectedWineForEdit = null
+                selectedWineIdForEdit = null
             }
         )
     }
@@ -159,7 +163,7 @@ fun WineScreen(
                 WineItem(
                     wine = wine,
                     onClick = { selectedWine = wine },
-                    onUpdateClick = { selectedWineForEdit = wine }
+                    onUpdateClick = { selectedWineIdForEdit = wine.id }
                 )
             }
         }

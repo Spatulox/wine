@@ -2,7 +2,7 @@ package com.spatulox.wine.viewModels
 
 import android.database.sqlite.SQLiteConstraintException
 import androidx.lifecycle.viewModelScope
-import com.spatulox.wine.data.repository.WineRepositoryImpl
+import com.spatulox.wine.domain.repository.WineRepository
 import com.spatulox.wine.domain.model.Position
 import com.spatulox.wine.domain.model.Wine
 import com.spatulox.wine.ui.screens.components.Filter
@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 open class WineViewModel(
-    private val wineRepository: WineRepositoryImpl
+    private val wineRepository: WineRepository
 ) : FilterViewModel() {
     val wines: StateFlow<Map<Int, Wine>> =
         wineRepository.getWineStream()
