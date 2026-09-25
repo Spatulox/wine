@@ -211,7 +211,7 @@ fun WineAddDialog(
                             value = qte,
                             onValueChange = { qte = it },
                             minValue = 0,
-                            label = "Nombres de bouteilles :"
+                            label = "Nombre de bouteilles"
                         )
 
                         PriceField(

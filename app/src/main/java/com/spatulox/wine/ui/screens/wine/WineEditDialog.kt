@@ -253,7 +253,7 @@ fun WineEditDialog(
                             value = editedQte,
                             onValueChange = { qte -> editedQte = qte },
                             minValue = stockedCount,
-                            label = "Nombres de bouteilles :"
+                            label = "Nombre de bouteilles"
                         )
 
                         Column {
