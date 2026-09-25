@@ -16,7 +16,10 @@ object DatabaseProvider {
                 context.applicationContext,
                 AppDatabase::class.java,
                 "wine_db"
-            ).build().also { INSTANCE = it }
+            )
+                .addMigrations(*ALL_MIGRATIONS)
+                .build()
+                .also { INSTANCE = it }
         }
     }
 }
