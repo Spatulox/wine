@@ -64,7 +64,8 @@ fun WineEditDialog(
     onDismiss: () -> Unit,
     onValidate: (Wine) -> Unit,
     onDelete: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    saveError: String? = null
 ) {
     var editedName by remember(wine) { mutableStateOf(wine.name) }
     var editedYear by remember(wine) { mutableStateOf(wine.year) }
@@ -134,6 +135,23 @@ fun WineEditDialog(
                 item {
 
                     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        saveError?.let { error ->
+                            Card(
+                                colors = CardDefaults.elevatedCardColors(
+                                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                                    contentColor = MaterialTheme.colorScheme.onErrorContainer
+                                ),
+                                shape = MaterialTheme.shapes.small,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = error,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    modifier = Modifier.padding(12.dp)
+                                )
+                            }
+                        }
+
                         OutlinedTextField(
                             value = editedName,
                             onValueChange = { editedName = it },

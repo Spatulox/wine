@@ -43,6 +43,7 @@ fun WineScreen(
     val distincWineCounts by stockViewModel.stockDistinctWineCount.collectAsStateWithLifecycle()
 
     var selectedWineForEdit by remember { mutableStateOf<Wine?>(null) }
+    var editError by remember { mutableStateOf<String?>(null) }
     var selectedWine by remember { mutableStateOf<Wine?>(null) }
 
     val coroutineScope = rememberCoroutineScope()
@@ -55,12 +56,20 @@ fun WineScreen(
         WineEditDialog(
             wine = wine,
             distincWineCounts = distincWineCounts,
-            onDismiss = { selectedWineForEdit = null },
+            saveError = editError,
+            onDismiss = {
+                selectedWineForEdit = null
+                editError = null
+            },
             onValidate = { updatedWine ->
                 coroutineScope.launch {
-                    wineViewModel.updateWine(updatedWine)
+                    if (wineViewModel.updateWine(updatedWine)) {
+                        selectedWineForEdit = null
+                        editError = null
+                    } else {
+                        editError = "Un vin avec ce nom, cette année et ce format existe déjà"
+                    }
                 }
-                selectedWineForEdit = null
             },
             onDelete = {
                 coroutineScope.launch {

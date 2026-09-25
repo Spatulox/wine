@@ -97,8 +97,14 @@ open class WineViewModel(
         wineRepository.withdrawWine(wine)
     }
 
-    suspend fun updateWine(wine: Wine){
-        wineRepository.update(wine)
+    // Returns false when the (name, year, format) unique constraint is violated
+    suspend fun updateWine(wine: Wine): Boolean {
+        return try {
+            wineRepository.update(wine)
+            true
+        } catch (e: SQLiteConstraintException) {
+            false
+        }
     }
 
     suspend fun deleteWine(wine: Wine): Boolean{
