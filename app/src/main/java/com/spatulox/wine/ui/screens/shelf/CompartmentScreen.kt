@@ -83,11 +83,12 @@ fun CompartmentScreen(
     val rectBounds = remember { mutableStateMapOf<Rect, Position>() }
     val positionBounds = remember { mutableStateMapOf<Position, Rect>() }
 
+    // Entering or leaving the edit mode never inherits a previous drag
     LaunchedEffect(isEditing) {
-        if (!isEditing) {
-            draggedPosition = null
-            hoveredPosition = null
-        }
+        draggedPosition = null
+        hoveredPosition = null
+        currentDragFingerPos = null
+        endOfDrag = false
     }
 
     val unrackedWines = remember(winesPositionMap, stockState) {

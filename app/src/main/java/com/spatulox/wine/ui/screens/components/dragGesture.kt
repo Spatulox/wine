@@ -20,7 +20,9 @@ fun Modifier.dragGesture(
     onDragEnd: (Position) -> Unit,
     onDragCancel: () -> Unit,
     onDragHover: (Position, Offset) -> Unit = { _, _ -> }
-) = pointerInput(isEnabled) {
+) = pointerInput(isEnabled, pos) {
+    // Without this, a long press + drag also worked outside the edit mode
+    if (!isEnabled) return@pointerInput
     coroutineScope {
         detectDragGesturesAfterLongPress(
             onDragStart = { offset -> onDragStart(pos, DragState(pos, offset)) },
