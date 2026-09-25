@@ -79,15 +79,35 @@ fun CompartmentScreen(
     var draggedPosition by remember { mutableStateOf<Position?>(null) }
     var hoveredPosition by remember { mutableStateOf<Position?>(null) }
     var currentDragFingerPos by remember { mutableStateOf<Offset?>(null) }
-    var endOfDrag by remember { mutableStateOf<Boolean>(false) }
     val positionBounds = remember { mutableStateMapOf<Position, Rect>() }
 
-    // Entering or leaving the edit mode never inherits a previous drag
-    LaunchedEffect(isEditing) {
+    fun resetDrag() {
         draggedPosition = null
         hoveredPosition = null
         currentDragFingerPos = null
-        endOfDrag = false
+    }
+
+    // Always resets the drag state, whether the bottle is dropped on a free spot, an occupied
+    // one or in the void
+    fun endDrag() {
+        val from = draggedPosition
+        val to = hoveredPosition
+        resetDrag()
+        if (from == null || to == null || from == to) return
+        val stock = stockState[from] ?: return
+        coroutine.launch {
+            if (stockState[to] != null) {
+                SnackbarManager.send("You can't move the bottle here, there is already another one...")
+                return@launch
+            }
+            stockViewModel.delete(from)
+            stockViewModel.insert(stock.copy(position = to))
+        }
+    }
+
+    // Entering or leaving the edit mode never inherits a previous drag
+    LaunchedEffect(isEditing) {
+        resetDrag()
     }
 
     val unrackedWines = remember(winesPositionMap, stockState) {
@@ -233,7 +253,6 @@ fun CompartmentScreen(
                         hoveredPosition = hoveredPosition,
                         onFingerPositionUpdate = { newPos -> currentDragFingerPos = newPos },
                         onPositionDragStart = { position, _ ->
-                            endOfDrag = false
                             if (stockState[position] != null) {
                                 draggedPosition = position
                                 hoveredPosition = null
@@ -242,13 +261,8 @@ fun CompartmentScreen(
                         onPositionDragHover = { hoverPos ->
                             hoveredPosition = hoverPos
                         },
-                        onDragEnd = { _ ->
-                            endOfDrag = true
-                        },
-                        onDragCancel = {
-                            draggedPosition = null
-                            hoveredPosition = null
-                        },
+                        onDragEnd = { _ -> endDrag() },
+                        onDragCancel = { resetDrag() },
                         onPositionClick = { position ->
                             if(!isEditing){
                                 positionClicked = position
@@ -309,59 +323,6 @@ fun CompartmentScreen(
         }
     }
 
-
-    if(isEditing && draggedPosition != null && currentDragFingerPos != null) {
-        /*Box(
-            modifier = Modifier
-                .offset {
-                    IntOffset(
-                        currentDragFingerPos!!.x.roundToInt(),
-                        currentDragFingerPos!!.y.roundToInt()
-                    )
-                }
-                .size(16.dp)
-                .background(
-                    MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
-                    CircleShape
-                )
-                .border(2.dp, MaterialTheme.colorScheme.primaryContainer, CircleShape)
-        )*/
-    }
-
-
-    if (isEditing && endOfDrag && draggedPosition != null && hoveredPosition != null) {
-
-        if(stockState[hoveredPosition] != null) {
-            hoveredPosition = null
-            draggedPosition = null
-            return
-        }
-        MoveBottleDialog(
-            from = draggedPosition!!,
-            to = hoveredPosition!!,
-            stockState = stockState,
-            onMove = { from, to ->
-                coroutine.launch {
-                    val stock = stockState[from]
-                    stock?.let {
-                        if(stockState[to] != null){
-                            SnackbarManager.send("You can't move the bottle here, there is already another one...")
-                            return@let
-                        }
-                        stockViewModel.delete(from)
-                        stockViewModel.insert(it.copy(position = to))
-                    }
-                }
-                // Reset état
-                draggedPosition = null
-                hoveredPosition = null
-            },
-            onCancel = {
-                draggedPosition = null
-                hoveredPosition = null
-            }
-        )
-    }
 
     if (!isEditing && positionClicked != null) {
             OnBottlePositionClick(
