@@ -49,13 +49,8 @@ fun WineScreen(
     val selectedWineForEdit = selectedWineIdForEdit?.let { allWines[it] }
     var editError by remember { mutableStateOf<String?>(null) }
     var addError by remember { mutableStateOf<String?>(null) }
-    var selectedWine by remember { mutableStateOf<Wine?>(null) }
 
     val coroutineScope = rememberCoroutineScope()
-
-    selectedWine?.let { wine ->
-        onChangeTabScreen(Filter(wine.id.toString(), "wineId"))
-    }
 
     selectedWineForEdit?.let { wine ->
         WineEditDialog(
@@ -162,7 +157,7 @@ fun WineScreen(
             ) { index, wine ->
                 WineItem(
                     wine = wine,
-                    onClick = { selectedWine = wine },
+                    onClick = { onChangeTabScreen(Filter(wine.id.toString(), "wineId")) },
                     onUpdateClick = { selectedWineIdForEdit = wine.id }
                 )
             }
