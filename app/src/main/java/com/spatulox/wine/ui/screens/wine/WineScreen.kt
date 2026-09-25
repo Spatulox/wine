@@ -44,6 +44,7 @@ fun WineScreen(
 
     var selectedWineForEdit by remember { mutableStateOf<Wine?>(null) }
     var editError by remember { mutableStateOf<String?>(null) }
+    var addError by remember { mutableStateOf<String?>(null) }
     var selectedWine by remember { mutableStateOf<Wine?>(null) }
 
     val coroutineScope = rememberCoroutineScope()
@@ -166,16 +167,23 @@ fun WineScreen(
 
     if (showAddDialog) {
         WineAddDialog(
-            onDismiss = { onAddDialogChange(false) },
+            onDismiss = {
+                onAddDialogChange(false)
+                addError = null
+            },
             onValidate = { newWine ->
                 coroutineScope.launch {
-                    if(!wineViewModel.addWine(newWine)){
-                        SnackbarManager.send("Duplicate entry")
+                    // Only close on success, so the input isn't lost
+                    if (wineViewModel.addWine(newWine)) {
+                        onAddDialogChange(false)
+                        addError = null
+                    } else {
+                        addError = "Ce vin existe déjà (même nom, année et format)"
                     }
                 }
-                onAddDialogChange(false)
             },
-            wineViewModel = wineViewModel
+            wineViewModel = wineViewModel,
+            saveError = addError
         )
     }
 }

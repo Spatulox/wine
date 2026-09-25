@@ -58,7 +58,8 @@ import kotlin.math.roundToInt
 fun WineAddDialog(
     wineViewModel: WineViewModel,
     onDismiss: () -> Unit,
-    onValidate: (Wine) -> Unit
+    onValidate: (Wine) -> Unit,
+    saveError: String? = null
 ) {
     var name by remember { mutableStateOf("") }
     var type by remember { mutableStateOf<WineType>(WineType.ROUGE) }
@@ -73,23 +74,19 @@ fun WineAddDialog(
     var wineColor by remember { mutableStateOf<Color?>(null) }
     var comment by remember { mutableStateOf("") }
 
-    var errorMessage by remember { mutableStateOf("") }
     val wines by wineViewModel.wines.collectAsStateWithLifecycle()
-    val duplicateError by remember(name, year, type, format, wines) {
+    // Same fields and case sensitivity as the unique (name, year, format) index
+    val isDuplicate by remember(name, year, format, wines) {
         derivedStateOf {
-            wines.values.find { existing ->
-                existing.name.equals(name.trim(), ignoreCase = true) &&
+            wines.values.any { existing ->
+                existing.name == name.trim() &&
                         existing.year == year &&
-                        existing.type == type &&
                         existing.format == format
-            }?.let {
-                "Duplicate Entry"
-            } ?: ""
+            }
         }
     }
-    LaunchedEffect(duplicateError) {
-        errorMessage = duplicateError
-    }
+    val errorMessage = saveError
+        ?: if (isDuplicate) "Ce vin existe déjà (même nom, année et format)" else ""
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -295,7 +292,7 @@ fun WineAddDialog(
                                     }
                                 },
                                 modifier = Modifier.weight(1f),
-                                enabled = name.isNotBlank()
+                                enabled = name.isNotBlank() && !isDuplicate
                             ) {
                                 Text("Ajouter")
                             }
