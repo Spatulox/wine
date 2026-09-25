@@ -1,5 +1,6 @@
 package com.spatulox.wine.viewModels
 
+import android.database.sqlite.SQLiteConstraintException
 import androidx.lifecycle.viewModelScope
 import com.spatulox.wine.data.repository.StockRepositoryImpl
 import com.spatulox.wine.domain.model.Position
@@ -68,6 +69,16 @@ open class StockViewModel(
 
     suspend fun update(stock: StockWithWine){
         stockRepository.update(stock)
+    }
+
+    // Returns false when the target position is already taken
+    suspend fun move(stock: StockWithWine, to: Position): Boolean {
+        return try {
+            stockRepository.move(stock, to)
+            true
+        } catch (e: SQLiteConstraintException) {
+            false
+        }
     }
 
     suspend fun withdraw(position: Position, reason: String){

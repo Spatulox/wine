@@ -96,12 +96,9 @@ fun CompartmentScreen(
         if (from == null || to == null || from == to) return
         val stock = stockState[from] ?: return
         coroutine.launch {
-            if (stockState[to] != null) {
+            if (stockState[to] != null || !stockViewModel.move(stock, to)) {
                 SnackbarManager.send("You can't move the bottle here, there is already another one...")
-                return@launch
             }
-            stockViewModel.delete(from)
-            stockViewModel.insert(stock.copy(position = to))
         }
     }
 
@@ -336,13 +333,7 @@ fun CompartmentScreen(
                     coroutine.launch { stockViewModel.update(stock) }
                 },
                 onWithdraw = {position, comment ->
-                    coroutine.launch {
-                        val wine = wineViewModel.getWineByPos(position)
-                        if(wine != null){
-                            stockViewModel.withdraw(position, comment)
-                            wineViewModel.withdrawWine(wine)
-                        }
-                    }
+                    coroutine.launch { stockViewModel.withdraw(position, comment) }
                 },
                 onDeleteStock = {position ->
                     coroutine.launch { stockViewModel.delete(position) }

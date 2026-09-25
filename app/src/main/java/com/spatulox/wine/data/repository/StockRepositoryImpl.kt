@@ -2,6 +2,7 @@ package com.spatulox.wine.data.repository
 
 import com.spatulox.wine.data.db.TransactionProvider
 import com.spatulox.wine.data.db.dao.StockDao
+import com.spatulox.wine.data.db.dao.WineDao
 import com.spatulox.wine.domain.repository.StockRepository
 
 import com.spatulox.wine.data.mapper.StockMapper
@@ -15,6 +16,7 @@ import kotlinx.coroutines.flow.map
 // Stock represent a single position in a shelf
 class StockRepositoryImpl(
     private val stockDao: StockDao,
+    private val wineDao: WineDao,
     private val transactionProvider: TransactionProvider
 ) : StockRepository {
 
@@ -59,8 +61,17 @@ class StockRepositoryImpl(
         stockDao.update(StockMapper.toEntity(stock))
     }
 
+    // A single UPDATE: the bottle can't be lost halfway like with a delete + insert
+    override suspend fun move(stock: StockWithWine, to: Position) {
+        stockDao.update(StockMapper.toEntity(stock.copy(position = to)))
+    }
+
+    // Freeing the slot and decreasing the quantity must happen together
     override suspend fun withdraw(stock: StockWithWine, reason: String){
-        stockDao.delete(stock.id)
+        transactionProvider.run {
+            stockDao.delete(stock.id)
+            wineDao.withdrawWine(stock.wine.id)
+        }
     }
 
     override suspend fun withdraw(stockId: Int, reason: String) {

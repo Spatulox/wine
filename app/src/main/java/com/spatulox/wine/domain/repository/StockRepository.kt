@@ -17,6 +17,7 @@ interface StockRepository {
     fun getStockYearsStream(): Flow<List<Int>>
     suspend fun insert(stock: StockWithWine, reason: String): Long
     suspend fun update(stock: StockWithWine)
+    suspend fun move(stock: StockWithWine, to: Position)
     suspend fun withdraw(stock: StockWithWine, reason: String)
     suspend fun withdraw(stockId: Int, reason: String)
     suspend fun delete(stock: StockWithWine)

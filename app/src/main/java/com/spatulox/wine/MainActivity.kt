@@ -36,7 +36,7 @@ class MainActivity : ComponentActivity() {
         val transactionProvider = TransactionProvider(db)
 
         val wineRepository = WineRepositoryImpl(db.wineDao())
-        val stockRepository = StockRepositoryImpl(db.stockDao(), transactionProvider)
+        val stockRepository = StockRepositoryImpl(db.stockDao(), db.wineDao(), transactionProvider)
         val shelfRepository = ShelfRepositoryImpl(db.shelfDao())
         val compartmentRepository = CompartmentRepositoryImpl(db.compartmentDao(), shelfRepository, stockRepository,  transactionProvider)
 
