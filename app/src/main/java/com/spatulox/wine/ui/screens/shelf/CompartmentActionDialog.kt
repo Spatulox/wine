@@ -248,7 +248,7 @@ fun CompartmentActionDialog(
                     onShelvesDelete = { shelf ->
                         stock[shelf.id]?.size?.let {
                             coroutine.launch {
-                                snackbarHostState.showSnackbar("You can't delete this shelf since there is wine stocked inside...")
+                                snackbarHostState.showSnackbar("Impossible de supprimer cette ligne : elle contient encore des bouteilles")
                             }
                             return@CompartmentPreview
                         }

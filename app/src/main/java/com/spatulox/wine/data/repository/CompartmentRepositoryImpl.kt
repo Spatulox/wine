@@ -110,7 +110,7 @@ class CompartmentRepositoryImpl(val compartmentDao: CompartmentDao, val shelfRep
         return transactionProvider.run {
             val stock = stockRepository.getStockByCompartmentId(comp.id)
             if(stock != null){
-                return@run "There is stock inside the compartment you want to delete"
+                return@run "Impossible de supprimer ce compartiment : il contient encore des bouteilles"
             }
             val shelf = shelfRepository.getShelvesByCompartmentId(comp.id)
 
@@ -119,7 +119,7 @@ class CompartmentRepositoryImpl(val compartmentDao: CompartmentDao, val shelfRep
                     shelfRepository.delete(shelf)
                 }
             } catch (e: SQLiteConstraintException) {
-                return@run "Can't delete all the shelf from the compartment"
+                return@run "Impossible de supprimer les lignes du compartiment"
             }
 
             compartmentDao.delete(CompartmentMapper.toEntity(comp))

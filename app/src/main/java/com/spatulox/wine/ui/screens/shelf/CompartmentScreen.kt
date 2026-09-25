@@ -97,7 +97,7 @@ fun CompartmentScreen(
         val stock = stockState[from] ?: return
         coroutine.launch {
             if (stockState[to] != null || !stockViewModel.move(stock, to)) {
-                SnackbarManager.send("You can't move the bottle here, there is already another one...")
+                SnackbarManager.send("Impossible de déplacer la bouteille ici : l'emplacement est déjà occupé")
             }
         }
     }
@@ -313,7 +313,7 @@ fun CompartmentScreen(
                 .padding(start = 16.dp, end = 16.dp, top = 16.dp)
         ) {
             Text(
-                text = "Moving",
+                text = "Déplacement…",
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(12.dp)
             )

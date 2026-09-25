@@ -80,9 +80,9 @@ class CompartmentViewModel(
 
     suspend fun delete(compartment: Compartment): String? {
         return try {
-            return compartmentRepository.delete(compartment)
+            compartmentRepository.delete(compartment)
         } catch (e: SQLiteConstraintException) {
-            e.toString()
+            "Impossible de supprimer le compartiment"
         }
     }
 }
