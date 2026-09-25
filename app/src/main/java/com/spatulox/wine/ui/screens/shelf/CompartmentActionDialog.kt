@@ -291,10 +291,12 @@ fun CompartmentActionDialog(
                 Button(
                     onClick = {
 
+                        val existing = compartmentId?.toIntOrNull()?.let { compartmentViewModel.getCompartmentById(it) }
                         val compartment = Compartment(
                             id = compartmentId?.toInt() ?: 0,
                             name = name,
-                            order = compOrder
+                            // Only a new compartment goes at the end, an edited one keeps its place
+                            order = existing?.order ?: compOrder
                         )
 
                         coroutine.launch {
