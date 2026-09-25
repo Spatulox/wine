@@ -6,6 +6,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -32,6 +34,7 @@ import com.spatulox.wine.domain.model.Wine
 import com.spatulox.wine.ui.screens.components.IconFromName
 import com.spatulox.wine.ui.screens.components.formatPrice
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun WineItem(
     wine: Wine,
@@ -93,39 +96,25 @@ fun WineItem(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Row(
+            // Wraps to the next line instead of squeezing the last texts to one character per line
+            FlowRow(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Text(
-                    text = "${wine.year}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                Text(
-                    text = wine.type.displayName,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                Text(
-                    text = wine.region?.displayName ?: "N/A",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                Text(
-                    text = wine.format.displayName,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                wine.unitPrice?.let { price ->
+                listOfNotNull(
+                    "${wine.year}",
+                    wine.type.displayName,
+                    wine.region?.displayName,
+                    wine.format.displayName,
+                    wine.unitPrice?.let { formatPrice(it) }
+                ).forEach { info ->
                     Text(
-                        text = formatPrice(price),
+                        text = info,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
